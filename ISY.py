@@ -552,6 +552,21 @@ class IsyClass(IsyBaseClass):
 
 	# self._printdict(vdict)
 
+    def var_set(self) :
+	""" Set var value by name or ID """
+	pass
+
+    def var_get(self) :
+	""" Get var value by name or ID """
+	pass
+
+    def var_query(self) :
+	""" Get var names / IDs """
+	pass
+
+    #
+    # Climate
+    #
     def load_clim(self) :
 	""" Load climate data from ISY device """
 	if self.debug & 0x01 :
