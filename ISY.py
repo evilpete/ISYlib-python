@@ -697,6 +697,9 @@ class IsyClass(IsyBaseClass):
     #
     # Special Methods 
     #
+
+    # Design question :
+    # should __get/setitem__  return a node obj or a node's current value ?
     def __getitem__(self, nodeaddr):
 	""" access a node as dictionary entery """
 	if nodeaddr in self.nodeCdict :
@@ -705,9 +708,11 @@ class IsyClass(IsyBaseClass):
 	    return self.get_node(nodeaddr)
 
     def __setitem__(self, nodeaddr, val):
+	# print "__setitem__ : ", nodeaddr, " : ", val
 	pass
 
     def __delitem__(self, nodeaddr):
+	raise IsyProperyError("__delitem__ : can't delete nodes :  " + str(prop) )
 	pass
 
     def __repr__(self):
@@ -732,7 +737,8 @@ class IsyNode(IsyBaseClass):
 	else :
 	    print "error : class IsyNode called without isyBaseClass"
 	    raise TypeError("IsyNode: isy is wrong class")
-	if int(self._nodedict["flag"]) & 0x04 :
+	# only update if not a scene
+	if not (int(self._nodedict["flag"]) & 0x04) :
 	    self.update()
 	print "Init Node : \"" + self._nodedict["address"] + \
 	    "\" : \"" + self._nodedict["name"] + "\""
@@ -876,17 +882,18 @@ class IsyNode(IsyBaseClass):
 
     def on(self) :
 	self.isy._node_comm(self._nodedict["address"], "DON")
-	self._nodedict["property"]["time"] = 0
+	try :
+	    self._nodedict["property"]["time"] = 0
+	except :
+	    pass
 	# self.update()
-	pass
 
     def off(self) :
 	self.isy._node_comm(self._nodedict["address"], "DOF")
 
-	self._nodedict["property"]["time"] = 0
-
 	try :
 	    self._nodedict["property"]["ST"]["value"] = 0
+	    self._nodedict["property"]["time"] = 0
 	except: 
 	    pass
 
@@ -921,8 +928,8 @@ class IsyNode(IsyBaseClass):
 	self._set_prop(prop, val)
 	self._nodedict["property"]["time"] = 0
 
-    def __delitem__(self, nodeaddr):
-	pass
+    def __delitem__(self, prop):
+	raise IsyProperyError("__delitem__ : can't delete propery :  " + str(prop) )
 
     # The following is experimental
 
@@ -933,7 +940,7 @@ class IsyNode(IsyBaseClass):
 
     def __get__(self, instance, owner):
 	print "__get__ call"
-	return self.value(prop)
+	return self.value()
 
     def __set__(self, instance, value):
 	print "__set__ call"
