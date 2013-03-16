@@ -1,5 +1,9 @@
 *.py[cod]
 
+.exrc 
+tt.py
+test.*
+
 # C extensions
 *.so
 
