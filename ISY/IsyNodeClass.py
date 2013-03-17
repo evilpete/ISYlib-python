@@ -1,6 +1,6 @@
 
 
-from IsyUtilClass import IsyUtil
+from IsyUtilClass import *
 from IsyExceptionClass import *
 # from IsyClass import *
 # from IsyNodeClass import *
@@ -12,15 +12,22 @@ __all__ = ['IsyNode']
 
 # def rate
 # def onlevel
-class IsyNode(IsyUtil):
+class IsyNode(IsySubClass):
     """ Node Class for ISY
 	attributes :
 	ramprate onlevel status address name type members
     """
+    getlist = ['address', 'enabled', 'formatted',
+		'members', 'name', 'pnode', 'flag',
+		'OL', 'RR', 'ST', 'type']
+    setlist = ['ST', 'RR', 'OL', 'status', 'ramprate', 'onlevel' ]
+    propalias = { 'status': 'ST', 'value': 'ST', 'val': 'ST',
+		    'id': 'address', 'addr': 'address',
+		    'ramprate': 'RR', 'onlevel': 'OL'  }
 
     def __init__(self, isy, ndict) :
         if isinstance(ndict, dict):
-            self._nodedict = ndict
+            self._mydict = ndict
         else :
             print "error : class IsyNode called without ndict"
             raise TypeError("IsyNode: called without ndict")
@@ -32,26 +39,16 @@ class IsyNode(IsyUtil):
             print "error : class IsyNode called without isyUtilClass"
             raise TypeError("IsyNode: isy is wrong class")
         # only update if not a scene
-        if not (int(self._nodedict["flag"]) & 0x04) :
+        if not (int(self._mydict["flag"]) & 0x04) :
             self.update()
 
         if self.debug & 0x01 :
-	    print "Init Node : \"" + self._nodedict["address"] + \
-		"\" : \"" + self._nodedict["name"] + "\""
-        #self._printdict(self._nodedict)
-
-	self.getlist = ['address', 'enabled', 'formatted',
-			'members', 'name', 'pnode', 'flag',
-			'OL', 'RR', 'ST', 'type']
-
-	self.setlist = ['ST', 'RR', 'OL', 'status', 'ramprate', 'onlevel' ]
-	self.propalias = { 'status': 'ST',
-			'ramprate': 'RR',
-			'onlevel': 'OL'  }
+	    print "Init Node : \"" + self._mydict["address"] + \
+		"\" : \"" + self._mydict["name"] + "\""
+        #self._printdict(self._mydict)
 
 
-    def _get_node_prop(self, prop):
-        """  generic property get """
+    def _get_prop(self, prop):
         # print "----get_status call"
 
 	if prop == "formatted" :
@@ -63,7 +60,7 @@ class IsyNode(IsyUtil):
 	if prop in self.propalias :
 	    prop = self.propalias[prop]
 
-	if prop == 'type' and int(self._nodedict["flag"]) & 0x04 :
+	if prop == 'type' and int(self._mydict["flag"]) & 0x04 :
             return "scene"
 
         if not prop in self.getlist :
@@ -73,49 +70,60 @@ class IsyNode(IsyUtil):
 
         if prop in ['ST', 'OL', 'RR'] :
 	    # Scene's do not have property values
-	    if int(self._nodedict["flag"]) & 0x04 :
+	    if int(self._mydict["flag"]) & 0x04 :
 		return None
 
-	    if prop in self._nodedict["property"] :
-		return self._nodedict["property"][prop][value]
+	    if prop in self._mydict["property"] :
+		return self._mydict["property"][prop][value]
 	    else :
 		return None
 
-#            if self._nodedict["property"]["time"] == 0 :
+#            if self._mydict["property"]["time"] == 0 :
 #                    self.update()
 #            elif self.isy.cachetime :
-#                if time.gmtime() < ( self.cachetime + self._nodedict["property"]["time"] ) :
+#                if time.gmtime() < ( self.cachetime + self._mydict["property"]["time"] ) :
 #                    self.update()
 
         else :
 
-	    if prop in self._nodedict :
-		return self._nodedict[prop]
+	    if prop in self._mydict :
+		return self._mydict[prop]
 	    else :
 		return None
 
-    def _set_node_prop(self, prop, new_value):
+    def _set_prop(self, prop, new_value):
         """  generic property set """
         if self.debug & 0x04 :
-            print "_set_node_prop ", prop, " : ", new_value
+            print "_set_prop ", prop, " : ", new_value
+
+	if prop in self.propalias :
+	    prop = self.propalias[prop]
+
+	if int(self._mydict["flag"]) & 0x04 :
+	    raise IsyPropertyError("_set_prop : "
+		"Can't set Scene property Attribute " + prop)    
+
+        if not prop in self.setlist :
+	    raise IsyPropertyError("_set_prop : "
+		"Invalid property Attribute " + prop)    
 
         if not str(new_value).isdigit :
             TypeError("Set Property : Bad Value : node=%s prop=%s val=%s" %
-				    self._nodedict["address"], prop, str(val))
+				    self._mydict["address"], prop, str(val))
 
-        self.isy._node_set_prop(self._nodedict["address"], prop, str(new_value))
+        self.isy._node_set_prop(self._mydict["address"], prop, str(new_value))
 
-        self._nodedict["property"]["time"] = 0
+        self._mydict["property"]["time"] = 0
 
-        try:
-            self._nodedict["property"][prop]
-        except:
-            pass
-            #print "_set_node_prop AttributeError"
-            #raise AttributeError("no Attribute " + prop)
-        else:
+            
+	if prop in self._mydict["property"] :
             if isinstance(new_value, (long, int, float))  :
-                self._nodedict["property"][prop]["value"] = new_value
+                self._mydict["property"][prop]["value"] = new_value
+	else :
+            #print "_set_prop AttributeError"
+            #raise AttributeError("no Attribute " + prop)
+	    pass
+
 
         # exception TypeError
         # print "set_status NOT VALID: ", new_value
@@ -125,21 +133,21 @@ class IsyNode(IsyUtil):
     # ramprate property
     # obj mathod for getting/setting a Node's value
     # sets how fast a light fades on.
-    def get_node_rr(self):
+    def get_rr(self):
 	"""
 	Get RampRate property of Node
 	:rtype: str
         :return: RampRate value
 	"""
-        return self._get_node_prop("RR")
+        return self._get_prop("RR")
 
-    def set_node_rr(self, new_value):
+    def set_rr(self, new_value):
 	"""
-	set_node_rr : Get/Set RampRate property of Node
+	set_rr : Get/Set RampRate property of Node
 	"""
-        return self._set_node_prop("RR", new_value)
+        return self._set_prop("RR", new_value)
 
-    ramprate = property(get_node_rr, set_node_rr)
+    ramprate = property(get_rr, set_rr)
     """
     ramprate Get/Set RampRate property of Node
     """
@@ -148,31 +156,31 @@ class IsyNode(IsyUtil):
     # obj mathod for getting/setting a Node's value
     # where in most cases light is how bright the light is
     # when turned on
-    def get_node_ol(self):
+    def get_ol(self):
 	""" property On Level Value of Node """
-        return self._get_node_prop("OL")
+        return self._get_prop("OL")
 
-    def set_node_ol(self, new_value):
-        return self._set_node_prop("OL", new_value)
-    onlevel = property(get_node_ol, set_node_ol)
+    def set_ol(self, new_value):
+        return self._set_prop("OL", new_value)
+    onlevel = property(get_ol, set_ol)
 
 
-    def get_node_fm(self):
+    def get_fm(self):
 	""" property On Level Value of Node """
-        return self._get_node_prop("formatted")
-    formatted = property(get_node_fm)
+        return self._get_prop("formatted")
+    formatted = property(get_fm)
 
     # status property
     # obj mathod for getting/setting a Node's value
     # where in most cases light is how bright the light is
-    def get_node_status(self):
+    def get_status(self):
 	""" property status value of Node """
-        return self._get_node_prop("ST")
+        return self._get_prop("ST")
 
-    def set_node_status(self, new_value):
-        return self._set_node_prop("ST", new_value)
+    def set_status(self, new_value):
+        return self._set_prop("ST", new_value)
 
-    status = property(get_node_status, set_node_status)
+    status = property(get_status, set_status)
     """  returns status of Node """
 
 
@@ -180,27 +188,29 @@ class IsyNode(IsyUtil):
     # readonly to node attribute
     #
     def _getaddr(self):
-        return self._nodedict["address"]
+        return self._mydict["address"]
     address = property(_getaddr)
 
     def _getname(self):
 	""" property : Name of Node (readonly) """
-        return self._nodedict["name"]
+        return self._mydict["name"]
     name = property(_getname)
 
     def _gettype(self):
-        if "type" in self._nodedict :
-            return self._nodedict["type"]
-        elif int(self._nodedict["flag"]) & 0x04 :
+        if "type" in self._mydict :
+            return self._mydict["type"]
+        elif int(self._mydict["flag"]) & 0x04 :
             return "scene"
         else :
-            return "_gettype : ERROR"
+	    #raise IsyPropertyError("_set_prop : "
+            #	"Error getting' property Attribute : \"type\""
+	    return None
     type = property(_gettype)
 
     def _getmembers(self) :
 	""" property : List members of a scene or group """
-        if "members" in self._nodedict :
-            return self._nodedict["members"]
+        if "members" in self._mydict :
+            return self._mydict["members"]
         else :
             return None
     members = property(_getmembers)
@@ -214,7 +224,7 @@ class IsyNode(IsyUtil):
         pass
 
     def pdict(self):
-        self._printdict(self._nodedict)
+        self._printdict(self._mydict)
 
 
     #
@@ -223,103 +233,72 @@ class IsyNode(IsyUtil):
     #
     def value(self) :
         try:
-            return self._nodedict["property"]["ST"]["value"]
+            return self._mydict["property"]["ST"]["value"]
         except:
             return None
         #else:
-        #    return self._nodedict["property"]["ST"]["value"]
+        #    return self._mydict["property"]["ST"]["value"]
 
     # direct (non obj) call to set value
     def svalue(self, v) :
         try:
-            self._nodedict["property"]["ST"]["value"]
+            self._mydict["property"]["ST"]["value"]
         except:
             return None
         else:
-            self._nodedict["property"]["ST"]["value"] = v
+            self._mydict["property"]["ST"]["value"] = v
 
 
     def on(self) :
-        self.isy._node_comm(self._nodedict["address"], "DON")
-        try :
-            self._nodedict["property"]["time"] = 0
-        except :
-            pass
+        self.isy._node_comm(self._mydict["address"], "DON")
+	if "property" in self._mydict :
+            self._mydict["property"]["time"] = 0
         # self.update()
 
     def off(self) :
-        self.isy._node_comm(self._nodedict["address"], "DOF")
-
-        try :
-            self._nodedict["property"]["ST"]["value"] = 0
-            self._nodedict["property"]["time"] = 0
-        except:
-            pass
+        self.isy._node_comm(self._mydict["address"], "DOF")
+	if "property" in self._mydict :
+            self._mydict["property"]["time"] = 0
+	    if "ST" in  self._mydict["property"] :
+		self._mydict["property"]["ST"]["value"] = 0
 
 
     def beep(self) :
-        self.isy._node_comm(self._nodedict["address"], "BEEP")
+        self.isy._node_comm(self._mydict["address"], "BEEP")
         pass
 
     #
     #
     #
     def update(self) :
-        xurl = "/rest/nodes/" + self._nodedict["address"]
+        xurl = "/rest/nodes/" + self._mydict["address"]
         if self.debug & 0x01 :
             print "_updatenode pre _getXML"
         _nodestat = self.isy._getXMLetree(xurl)
-        # del self._nodedict["property"]["ST"]
+        # del self._mydict["property"]["ST"]
         for prop in _nodestat.iter('property'):
             tprop = dict ( )
             for k, v in prop.items() :
                 tprop[k] = v
             if "id" in tprop :
-                self._nodedict["property"][tprop["id"]] = tprop
-        # self._nodedict["property"]["time"] = time.gmtime()
+                self._mydict["property"][tprop["id"]] = tprop
+        # self._mydict["property"]["time"] = time.gmtime()
 
-    def __getitem__(self, prop):
-	return self._get_node_prop(prop)
-
-    def __setitem__(self, prop, val):
-        if not prop in ['ST', 'OL', 'RR'] :
-            raise IsyProperyError("__setitem__: unknown propery : " + str(prop) )
-        self._set_prop(prop, val)
-        # self._nodedict["property"]["time"] = 0
-
-    def __delitem__(self, prop):
-        raise IsyProperyError("__delitem__ : can't delete propery :  " + str(prop) )
-
-    # The following is experimental
-
+    # experimental
     def __nonzero__(self) :
-        #print "__nonzero__ call", self._nodedict["property"]["ST"]["value"], \
-        #        " :: ", int(self._nodedict["property"]["ST"]["value"])
-        return ( int(self._nodedict["property"]["ST"]["value"]) > 0 )
+        #print "__nonzero__ call", self._mydict["property"]["ST"]["value"], \
+        #        " :: ", int(self._mydict["property"]["ST"]["value"])
+        return ( int(self._mydict["property"]["ST"]["value"]) > 0 )
 
-    def __get__(self, instance, owner):
-        print "__get__ call"
-        return self.value()
-
-    def __set__(self, instance, value):
-        print "__set__ call"
-        self._set_prop("ST", val)
-
-    def __iter__(self):
-	for p in self.getlist :
-	    yield (p , self._get_node_prop(p))
 
 
 #    def __str__(self):
 #       print "__str__ call"
-#       return ( "my str : " + self._nodedict["name"] )
-
-    def __repr__(self):
-        return "<IsyNode %s @ %s at 0x%x>" % (self._nodedict["address"], self.isy.addr, id(self))
+#       return ( "my str : " + self._mydict["name"] )
 
     def __float__(self):
         # print "__float__ call"
-        return float ( int(self._nodedict["property"]["ST"]["value"]) / float(255) )
+        return float ( int(self._mydict["property"]["ST"]["value"]) / float(255) )
 
 #
 # Do nothing

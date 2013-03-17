@@ -10,7 +10,7 @@ from pprint import pprint
 
 # import ISY.IsyClass 
 
-__all__ = ['IsyUtil']
+__all__ = ['IsyUtil', 'IsySubClass' ]
 
 #
 # Simple Base class for ISY Class
@@ -56,6 +56,80 @@ class IsyUtil(object):
     def _printinfo(self, uobj, ulabel="\t"):
 	""" Debug util """
         print "%s: tag=%s text=%s attr=%s : atype=%s : type=%s" % (ulabel, uobj.tag, uobj.text, uobj.attrib, type(uobj.attrib), type(uobj))
+
+class IsySubClass(IsyUtil):
+    getlist = [ "name", "id", "value", "address" ]
+    setlist = [ ]
+    propalias = { }
+
+    def __init__(self, isy, objdict) :
+	""" INIT """
+        if isinstance(objdict, dict):
+            self._mydict = objdict
+        else :
+            print "error : class IsySubClass called without objdict"
+            raise IsyValueError("IsySubClass: called without objdict")
+
+        if isinstance(isy, IsyUtil):
+            self.isy = isy
+            self.debug = isy.debug
+        else :
+            print "error : class " + self.__class__.__name__ + " called without Isy"
+            raise TypeError("IsySubClass: isy is wrong class")
+
+        if self.debug & 0x04 :
+	    print "IsySubClass: ",
+	    self._printdict(self._mydict)
+
+
+
+    def _get_prop(self, prop):
+	if prop in self.propalias :    
+	    prop = self.propalias[prop]
+
+	if prop in self.getlist : 
+	    if prop in self._mydict :
+		return(self._mydict[prop])
+	return(None)
+
+    def _set_prop(self, prop, val):
+
+	if prop in self.propalias :    
+	    prop = self.propalias[prop]
+
+	if not prop in self.setlist :
+	    raise IsyPropertyError("_set_prop : "
+		"no property Attribute " + prop)
+	pass
+
+
+
+    def __getitem__(self, prop):
+	return self._get_prop(prop)
+
+    def __setitem__(self, prop):
+	return self._set_prop(prop)
+
+    def __delitem__(self, prop):
+        raise IsyProperyError("__delitem__ : can't delete propery :  " + str(prop) )
+	pass
+
+    def __get__(self, instance, owner):
+	return self._get_prop("val")
+    def __set__(self,  val):
+	self._set_prop("value", val)
+
+    def __iter__(self):
+	for p in self.getlist :
+	    if p in self._mydict :
+		yield (p , self._mydict[p])
+	    else :
+		yield (p , None)
+
+    def __repr__(self):
+	return "<%s %s @ %s at 0x%x>" % ( self.__class__.__name__,
+		self._get_prop("id"), self.isy.addr, id(self))
+
 
 #
 # Do nothing

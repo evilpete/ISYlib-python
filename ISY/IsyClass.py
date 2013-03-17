@@ -495,13 +495,18 @@ class Isy(IsyUtil):
         return (devcat, subcat)
 
 
-    def node_iter(self):
+    def node_iter(self, nodetype=""):
         try:
             self._nodedict
         except AttributeError:
             self.load_nodes()
-	k = self._nodedict.keys()
-	k.extend(self._nodegroups.keys())
+	if nodetype == "node" :
+	    k = self._nodedict.keys()
+	elif nodetype == "scene" :
+	    k = self._nodegroups.keys()
+	else :
+	    k = self._nodedict.keys()
+	    k.extend(self._nodegroups.keys())
 	for n in k :
 	    yield self.get_node(n)
 
@@ -528,6 +533,7 @@ class Isy(IsyUtil):
 		id = t + ":" + v.attrib["id"]
                 self._vardict[id]['name'] = v.attrib['name']
                 self._vardict[id]["id"] = id
+                self._vardict[id]["type"] = t
                 self.name2var[v.attrib['name']] = id
 
         # self._printdict(self._vardict)
@@ -624,7 +630,7 @@ class Isy(IsyUtil):
     def var_get_type(self, vtype) :
 	return "VART"
 
-    def var_iter(self):
+    def var_iter(self, vartype=0):
         try:
             self._vardict
         except AttributeError:
@@ -634,7 +640,12 @@ class Isy(IsyUtil):
 
 	k = self._vardict.keys()
 	for v in k :
-	    yield self.get_var(v)
+	    if vartype :
+		vartype = str(vartype)
+		if self._vardict[v]["type"] == vartype :
+		    yield self.get_var(v)
+	    else :
+		yield self.get_var(v)
 
     ##
     ## Climate funtions
