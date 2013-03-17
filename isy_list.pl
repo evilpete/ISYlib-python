@@ -1,9 +1,8 @@
 #!/usr/local/bin/python2.7
 
-from ISY import *
+import ISY
 
-
-myisy = IsyClass( debug=0 )
+myisy = ISY.Isy( debug=0 )
 
 for nod in myisy :
    if nod.type == "scene" :

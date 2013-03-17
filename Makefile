@@ -11,21 +11,29 @@ all:
 
 t: style
 
+FILES= ISY/IsyClass.py ISY/IsyExceptionClass.py ISY/IsyNodeClass.py ISY/IsyProgramClass.py ISY/IsyUtilClass.py ISY/IsyVarClass.py __init__.py
 
-syntax: ISY.py
-	python ./ISY.py
+syntax:
+	python ISY/IsyClass.py
+	python ISY/IsyExceptionClass.py
+	python ISY/IsyNodeClass.py
+	python ISY/IsyProgramClass.py
+	python ISY/IsyUtilClass.py
+	python ISY/IsyVarClass.py
 
 style: ISY.py syntax
-	${PEP8} ${PEP8ARG} ./ISY.py
+	${PEP8} ${PEP8ARG} ${FILES}
 
 
-list: ISY.py
-	egrep '^ *class |^ *def |^    ##' ISY.py
+list: 
+	egrep -h '^ *class |^ *def |^    ##' ${FILES}
 
-doc: ISY.py
-	pydoc ./ISY.py
+doc: 
+	pydoc ${FILES}
 
 
+lint: 
+	pylint ${FILES}
 
 
 #checkall: ${PLIB} ${PROGS}
