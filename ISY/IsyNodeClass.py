@@ -45,7 +45,7 @@ class IsyNode(IsySubClass):
         if self.debug & 0x01 :
 	    print "Init Node : \"" + self._mydict["address"] + \
 		"\" : \"" + self._mydict["name"] + "\""
-        #self._printdict(self._mydict)
+	    # self.isy._printdict(self.__dict__)
 
 
     def _get_prop(self, prop):
@@ -289,7 +289,6 @@ class IsyNode(IsySubClass):
         #print "__nonzero__ call", self._mydict["property"]["ST"]["value"], \
         #        " :: ", int(self._mydict["property"]["ST"]["value"])
         return ( int(self._mydict["property"]["ST"]["value"]) > 0 )
-
 
 
 #    def __str__(self):

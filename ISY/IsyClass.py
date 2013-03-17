@@ -26,16 +26,16 @@ import warnings
 
 from IsyUtilClass import *
 from IsyNodeClass import *
-# from IsyProgram import *
+from IsyProgramClass import *
 from IsyVarClass import *
-import IsyUtilClass 
+from IsyExceptionClass import *
 
 # Debug Flags:
 # 0x01 = report loads
 # 0x02 = report urls used
 # 0x04 = report func call
 # 0x08 = Dump loaded data
-# 0x10 = Dump loaded data
+# 0x10 = print loaded data to file
 # 0x20 =
 # 0x40 =
 # 0x80 =
@@ -94,6 +94,29 @@ class Isy(IsyUtil):
         self.load_clim()
         self.load_conf()
 
+    def _savedict(self) :
+
+	self.load_wol()
+	self._writedict(self.wolinfo, "wolinfo.txt")
+
+	self.load_nodes()
+	self._writedict(self._nodedict, "nodedict.txt")
+
+	self._writedict(self._nodegroups, "nodegroups.txt")
+
+	self.load_vars()
+	self._writedict(self._vardict, "vardict.txt")
+
+        self.load_clim()
+	self._writedict(self.climateinfo, "climateinfo.txt")
+
+        self.load_conf()
+	self._writedict(self.controls, "controls.txt")
+
+	self.load_programs()
+	self._writedict(self._progdict, "progdict.txt")
+
+
     ##
     ## Load System config / info and command information
     ##
@@ -135,7 +158,7 @@ class Isy(IsyUtil):
 
 	self.config = dict ()
 	for v in ( "platform", "app_version" ):
-	    n = configinfo.find(v)
+	    n = self.configinfo.find(v)
 	    if not n is None:
 		if isinstance(n.text, str):
 		    self.config[v] = n.text
@@ -191,18 +214,26 @@ class Isy(IsyUtil):
             for k, v in grp.items() :
                 gprop[k] = v
             for child in list(grp) :
-                if child.tag != "members" :
+		if child.tag == "parent" :
                     gprop[child.tag] = child.text
-                else :
-                    glist = [ ]
+		    pprop = dict ()
+		    for k, v in child.items() :
+			gprop[child.tag + "-" + k] =  v
+                elif child.tag == "members" :
+                    glist = dict ()
                     for lnk in child.iter('link'):
-                        glist.append(lnk.text)
+			glist[lnk.text] = lnk.attrib['type']
                     gprop[child.tag] = glist
+                else :
+                    gprop[child.tag] = child.text
 
             if "address" in gprop :
                 self._nodegroups[gprop["address"]] = gprop
                 if "name" in gprop :
-                    self.groups2addr[gprop["name"]] = str(gprop["address"])
+		    if gprop["name"] in self.groups2addr :
+			print "Dup group name", gprop["name"], str(gprop["address"])
+		    else :
+			self.groups2addr[gprop["name"]] = str(gprop["address"])
             else :
 		# should raise an exception ?
                 self._printinfo(grp, "Error : no address in group :")
@@ -418,7 +449,7 @@ class Isy(IsyUtil):
 	    "/" + "/".join(str(x) for x in args) )
 
         if self.debug & 0x02 :
-            print "xurl = " + xurl
+		print "xurl = " + xurl
         resp = self._getXMLetree(xurl)
         self._printXML(resp)
         if resp.attrib["succeeded"] != 'true' :
@@ -534,7 +565,11 @@ class Isy(IsyUtil):
                 self._vardict[id]['name'] = v.attrib['name']
                 self._vardict[id]["id"] = id
                 self._vardict[id]["type"] = t
-                self.name2var[v.attrib['name']] = id
+		if v.attrib['name'] in self.name2var :
+		    print "warning Dum var name :", v.attrib['name'], \
+			    id, self.name2var[v.attrib['name']]
+		else :
+		    self.name2var[v.attrib['name']] = id
 
         # self._printdict(self._vardict)
 
@@ -647,6 +682,36 @@ class Isy(IsyUtil):
 	    else :
 		yield self.get_var(v)
 
+    def set_var_value(self, varname, val, init=0):
+        if self.debug & 0x01 :
+	    print "set_var :" + vname
+        try:
+            self._vardict
+        except AttributeError:
+            self.load_vars()
+#       except:
+#           print "Unexpected error:", sys.exc_info()[0]
+#           return None
+
+	varid = self._var_get_id(vname)
+
+    def _set_var_value(self, varid, val, init=0):
+	vid = varid.split(':')
+	if init :
+	    xurl = "/rest/vars/init/" + a[0] + "/" + a[1] + "/" + val
+	else :
+	    xurl = "/rest/vars/set/" + a[0] + "/" + a[1] + "/" + val
+
+        if self.debug & 0x02 :
+            print "xurl = " + xurl
+
+        resp = self._getXMLetree(xurl)
+        self._printXML(resp)
+        if resp.attrib["succeeded"] != 'true' :
+            raise IsyResponseError("ISY command error : varid=" +
+		str(varid) + " cmd=" + str(cmd_id))
+
+
     ##
     ## Climate funtions
     ##
@@ -702,13 +767,13 @@ class Isy(IsyUtil):
             wdict = dict ()
             for k, v in wl.items() :
                 wdict[k] = v
-            for we in list(cl):
-                wdict[ce.tag] = we.text
+            for we in list(wl):
+                wdict[we.tag] = we.text
             if "id" in wdict :
                 self.wolinfo[str(wdict["id"])] = wdict
                 self.name2wol[wdict["name"].upper()] = wdict["id"]
-        self._printdict(self.wolinfo)
-        self._printdict(self.name2wol)
+        # self._printdict(self.wolinfo)
+        # self._printdict(self.name2wol)
 
     def wol(self, wid) :
         """ Send Wake On LAN to registared wol ID """
@@ -770,7 +835,12 @@ class Isy(IsyUtil):
                 pdict[pe.tag] = pe.text
             if "id" in pdict :
                 self._progdict[str(pdict["id"])] = pdict
-                self.name2prog[pdict["name"].upper()] = pdict["id"]
+		n = pdict["name"].upper()
+		if n in self.name2prog :
+		    print "Dup name", n, pdict["id"]
+		    print "name2prog ", self.name2prog[n]
+		else :
+		    self.name2prog[n] = pdict["id"]
         #self._printdict(self._progdict)
         #self._printdict(self.name2prog)
 
@@ -779,7 +849,7 @@ class Isy(IsyUtil):
     def get_prog(self, pname) :
         """ get prog class obj """
         if self.debug & 0x01 :
-	    print "get_prog :" + vname
+	    print "get_prog :" + pname
         try:
             self._progdict
         except AttributeError:
@@ -788,13 +858,13 @@ class Isy(IsyUtil):
 #           print "Unexpected error:", sys.exc_info()[0]
 #           return None
         finally:
-            progid = self._prog_get_id(vname)
+            progid = self._prog_get_id(pname)
 	    # print "\tprogid : " + progid
             if progid in self._progdict :
                 if not progid in self.progCdict :
 		    # print "not progid in self.progCdict:"
 		    # self._printdict(self._progdict[progid])
-                    self.progCdict[progid] = IsyVar(self, self._progdict[progid])
+                    self.progCdict[progid] = IsyProgram(self, self._progdict[progid])
 		#self._printdict(self._progdict)
 		# print "return : ",
 		#self._printdict(self.progCdict[progid])
@@ -819,11 +889,6 @@ class Isy(IsyUtil):
         # print "_prog_get_id : " + n + " None"
         return None
 
-    def prog_comm(self, naddr, cmd, *args) :
-	valid_comm = ['run', 'runThen', 'runElse', 'stop',
-			'enable', 'disable',
-			'enableRunAtStartup', 'disableRunAtStartup']
-	pass
 
     def prog_iter(self):
         try:
@@ -837,6 +902,55 @@ class Isy(IsyUtil):
 	for v in k :
 	    yield self.get_prog(v)
 
+    def prog_comm(self, paddr, cmd, *args) :
+	valid_comm = ['run', 'runThen', 'runElse', 'stop',
+			'enable', 'disable',
+			'enableRunAtStartup', 'disableRunAtStartup']
+        prog_id = self._get_prog_id(paddr)
+
+        #print "self.controls :", self.controls
+        #print "self.name2control :", self.name2control
+
+        if not prog_id :
+            raise IsyInvalidCmdError("prog_comm: unknown node : " +
+		str(paddr) )
+
+        if not cmd in valid_comm :
+            raise IsyInvalidCmdError("prog_comm: unknown command : " +
+		str(cmd) )
+
+	self._prog_comm(prog_id, cmd, *args)
+
+    def _prog_comm(self, prog_id, cmd, *args) :
+        """ send command to a program without name to ID overhead """
+        # /rest/programs/<pgm-id>/<pgm-cmd>
+        xurl = "/rest/programs/" + prog_id + cmd 
+
+        if self.debug & 0x02 :
+            print "xurl = " + xurl
+
+        resp = self._getXMLetree(xurl)
+        self._printXML(resp)
+        if resp.attrib["succeeded"] != 'true' :
+            raise IsyResponseError("ISY command error : prog_id=" +
+		str(node_id) + " cmd=" + str(cmd_id))
+
+
+    # redundant
+    def _updatenode(self, naddr) :
+        """ update a node's property from ISY device """
+        xurl = "/rest/nodes/" + self._nodedict[naddr]["address"]
+        if self.debug & 0x01 :
+            print "_updatenode pre _getXML"
+        _nodestat = self._getXMLetree(xurl)
+        # del self._nodedict[naddr]["property"]["ST"]
+        for prop in _nodestat.iter('property'):
+            tprop = dict ( )
+            for k, v in prop.items() :
+                tprop[k] = v
+            if "id" in tprop :
+                self._nodedict[naddr]["property"][tprop["id"]] = tprop
+        self._nodedict[naddr]["property"]["time"] = time.gmtime()
     ##
     ## Logs
     ##
@@ -846,13 +960,32 @@ class Isy(IsyUtil):
     def load_log_id():
 	pass
 
-    def log_reset( error = 0 ):
-	pass
+    def log_reset(self, errorlog = 0 ):
+	""" clear log lines in ISY """ 
+	self.log_query(errorlog, 1)
 
-    def log_iter( error = 0 ):
-	pass
+    def log_iter(self, error = 0 ):
+	""" iterate though log lines """
+	for l in self.log_query(error) :
+	    yield l
 
-    def log_query( error = 0 ):
+    def log_query(self, errorlog = 0, resetlog = 0 ):
+	""" get log from ISY """
+	xurl = self.baseurl + "/rest/log"
+	if errorlog :
+	    xurl += "/error"
+	if resetlog :
+	    xurl += "?reset=true"
+        if self.debug & 0x02 :
+	    print "xurl = " + xurl
+	req = URL.Request(xurl)
+        res = self.opener.open(req)
+        data = res.read()
+        res.close()
+        return data.splitlines()
+
+    def log_format_line(self, line) :
+	""" format a ISY log line into a more human readable form """
 	pass
 
 
@@ -960,6 +1093,13 @@ class Isy(IsyUtil):
             self.pp.pprint(d)
 	    print "===END==="
 
+    def _writedict(self, d, filen):
+	""" Pretty Print dict to file  """
+	fi = open(filen, 'w')
+	mypp = pprint.PrettyPrinter(indent=3, stream=fi)
+	mypp.pprint(d)
+	fi.close()
+
 
 #
 # Do nothing
@@ -969,5 +1109,5 @@ if __name__ == "__main__":
     import __main__
     print __main__.__file__
 
-    print(" syntax ok")
+    print("syntax ok")
     exit(0)

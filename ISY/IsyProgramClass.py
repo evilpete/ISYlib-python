@@ -47,7 +47,6 @@ class IsyProgram(IsySubClass):
 	return self._get_prop("enabled")
     enabled = property(get_prog_enabled)
 
-
     def get_prog_folder(self):
 	return self._get_prop("folder")
     folder = property(get_prog_folder)
@@ -88,6 +87,8 @@ class IsyProgram(IsySubClass):
 	return self._get_prop("status")
     status = property(get_prog_status)
 
+    def send_command(self, cmd):
+	self.prog_comm(self._mydict['id'], cmd)
 
 #
 # Do nothing

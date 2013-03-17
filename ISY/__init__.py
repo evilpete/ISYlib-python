@@ -2,12 +2,13 @@
 
 from IsyUtilClass import *
 from IsyClass import *
-from IsyNodeClass import *
-from IsyVarClass import *
-#from IsyProgramClass import IsyProgram
-#from IsyVarClass import IsyVar
+#from IsyNodeClass import *
+#from IsyVarClass import *
+#from IsyProgramClass import *
 
-version = '0.1.20130316'
+__version__ = '0.1.20130316'
+__author__ = 'Peter Shipley <peter.shipley@gmail.com>'
+
 
 #__all__ = ['IsyUtil', 'Isy',  'IsyNode', 'IsyProgram', 'IsyVar']
 __all__ = ['IsyUtil', 'IsyUtilClass', 'Isy', 'IsyClass',  'IsyNode', 'IsyVar']

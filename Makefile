@@ -11,22 +11,22 @@ all:
 
 t: style
 
-FILES= ISY/IsyClass.py ISY/IsyExceptionClass.py ISY/IsyNodeClass.py ISY/IsyProgramClass.py ISY/IsyUtilClass.py ISY/IsyVarClass.py __init__.py
+FILES= ISY/IsyClass.py ISY/IsyExceptionClass.py ISY/IsyNodeClass.py ISY/IsyProgramClass.py ISY/IsyUtilClass.py ISY/IsyVarClass.py ISY/__init__.py
 
 syntax:
-	python ISY/IsyClass.py
-	python ISY/IsyExceptionClass.py
-	python ISY/IsyNodeClass.py
-	python ISY/IsyProgramClass.py
-	python ISY/IsyUtilClass.py
-	python ISY/IsyVarClass.py
+	for targ in ${FILES} ; do \
+	    python $$targ ; \
+	done 
 
 style: ISY.py syntax
 	${PEP8} ${PEP8ARG} ${FILES}
 
 
-list: 
-	egrep -h '^ *class |^ *def |^    ##' ${FILES}
+list: ${FILES}
+	for targ in ${FILES} ; do  \
+	    echo $$targ ; \
+	    egrep -h '^ *class |^ *def |^    ##' $$targ ;\
+	done
 
 doc: 
 	pydoc ${FILES}

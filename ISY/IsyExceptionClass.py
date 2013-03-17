@@ -1,6 +1,6 @@
 __all__ = [ 'IsyError', 'IsyCommandError', 'IsyNodeError',
 	'IsyResponseError', 'IsyPropertyError', 'IsyValueError',
-	'IsyPropertyValueError' ]
+	'IsyPropertyValueError', 'IsyInvalidCmdError' ]
 
 
 #
@@ -51,6 +51,10 @@ class IsyPropertyError(IsyError):
 
 class IsyValueError(IsyError):
     """General exception for Node errors."""
+    pass
+
+class IsyInvalidCmdError(IsyError):
+    """General exception for command errors."""
     pass
 
 class IsyPropertyValueError(IsyError):
