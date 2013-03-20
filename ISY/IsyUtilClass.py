@@ -1,5 +1,5 @@
 # from xml.dom.minidom import parse, parseString
-from StringIO import StringIO
+#from StringIO import StringIO
 import xml.etree.ElementTree as ET
 # import base64
 import urllib2 as URL

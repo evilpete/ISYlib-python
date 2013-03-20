@@ -109,7 +109,7 @@ class IsyNode(IsySubClass):
 
         if not str(new_value).isdigit :
             TypeError("Set Property : Bad Value : node=%s prop=%s val=%s" %
-				    self._mydict["address"], prop, str(val))
+			    self._mydict["address"], prop, str(new_value))
 
         self.isy._node_set_prop(self._mydict["address"], prop, str(new_value))
 
@@ -148,9 +148,6 @@ class IsyNode(IsySubClass):
         return self._set_prop("RR", new_value)
 
     ramprate = property(get_rr, set_rr)
-    """
-    ramprate Get/Set RampRate property of Node
-    """
 
     # On Level property
     # obj mathod for getting/setting a Node's value
@@ -181,7 +178,6 @@ class IsyNode(IsySubClass):
         return self._set_prop("ST", new_value)
 
     status = property(get_status, set_status)
-    """  returns status of Node """
 
 
     #
@@ -265,7 +261,6 @@ class IsyNode(IsySubClass):
 
     def beep(self) :
         self.isy._node_comm(self._mydict["address"], "BEEP")
-        pass
 
     #
     #

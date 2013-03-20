@@ -33,7 +33,7 @@ doc:
 
 
 lint: 
-	pylint ${FILES}
+	pylint -d W0312,C0111,C0301 ${FILES}
 
 
 #checkall: ${PLIB} ${PROGS}

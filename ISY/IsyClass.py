@@ -113,7 +113,7 @@ class Isy(IsyUtil):
         self.load_conf()
 	self._writedict(self.controls, "controls.txt")
 
-	self.load_programs()
+	self.load_prog()
 	self._writedict(self._progdict, "progdict.txt")
 
 
@@ -561,15 +561,15 @@ class Isy(IsyUtil):
             vinfo = self._getXMLetree("/rest/vars/definitions/" + t)
             for v in vinfo.iter("e") :
                 # self._printinfo(v, "e :")
-		id = t + ":" + v.attrib["id"]
-                self._vardict[id]['name'] = v.attrib['name']
-                self._vardict[id]["id"] = id
-                self._vardict[id]["type"] = t
+		vid = t + ":" + v.attrib["id"]
+                self._vardict[vid]['name'] = v.attrib['name']
+                self._vardict[vid]["id"] = vid
+                self._vardict[vid]["type"] = t
 		if v.attrib['name'] in self.name2var :
 		    print "warning Dum var name :", v.attrib['name'], \
-			    id, self.name2var[v.attrib['name']]
+			    vid, self.name2var[v.attrib['name']]
 		else :
-		    self.name2var[v.attrib['name']] = id
+		    self.name2var[v.attrib['name']] = vid
 
         # self._printdict(self._vardict)
 
@@ -694,6 +694,8 @@ class Isy(IsyUtil):
 #           return None
 
 	varid = self._var_get_id(vname)
+	self._set_var_value(varid, val, init)
+
 
     def _set_var_value(self, varid, val, init=0):
 	vid = varid.split(':')
@@ -796,7 +798,14 @@ class Isy(IsyUtil):
 		+ str(wol_id))
 
     def name2wol(self, name) :
-	pass
+	if name in self.wolinfo :
+	    return name
+
+	if name in self.self.name2wol :
+	    return self.name2wol[name]
+
+	return None
+
 
     def wol_names(self, vname) :
 	"""
@@ -820,7 +829,7 @@ class Isy(IsyUtil):
     ##
     ## ISY Programs Code
     ##
-    def load_programs(self):
+    def load_prog(self):
         """ Load Program status and Info """
         if self.debug & 0x01 :
             print "load_prog called"
@@ -837,7 +846,7 @@ class Isy(IsyUtil):
                 self._progdict[str(pdict["id"])] = pdict
 		n = pdict["name"].upper()
 		if n in self.name2prog :
-		    print "Dup name", n, pdict["id"]
+		    print "Dup name : \"" + n + "\" ", pdict["id"]
 		    print "name2prog ", self.name2prog[n]
 		else :
 		    self.name2prog[n] = pdict["id"]
