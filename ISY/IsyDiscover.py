@@ -1,5 +1,10 @@
 #!/usr/local/bin/python 
 
+#
+# THIS IS BAD CODE
+# DOES NOT PROPERLY HANDLE XML namespace FOR Upnp
+#
+
 import socket
 import struct
 import sys
