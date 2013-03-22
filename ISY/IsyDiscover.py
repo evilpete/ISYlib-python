@@ -8,6 +8,9 @@ import xml.etree.ElementTree as ET
 import urllib2 as URL
 
 import re
+from pprint import pprint
+from pprint import pprint
+
 
 import signal
 
@@ -126,36 +129,69 @@ def isy_discover( **kwargs ):
 	if ddata.debug :
 	    print "return data.upnp_urls = ", ddata.upnp_urls
 
-    result = []
+    result = {}
+    result_tags = ["UDN", "URLBase", "SCPDURL",
+		"controlURL", "eventSubURL"]
+
+
     for s in ddata.upnp_urls : 
 	req = URL.Request(s)
 	resp= URL.urlopen(req)
 	pagedata = resp.read()
 	resp.close()
-	#print "pagedata = ", pagedata
 
-	# does this even work
-	#ET.register_namespace('urn', 'schemas-upnp-org:device-1-0')
-	#ET.register_namespace("isy", 'urn:schemas-upnp-org:device-1-0')
-	# print ET._namespace_map
 
+
+	# does this even work ??
+	# ET.register_namespace("isy", 'urn:schemas-upnp-org:device-1-0')
+	#print "_namespace_map = {0}".format(ET._namespace_map)
+
+	# this is a hack to deal with namespace :
+	pa = re.sub(r" xmlns=\"urn:schemas-upnp-org:device-1-0\"", "", pagedata)
 	# grok the XML from the Upnp discovered server 
-	xmlres = ET.fromstring(pagedata)
+	xmlres = ET.fromstring(pa)
 
-	# this is a hack to deal with namespace
-	if hasattr(xmlres, 'tag') :
-	    xmlns = re.search('\{(.*)\}', xmlres.tag).group(1)
-	else :
-	    continue
+	# print "_namespace_map : ",
+	# pprint(ET._namespace_map)
+
+	#if hasattr(xmlres, 'tag') :
+	#    xmlns = re.search('\{(.*)\}', xmlres.tag).group(1)
+	#else :
+	#    continue
 
 	#print "xmlns ", xmlns
 
-	URLBase_tag = "{%s}%s" % ( xmlns, "URLBase" )
-	
-	urlbase = xmlres.find(URLBase_tag)
-	if not urlbase is None:
-	    if hasattr(urlbase, 'text') :
-		result.append(urlbase.text)
+	isy_res = dict ()
+
+	el = xmlres.find("URLBase")
+	if hasattr(el, 'text') :
+	    isy_res["URLBase"] = el.text
+
+	el = xmlres.find("device/friendlyName")
+	if hasattr(el, 'text') :
+	    isy_res["friendlyName"] = el.text
+
+	el = xmlres.find("device/UDN")
+	if hasattr(el, 'text') :
+	    isy_res["UDN"] = el.text
+
+	for el in xmlres.iter("service") :
+	    serv = el.find('serviceType')
+	    if hasattr(serv, 'text') and serv.text == "urn:udi-com:service:X_Insteon_Lighting_Service:1" :
+
+		serv = el.find('SCPDURL')
+		if hasattr(serv, 'text') :
+		    isy_res["SCPDURL"] = serv.text
+
+		serv = el.find('controlURL')
+		if hasattr(serv, 'text') :
+		    isy_res["controlURL"] = serv.text
+
+		serv = el.find('eventSubURL>')
+		if hasattr(serv, 'text') :
+		    isy_res["eventSubURL>"] = serv.text
+
+	result[isy_res["UDN"]] = isy_res
 
     return result
 
@@ -166,7 +202,8 @@ if __name__ == "__main__":
     import __main__
     print __main__.__file__
     print("ISY.py syntax ok")
-    res = isy_discover( count=1, timeout=10, passive=0)
-    for h in res :
-	print "res : ", h
+
+#    res = isy_discover( count=1, timeout=10, passive=0)
+#    for h in res :
+#	print "res : ", h
     exit(0)
