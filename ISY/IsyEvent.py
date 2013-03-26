@@ -1,204 +1,382 @@
 
-import SocketServer
-import BaseHTTPServer
+"""
+	Ugly...
+
+	work in progress, ment as proof of concept
+
+	needs rewrite or cleanup
+"""
+
+import time
+
 import sys
 import os
 import traceback
-import re
+# import re
 import socket
+import select
 
 import xml.etree.ElementTree as ET
+
+from IsyEventData import event_ctrl
 
 try:
     import fcntl
 except ImportError:
     fcntl = None
 
+__all__ = ['ISYEvent']
 
-# taken partly from   SimpleXMLRPCServer
-class ISYRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
+class ISYEvent(object) :
 
-    encode_threshold = None # 1400
-    default_request_version = "HTTP/0.9"
-    # Set this to HTTP/1.1 to enable automatic keepalive
-    #protocol_version = "HTTP/1.0" 
-    protocol_version = "HTTP/1.1" 
+    def __init__(self, addr=None,  **kwargs):
+	print  "ISYEvent ", self.__class__.__name__
+
+	update_node_data = kwargs.get("update_node_data", 0)
+	myisy = kwargs.get("myisy", 0)
+
+	if  update_node_data and myisy != None :
+	    self.update_node_loop(myisy)
+	    return
+
+	self.process_func = kwargs.get("process_func", None)
+	self.process_func_arg = kwargs.get("process_func_arg", None)
+
+	if self.process_func :
+	    assert callable(self.process_func), "process_func Arg must me callable"
+
+	self.connect_list = []
+
+	if addr :
+	    connect_list.append(ISYEventConnection(addr,self))
+
+	self.__is_shut_down = 0
 
 
 
-    wbufsize = -1    
-    disable_nagle_algorithm = True
+    def update_node_loop(self, myisy) :
 
-    def do_POST(self):
-	# print  "do_POST"
-	# print "IRH ", self.__class__.__name__
+	#add  check myisy class
+
+	self.subscribe(myisy.addr)
+	self.process_func = myisy._node_update_event
+	self.process_func_arg = myisy
+
+	self.events_loop()
+
+	
+
+    def unsubscribe(self, addr):
+
+	remote_ip = socket.gethostbyname( host )
+
+	if not addr in self.connect_list :
+	    warning.warn("address {0}/{1} not subscribed".format(addr, remote_ip),
+		RuntimeWarning)
+	    return
+
+	isyconn = s[s.index(x)]
+
+	isyconn.disconnect()
+	del(isyconn)
+
+
+    def subscribe(self, addr):
+
+	if addr in self.connect_list :
+	    warning.warn("Duplicate addr", RuntimeWarning)
+	    return
+
+	self.connect_list.append(ISYEventConnection(addr, self))
+
+    def _process_event(self, conn_obj) :
+	""" 
+
+	    _process_event : takes XML from the events stream
+		coverts to a dict and passed to process_func provided
+	"""
+	#print "-"
+
+	l = conn_obj.event_rf.readline()
+	if len(l) == 0 :
+	    raise IOError("bad read form socket")
+	    # conn_obj._opensock(self.isyaddr)
+	    # conn_obj._subscribe()
+	# print "_process_event = ", l
+	if ( l[:5] != 'POST ' ) :
+	    print "Stream Sync Error"
+	    for x in range(10) :
+		print x, " ",
+		l = conn_obj.event_rf.readline()
+		if ( l[:5] == 'POST ' ) :
+		    print 
+		    break
+	    else :
+		raise IOError("can not resync event stream")
+
+	while 1 :
+	    l = conn_obj.event_rf.readline()
+	    if len(l) == 2 :
+		break
+	    # print "HEADER : ", l
+	    if l[:15].upper() == "CONTENT-LENGTH:" :
+		l.rstrip('\r\n')
+		data_len = int(l.split(':')[1])
+
+	# print "HEADER data_len ", data_len
+
+	# data = conn_obj.event_rf.readread(data_len)
+	data_remaining = data_len
+	L = []
+	while data_remaining :
+	    chunk = conn_obj.event_rf.read(data_remaining)     
+	    if not chunk :
+		break;
+	    L.append(chunk)
+	    data_remaining -= len(chunk)
+	data = ''.join(L)
+
+	ddat = dict ( )
+	ev = ET.fromstring(data)
+	#print "_process_event ", data,"\n\n"
+
+
+	for e in list(ev) :
+	    n = list(e)
+	    if  n  :
+		cdict = dict ()
+		for child in n:
+		    cdict[child.tag] = child.text
+		ddat[e.tag] = cdict
+	    else :
+		ddat[e.tag] = e.text
+	    if e.attrib :
+		for k, v in e.attrib.iteritems() :
+		    ddat[e.tag + "-" + k] = v
+	for k, v in ev.attrib.iteritems() :
+	    ddat[ev.tag + "-" + k] = v
+
+
+	# print ddat
+	#if ddat[control][0] == "_" :
+	#	return
+	# print ddat
+	return(ddat,data)
+
+    @staticmethod
+    def print_event(ddat,data,arg):
+
+	ectrl = event_ctrl.get(ddat["control"], ddat["control"])
+
+	node = ddat["node"]
+
+#	    if isinstance(ddat["eventInfo"], str) :
+#		evi = unicode(ddat["eventInfo"],'utf-8','ignore') 
+#	    else :
+#		if ddat["control"] == "_1" :
+#		    if "id" in ddat["eventInfo"] :
+#			node = ddat["id"]
+#		    if "s" in ddat["eventInfo"] :
+#			evi = ddat["s"]
+#		else :
 
 	try:
+	    evi = ddat["eventInfo"]
+	    ti = time.strftime('%X')
+	    # print ddat["Event-sid"]
+	    print "%-7s %-4s\t%-22s\t%-12s\t%s\t%s" % \
+		(ti, ddat["Event-seqnum"], ectrl, node, ddat["action"], evi )
 
-	    # data = self.rfile.read()
-	    max_chunk_size = 10*1024*1024
-	    size_remaining = int(self.headers["content-length"])
-	    # print "content-length = ", size_remaining
-            L = []
-            while size_remaining:
-                chunk_size = min(size_remaining, max_chunk_size)
-                chunk = self.rfile.read(chunk_size)
-                if not chunk:
-                    break
-                L.append(chunk)
-                size_remaining -= len(L[-1])
-		# print "size_remaining = ", size_remaining
-            data = ''.join(L)
-
-
-	    # print data,"\n\n\n"
+	    #print ddat
+	    # print data
+	except :
+	    print "Unexpected error:", sys.exc_info()[0]
+	    print ddat
+	    print data
+	finally:
+	    pass
 
 
 
-	except Exception, e: 
-	    self.send_response(500)
+    def event_iter(self, ignorelist=None, poll_interval=0.5) :
+	"""Loop thought events
 
-	    if hasattr(self.server, '_send_traceback_header') and \
-		    self.server._send_traceback_header:
-		self.send_header("X-exception", str(e))
-		print "X-exception", str(e)
-		self.send_header("X-traceback", traceback.format_exc())
-		print "X-traceback", traceback.format_exc()
+	    reads events packets and passes them to processor
 
-		self.send_header("Content-length", "0")
-		self.end_headers()
-	else :
-	    process_event(data)
+	""" 
 
-	    self.send_response(200)
-	    self.send_header("Content-length", "0")
-	    self.end_headers()
+	for s in self.connect_list:
+	    s.connect()
 
+	while not self.__is_shut_down  :
+	    try:
+		r, w, e = select.select(self.connect_list, [], [], poll_interval)
+		for rl in r :
+		    d, x = self._process_event(rl)
+		    if ignorelist :
+			if d["control"] in ignorelist :
+			    continue
+		    yield d
+	    except socket.error :
+		print "socket error({0}): {1}".format(e.errno, e.strerror)
+		self.reconnect()
+	    except IOError as e:
+		print "I/O error({0}): {1}".format(e.errno, e.strerror)
+		self.reconnect()
+	    except KeyboardInterrupt :
+		return
+	    #except :
+		print "Unexpected Error:", sys.exc_info()[0]
+		#traceback.print_stack()
+		#print repr(traceback.extract_stack())
+		#print repr(traceback.format_stack())
+	    finally:
+		pass
 
-    def report_404 (self):
-	print  "report_404"
-	print  self.__class__.__name__
-	# Report a 404 error
-	self.send_response(404)
-	response = 'No such page'
-	self.send_header("Content-type", "text/plain")
-	self.send_header("Content-length", str(len(response)))
-	self.end_headers()
-	self.wfile.write(response)
+    def events_loop(self, poll_interval=0.5) :
+	"""Loop thought events
 
-    def log_request(self, code='-', size='-'):
-	"""Selectively log an accepted request."""
-	# print  "log_request"
-	# print  self.__class__.__name__
-	     
-	#if self.server.logRequests:
-	# BaseHTTPServer.BaseHTTPRequestHandler.log_request(self, code, size)
-	pass
+	    reads events packets and passes them to processor
 
-# from pprint import pprint
-def process_event(data) :
+	""" 
 
-    ddat = dict ( )
-    ev = ET.fromstring(data)
-    #print "process_event ", data,"\n\n"
+	for s in self.connect_list:
+	    s.connect()
 
-    for e in ev.iter() :
-	ddat[e.tag] = e.text
-	if e.attrib :
-	    for k, v in e.attrib.iteritems() :
-		ddat[k] = v
+	while not self.__is_shut_down  :
+	    try:
+		r, w, e = select.select(self.connect_list, [], [], poll_interval)
+		for rs in r :
+		    x, y = self._process_event(rs)
+		    self.process_func(x ,y, self.process_func_arg)
+	    except socket.error :
+		print "socket error({0}): {1}".format(e.errno, e.strerror)
+		self.reconnect()
+	    except IOError as e:
+		print "I/O error({0}): {1}".format(e.errno, e.strerror)
+		self.reconnect()
+#	    except :
+#		print "Unexpected error:", sys.exc_info()[0]
+	    finally:
+		pass
 
-    # print ddat
-    #if ddat[control][0] == "_" :
-#	return
+class ISYEventConnection(object):
 
-    print "%-4s\t%-12s\t%s\t%s" % (ddat["control"], ddat["node"], ddat["action"], ddat["eventInfo"] )
+    def __init__(self, addr, isyevent) :
+	self.event_rf = None
+	self.event_wf = None
+	self.event_sock = None
+	self.isyaddr = addr
+	self.parent = isyevent
+	self.error = 0
 
+    def __hash__(self):
+	return str.__hash__(self.isyaddr)
 
+    def __str__(self):
+	return self.isyaddr
 
+#    def __del__(self):
+#	pass
 
+    def __eq__(self,other):
+	if isinstance(other, str) :
+	    return self.isyaddr == other
+	if not hasattr(other, "isyaddr") :
+	    return object.__eq__(self,other)
+	return self.isyaddr == other.isyaddr
 
+    def fileno(self): 
+	""" Interface required by select().  """ 
+	return self.event_sock.fileno() 
 
+    def reconnect(self):
+	print "--reconnect to self.isyaddr--"
+	self.error += 1
+	self.disconnect()
+	self.connect()
 
+    def disconnect(self):
+	try :
+	    if self.event_rf :
+		self.event_rf.close()
+		self.event_rf = False
+	except :
+	    pass
 
-class SimpleISYDispatcher( ) :
+	try :
+	    if self.event_wf :
+		self.event_wf.close()
+		self.event_wf = False
+	except :
+	    pass
 
+	try :
+	    if self.event_sock :
+		self.event_sock.close()
+		self.event_sock = False
+	except :
+	    pass
 
-    def __init__(self, allow_none=False, encoding=None):
-	print  "SimpleISYDispatcher __init"
-	print  self.__class__.__name__
-	self.funcs = {} 
-	self.instance = None
-	self.allow_none = allow_none 
-	self.encoding = encoding 
+    def connect(self):
+	self._opensock()
+	self._subscribe()
 
-    def _dispatch(self) :
-	print  "SimpleISYDispatcher _dispatch"
-	print  self.__class__.__name__
+    def _opensock(self):
 
-class SimpleISYServer(SocketServer.TCPServer,SimpleISYDispatcher) :
+	print "_opensock ", self.isyaddr
 
-    allow_reuse_address = True
-    timeout = 300
+	self.event_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-    _send_traceback_header = False
+	server_address = (self.isyaddr, 80)
+	self.event_sock.connect(server_address)
 
-    def __init__(self, addr, requestHandler=ISYRequestHandler,
-		 logRequests=True, allow_none=False, encoding=None,
-		 bind_and_activate=True):
-	print  "SimpleISYServer__init__"
-	print  "SIS ", self.__class__.__name__
-	SocketServer.TCPServer.__init__(self, addr, requestHandler, bind_and_activate)
-	SimpleISYDispatcher.__init__(self, allow_none, encoding)
+	#sn =  sock.getsockname()   
+	#self.myip = sn[0]
+	#print "P ", self.myip
+
+	#self.myurl = "http://{0}:{1}/".format( sn[0], self.server_address[1] )
+	#print "myurl ", self.myurl
+
 	if fcntl is not None and hasattr(fcntl, 'FD_CLOEXEC'):
-	    flags = fcntl.fcntl(self.fileno(), fcntl.F_GETFD)
+	    flags = fcntl.fcntl(self.event_sock.fileno(), fcntl.F_GETFD)
 	    flags |= fcntl.FD_CLOEXEC
-	    fcntl.fcntl(self.fileno(), fcntl.F_SETFD, flags)
+	    fcntl.fcntl(self.event_sock.fileno(), fcntl.F_SETFD, flags)
 
+	self.event_rf = self.event_sock.makefile("rb")
+	self.event_wf = self.event_sock.makefile("wb")
 
+	return self.event_sock;
 
-    def subscribe(self, isyaddr):
-	sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    def _subscribe(self):
 
-	server_address = (isyaddr, 80)
-	sock.connect(server_address)
-	sn =  sock.getsockname()   
-	self.myip = sn[0]
-	print "P ", self.myip
-
-	self.myurl = "http://{0}:{1}/".format( sn[0], self.server_address[1] )
-	print "myurl ", self.myurl
-
-
-
+	print "_subscribe : "
+	# <ns0:Unsubscribe><SID>uuid:168</SID><flag></flag></ns0:Unsubscribe>
 	post_body = "<s:Envelope><s:Body>" \
-		"<u:Subscribe xmlns:u=\"urn:udicom:service:X_Insteon_Lighting_Service:1\">" \
-		+ "<reportURL>{0}</reportURL>".format(self.myurl) \
-		+ "<duration>infinite</duration>" \
-		"</u:Subscribe></s:Body></s:Envelope>" 
-		# "\r\n\r\n" 
+	    "<u:Subscribe xmlns:u=\"urn:udicom:service:X_Insteon_Lighting_Service:1\">" \
+	    + "<reportURL>REUSE_SOCKET</reportURL>" \
+	    + "<duration>infinite</duration>" \
+	    "</u:Subscribe></s:Body></s:Envelope>" 
+	    # "\r\n\r\n" 
 
 	post_head = "POST /services HTTP/1.1\r\n" \
-		+ "Host: {0}:80\r\n".format(isyaddr) \
-		+ "Authorization: Basic YWRtaW46YWRtaW4=\r\n" \
-		+ "Content-Length: {0}\r\n".format( len(post_body) ) \
-		+ "Content-Type: text/xml; charset=\"utf-8\"\r\n" \
-		+ "\r\n\r\n"
+	    + "Host: {0}:80\r\n".format(self.isyaddr) \
+	    + "Authorization: Basic YWRtaW46YWRtaW4=\r\n" \
+	    + "Content-Length: {0}\r\n".format( len(post_body) ) \
+	    + "Content-Type: text/xml; charset=\"utf-8\"\r\n" \
+	    + "\r\n\r\n"
 
 	post = post_head + post_body
+
 	print post
 
 	msglen = len(post)
 	totalsent = 0
-	while totalsent < msglen:
-	    sent = sock.send(post[totalsent:])
-	    if sent == 0:
-		raise RuntimeError("socket connection broken")
-	    totalsent = totalsent + sent
 
-	rf = sock.makefile("rb")
+	self.event_wf.write(post)
+	self.event_wf.flush()
 
-	l = rf.readline()
+	l = self.event_rf.readline()
 	if ( l[:5] != 'HTTP/' ) :
 	    raise ValueError( l )
 
@@ -207,7 +385,7 @@ class SimpleISYServer(SocketServer.TCPServer,SimpleISYDispatcher) :
 	    raise ValueError( l )
 
 	while 1 :
-	    l = rf.readline()
+	    l = self.event_rf.readline()
 	    if len(l) == 2 :
 		break
 	    if l[:15] == "Content-Length:" :
@@ -215,18 +393,17 @@ class SimpleISYServer(SocketServer.TCPServer,SimpleISYDispatcher) :
 		data_len = int(l.split(':')[1])
 
 
-	reply = rf.read(data_len) 
-	print "reply = '", reply, "'"
-
-	sock.shutdown(1)
-	rf.close()
+	reply = self.event_rf.read(data_len) 
+	print "_subscribe reply = '", reply, "'"
 
 
+#
+# Do nothing
+# (syntax check)
+#
+if __name__ == "__main__":
+    import __main__
+    print __main__.__file__
 
-
-    def _dispatch(self):
-	print  "server _dispatch"
-	print  self.__class__.__name__
-
-
-
+    print("syntax ok")
+    exit(0)
