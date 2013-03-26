@@ -28,17 +28,17 @@ def isy_discover( **kwargs ):
 
     class DiscoveryData:
 	debug = 0
-	timeout = 60
+	timeout = 20
 	passive = 0
-	count = 1
+	count = 2
 	upnp_urls = []
 
     ddata = DiscoveryData()
 
     ddata.debug = kwargs.get("debug", 0)
-    ddata.timeout = kwargs.get("timeout", 60)
+    ddata.timeout = kwargs.get("timeout", 30)
     ddata.passive = kwargs.get("passive", 0)
-    ddata.count = kwargs.get("count", 1)
+    ddata.count = kwargs.get("count", 2)
 
     if ddata.debug :
 	print "isy_discover :debug=%s\ttimeout=%s\tpassive=%s\tcount=%s\n" % \

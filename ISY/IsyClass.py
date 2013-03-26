@@ -29,6 +29,7 @@ from IsyNodeClass import *
 from IsyProgramClass import *
 from IsyVarClass import *
 from IsyExceptionClass import *
+from IsyEvent import ISYEvent
 
 # Debug Flags:
 # 0x01 = report loads
@@ -216,7 +217,6 @@ class Isy(IsyUtil):
             for child in list(grp) :
 		if child.tag == "parent" :
                     gprop[child.tag] = child.text
-		    pprop = dict ()
 		    for k, v in child.items() :
 			gprop[child.tag + "-" + k] =  v
                 elif child.tag == "members" :
@@ -226,6 +226,9 @@ class Isy(IsyUtil):
                     gprop[child.tag] = glist
                 else :
                     gprop[child.tag] = child.text
+		    if child.attrib :
+			for k, v in child.items() :
+			    gprop[child.tag + "-" + k] =  v
 
             if "address" in gprop :
                 self._nodegroups[gprop["address"]] = gprop
@@ -294,7 +297,7 @@ class Isy(IsyUtil):
         except AttributeError:
             self.load_nodes()
         finally:
-            return self.name2addr
+            return self.name2addr[:]
 
     def scene_names(self) :
         """ access method for scene names
@@ -304,7 +307,7 @@ class Isy(IsyUtil):
         except AttributeError:
             self.load_nodes()
         finally:
-            return self.groups2addr
+            return self.groups2addr[:]
 
     def node_addrs(self) :
         """ access method for node addresses
@@ -491,6 +494,7 @@ class Isy(IsyUtil):
         typeinfo = self._getXMLetree("/WEB/1_fam.xml")
         for ncat in typeinfo.iter('nodeCategory'):
             for subcat in ncat.iter('nodeSubCategory'):
+		## FIX
                 if not ncat.attrib["id"] in self.nodeCategory :
                     self.nodeCategory[ncat.attrib["id"]] = dict ()
 		# print "ID : ", ncat.attrib["id"], " : ", subcat.attrib["id"]
@@ -615,7 +619,7 @@ class Isy(IsyUtil):
     def var_addrs(self)  :
         """ access method for var addresses
             returns a iist scene/group addresses """
-        return self.name2var
+        return self.name2var.keys()
 
 
     def get_var(self, vname) :
@@ -662,8 +666,21 @@ class Isy(IsyUtil):
         # print "_var_get_id : " + n + " None"
         return None
 
-    def var_get_type(self, vtype) :
+    def var_get_type(self, var) :
+        try:
+            self._vardict
+        except AttributeError:
+            self.load_vars()
+#       except:
+#           print "Unexpected error:", sys.exc_info()[0]
 	return "VART"
+
+	v = self._var_get_id(var)
+	if v in self._vardict :
+	    return self._vardict[v]["type"] 
+	return None
+
+
 
     def var_iter(self, vartype=0):
         try:
@@ -724,11 +741,13 @@ class Isy(IsyUtil):
         clim_tree = self._getXMLetree("/rest/climate")
         # Isy._printXML(self.climateinfo)
         self.climateinfo = dict ()
+
         for cl in clim_tree.iter("climate") :
             for k, v in cl.items() :
                 self.climateinfo[k] = v
             for ce in list(cl):
                 self.climateinfo[ce.tag] = ce.text
+
         self.climateinfo["time"] = time.gmtime()
 
     def clim_get_val(self, prop):
@@ -815,7 +834,8 @@ class Isy(IsyUtil):
 	:rtype: list
         :return: List of WOL names and IDs or None
 	"""
-	pass
+	return self.name2wol.keys()
+
 
     def wolm_iter():
         try:

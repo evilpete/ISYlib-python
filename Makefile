@@ -11,7 +11,7 @@ all:
 
 t: style
 
-FILES= ISY/IsyClass.py ISY/IsyExceptionClass.py ISY/IsyNodeClass.py ISY/IsyProgramClass.py ISY/IsyUtilClass.py ISY/IsyVarClass.py ISY/__init__.py
+FILES= ISY/IsyClass.py ISY/IsyExceptionClass.py ISY/IsyNodeClass.py ISY/IsyProgramClass.py ISY/IsyUtilClass.py ISY/IsyVarClass.py ISY/__init__.py ISY/IsyDiscover.py ISY/IsyEventData.py ISY/IsyEvent.py
 
 syntax:
 	for targ in ${FILES} ; do \

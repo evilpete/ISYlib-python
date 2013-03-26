@@ -294,6 +294,12 @@ class IsyNode(IsySubClass):
         # print "__float__ call"
         return float ( int(self._mydict["property"]["ST"]["value"]) / float(255) )
 
+class IsyScene(IsySubClass):
+    pass
+
+    def members_iter():
+	pass
+
 #
 # Do nothing
 # (syntax check)
