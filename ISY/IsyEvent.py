@@ -30,7 +30,7 @@ __all__ = ['ISYEvent']
 class ISYEvent(object) :
 
     def __init__(self, addr=None,  **kwargs):
-	print  "ISYEvent ", self.__class__.__name__
+	# print  "ISYEvent ", self.__class__.__name__
 
 	update_node_data = kwargs.get("update_node_data", 0)
 	myisy = kwargs.get("myisy", 0)
@@ -41,6 +41,8 @@ class ISYEvent(object) :
 
 	self.process_func = kwargs.get("process_func", None)
 	self.process_func_arg = kwargs.get("process_func_arg", None)
+
+	self.debug = kwargs.get("debug", 0)
 
 	if self.process_func :
 	    assert callable(self.process_func), "process_func Arg must me callable"
@@ -161,24 +163,15 @@ class ISYEvent(object) :
 	#if ddat[control][0] == "_" :
 	#	return
 	# print ddat
-	return(ddat,data)
+	#return(ddat,data)
+	return( ddat )
 
     @staticmethod
-    def print_event(ddat,data,arg):
+    def print_event(ddat, arg):
 
 	ectrl = event_ctrl.get(ddat["control"], ddat["control"])
 
 	node = ddat["node"]
-
-#	    if isinstance(ddat["eventInfo"], str) :
-#		evi = unicode(ddat["eventInfo"],'utf-8','ignore') 
-#	    else :
-#		if ddat["control"] == "_1" :
-#		    if "id" in ddat["eventInfo"] :
-#			node = ddat["id"]
-#		    if "s" in ddat["eventInfo"] :
-#			evi = ddat["s"]
-#		else :
 
 	try:
 	    evi = ddat["eventInfo"]
@@ -192,7 +185,7 @@ class ISYEvent(object) :
 	except :
 	    print "Unexpected error:", sys.exc_info()[0]
 	    print ddat
-	    print data
+	    # print data
 	finally:
 	    pass
 
@@ -233,7 +226,7 @@ class ISYEvent(object) :
 	    finally:
 		pass
 
-    def events_loop(self, poll_interval=0.5) :
+    def events_loop(self, ignorelist=None, poll_interval=0.5) :
 	"""Loop thought events
 
 	    reads events packets and passes them to processor
@@ -247,8 +240,12 @@ class ISYEvent(object) :
 	    try:
 		r, w, e = select.select(self.connect_list, [], [], poll_interval)
 		for rs in r :
-		    x, y = self._process_event(rs)
-		    self.process_func(x ,y, self.process_func_arg)
+		    d = self._process_event(rs)
+		    # print "d :", type(d)
+		    if ignorelist :
+			if d["control"] in ignorelist :
+			    continue
+		    self.process_func(d, self.process_func_arg)
 	    except socket.error :
 		print "socket error({0}): {1}".format(e.errno, e.strerror)
 		self.reconnect()
@@ -269,6 +266,7 @@ class ISYEventConnection(object):
 	self.isyaddr = addr
 	self.parent = isyevent
 	self.error = 0
+	self.debug = isyevent.debug
 
     def __hash__(self):
 	return str.__hash__(self.isyaddr)
@@ -324,12 +322,13 @@ class ISYEventConnection(object):
 
     def _opensock(self):
 
-	print "_opensock ", self.isyaddr
+	if self.debug :
+	    print "_opensock ", self.isyaddr
 
-	self.event_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+	# self.event_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 	server_address = (self.isyaddr, 80)
-	self.event_sock.connect(server_address)
+	self.event_sock = socket.create_connection(server_address, 10)
 
 	#sn =  sock.getsockname()   
 	#self.myip = sn[0]
@@ -350,7 +349,8 @@ class ISYEventConnection(object):
 
     def _subscribe(self):
 
-	print "_subscribe : "
+	if self.debug :
+	    print "_subscribe : "
 	# <ns0:Unsubscribe><SID>uuid:168</SID><flag></flag></ns0:Unsubscribe>
 	post_body = "<s:Envelope><s:Body>" \
 	    "<u:Subscribe xmlns:u=\"urn:udicom:service:X_Insteon_Lighting_Service:1\">" \
@@ -368,7 +368,8 @@ class ISYEventConnection(object):
 
 	post = post_head + post_body
 
-	print post
+	if self.debug :
+	    print post
 
 	msglen = len(post)
 	totalsent = 0
@@ -394,7 +395,8 @@ class ISYEventConnection(object):
 
 
 	reply = self.event_rf.read(data_len) 
-	print "_subscribe reply = '", reply, "'"
+	if self.debug :
+	    print "_subscribe reply = '", reply, "'"
 
 
 #
