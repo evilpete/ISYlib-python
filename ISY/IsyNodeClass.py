@@ -298,12 +298,20 @@ class IsyScene(IsySubClass):
     def _getmembers(self) :
 	""" property : List members of a scene or group """
         if "members" in self._mydict :
-            return self._mydict["members"]
+            return self._mydict["members"].keys()
         else :
             return None
     members = property(_getmembers)
 
-    def members_iter(flag=0):
+    def is_member(self, obj) :
+	if isinstance(other, str)  :
+	    return other in self._mydict["members"]
+	elif isinstance(other, IsySubClass)  :
+	    return other._get_prop("address") in self._mydict["members"]
+	else :
+	    return False
+
+    def members_iter(self, flag=0):
         if "members" in self._mydict :
             for k in self._mydict["members"].keys() :
 		if flag and not (flag & self._mydict["members"][k]) :
@@ -316,12 +324,7 @@ class IsyScene(IsySubClass):
 
     # check if scene _contains_ node
     def __contains__(self, other):
-	if isinstance(other, str)  :
-	    return other in self._mydict["members"].keys()
-	elif isinstance(other, IsySubClass)  :
-	    return other._mydict["address"] in self._mydict["members"].keys() 
-	else :
-	    print "scene __contains__ else" 
+	    return self.is_member(other)
 
 
 

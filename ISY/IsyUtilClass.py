@@ -57,8 +57,51 @@ class IsyUtil(object):
 	""" Debug util """
         print "%s: tag=%s text=%s attr=%s : atype=%s : type=%s" % (ulabel, uobj.tag, uobj.text, uobj.attrib, type(uobj.attrib), type(uobj))
 
+# Var : '1:1': {  'id': '1:1', 'init': '0', 'name': 'enter_light',
+#	   'ts': '20130114 14:33:35', 'type': '1', 'val': '0'}
+#
+# Node: '15 4B 53 1': {  'ELK_ID': 'A01', 'address': '15 4B 53 1', 'flag': '128',
+#	    'enabled': 'true', 'name': 'Front Light 2', 'pnode': '15 4B 53 1',
+#	    'property': {  'ST': {  'formatted': 'Off', 'id': 'ST',
+#				'uom': '%/on/off', 'value': '0'}}
+#
+# Scene:  '20326': { 'ELK_ID': 'C11', 'address': '20326', 'deviceGroup': '25',
+#		     'flag': '132', 'name': 'Garage Lights'
+#		     'members': {  '16 3F E5 1': '32', '16 D3 73 1': '32' }, },
+#
+# NodeFolder: '12743': {  'address': '12743', 'name': 'Garage Scenes'},
+#
+# Prog '0003': {  'enabled': 'true', 'folder': 'false', 'id': '0003',
+#	    'name': 'AM Off', 'parentId': '0001', 'runAtStartup': 'false',
+#	    'running': 'idle', 'status': 'false',
+#	    'lastFinishTime': '2013/03/27 09:41:28',
+#	    'lastRunTime': '2013/03/27 09:41:28',
+#	    'nextScheduledRunTime': '2013/03/27 10:05:00', },
+#
+# Prog '000A': {  'folder': 'true', 'id': '000A', 'lastFinishTime': None,
+#		'lastRunTime': None, 'name': 'garage',
+#		'parentId': '0001', 'status': 'true'},
+
+
+
 class IsySubClass(IsyUtil):
-    getlist = [ "name", "id", "value", "address" ]
+    """ Sub Class for ISY
+    This is a Sub Class for Node, Scene, Folder, Var, and Program Objects
+
+	This Class is not intended for direct use
+
+	attributes/properties :
+	    type :	object dependent flag
+	    value :	current value
+	    id/address :	unique for object used by ISY
+	    name :	name of object
+
+	funtions:
+	    no public funtions
+
+    """
+
+    getlist = [ "name", "id", "value", "address", "type" ]
     setlist = [ ]
     propalias = { }
 
@@ -105,12 +148,12 @@ class IsySubClass(IsyUtil):
 
     def _getaddr(self):
 	""" property : Address of Node (readonly) """
-        return self._mydict["address"]
+        return self._get_prop("address")
     address = property(_getaddr)
 
     def _getname(self):
 	""" property : Name of Node (readonly) """
-        return self._mydict["name"]
+        return self._get_prop("name")
     name = property(_getname)
 
     def __getitem__(self, prop):
@@ -121,10 +164,9 @@ class IsySubClass(IsyUtil):
 
     def __delitem__(self, prop):
         raise IsyProperyError("__delitem__ : can't delete propery :  " + str(prop) )
-	pass
 
     def __get__(self, instance, owner):
-	return self._get_prop("val")
+	return self._get_prop("value")
     def __set__(self,  val):
 	self._set_prop("value", val)
 
@@ -132,7 +174,7 @@ class IsySubClass(IsyUtil):
 	print "IsyUtil __iter__"
 	for p in self.getlist :
 	    if p in self._mydict :
-		yield (p , self._mydict[p])
+		yield (p , self._get_prop(p))
 	    else :
 		yield (p , None)
 
@@ -140,16 +182,39 @@ class IsySubClass(IsyUtil):
 	return "<%s %s @ %s at 0x%x>" % ( self.__class__.__name__,
 		self._get_prop("id"), self.isy.addr, id(self))
 
+
+
+#    def __hash__(self):
+#        #print "_hash__ called"
+#        return str.__hash__(self._get_prop("id]").myval)
+ 
+#    def __compare__(self,other):
+#        print "__compare__ called"
+#	if isinstance(other, str) :
+#        if not hasattr(other, "myval") :
+#            return -1
+#        return ( str.__cmp__(self.myval ,other.myval) )
+
+    # check if obj _contains_  attib
+    def __contains__(self, other):
+	if isinstance(other, str)  :
+	    return other in self.getlist
+	else :
+	    return False
+
     # This allows for 
     def __eq__(self,other):
 	print "IsyUtil __eq__"
 	print "self", self
 	print "other", other
 	if isinstance(other, str) :
-	    return self._mydict[id] == other
+	    return self._get_prop("id") == other
+	if type(self) != type(other) :
+	    return false
+	    # NotImplemented 
 	if not hasattr(other._mydict, "id") :
 	    return object.__eq__(self,other)
-	return self._mydict[id] == other._mydict[id]
+	return self._get_prop("id") == other._get_prop("id")
 
 #
 # Do nothing

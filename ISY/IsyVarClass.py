@@ -27,13 +27,13 @@ class IsyVar(IsySubClass):
 	    get_var_name() :	get name of var
 
     """
+
     getlist = ['id', 'type', 'init', 'val', 'ts', 'name' ]
     setlist = ['init', 'val']
-    propalias = { 'value': 'val',
-			    'status': 'val',
-			    'addr': 'id'
-			    }
+    propalias = { 'value': 'val', 'status': 'val', 'addr': 'id', 'address': 'id' }
 
+# Var :    {  '1:1': {  'id': '1:1', 'init': '0', 'name': 'enter_light',
+#	   'ts': '20130114 14:33:35', 'type': '1', 'val': '0'}
 
     def get_var_ts(self):
 	""" returns var timestamp
@@ -54,11 +54,13 @@ class IsyVar(IsySubClass):
 	this is also avalible via the property : init
 	"""
 	return self._get_prop("init")
+
     def set_var_init(self, new_value):
 	""" sets var init value
 	this can also be set via the property : init
 	"""
 	isy._set_var_value(self._mydict['id'], new_value, 1)
+
     init = property(get_var_init, set_var_init)
     """ init property
     this value can also be read or set
@@ -86,6 +88,25 @@ class IsyVar(IsySubClass):
     def get_var_name(self):
 	return self._get_prop("name")
     name = property(get_var_name)
+
+    def __lt__(self,other):
+	if isinstance(other, str) :
+	    return self._get_prop("val") < other
+	if isinstance(other, (long, int, float)) :
+	    return int(self._get_prop("val")) <  other
+	if type(self) != type(other) :
+	    return false
+	return int(self._mydict["val"]) < int(other._mydict["val"])
+
+    # This allows for 
+    def __eq__(self,other):
+	if isinstance(other, str) :
+	    return self._get_prop("val") == other
+	if isinstance(other, (long, int, float)) :
+	    return int(self._get_prop("val")) ==  other
+	if type(self) != type(other) :
+	    return false
+	return int(self._mydict["val"]) == int(other._mydict["val"])
 
 
 

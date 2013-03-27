@@ -162,7 +162,19 @@ class ISYEvent(object) :
 	    if  n  :
 		cdict = dict ()
 		for child in n:
-		    cdict[child.tag] = child.text
+		    if child.attrib :
+			for k, v in child.attrib.iteritems() :
+			    cdict[child.tag + "-" + k] = v
+		    if list(child) :
+			gdict  = dict ()
+			for gchild in child:
+			    gdict[gchild.tag] = gchild.text
+			    if gchild.attrib :
+				for k, v in gchild.attrib.iteritems() :
+				    gdict[gchild.tag + "-" + k] = v
+			cdict[child.tag] = gdict
+		    else :
+			cdict[child.tag] = child.text
 		ddat[e.tag] = cdict
 	    else :
 		ddat[e.tag] = e.text
@@ -177,23 +189,29 @@ class ISYEvent(object) :
 	#if ddat[control][0] == "_" :
 	#	return
 	# print ddat
-	#return(ddat,data)
-	return( ddat )
+	return(ddat,data)
+	#return( ddat )
 
     @staticmethod
     def print_event(ddat, arg):
 
-	ectrl = event_ctrl.get(ddat["control"], ddat["control"])
 
-	node = ddat["node"]
 
 	try:
-	    evi = ddat["eventInfo"]
-	    ti = time.strftime('%X')
-	    # print ddat["Event-sid"]
-	    print "%-7s %-4s\t%-22s\t%-12s\t%s\t%s" % \
-		(ti, ddat["Event-seqnum"], ectrl, node, ddat["action"], evi )
+	    if ddat["control"] in ["ST", "RR", "OL"] : 
+		ectrl = event_ctrl.get(ddat["control"], ddat["control"])
+		node = ddat["node"]
 
+		evi = ddat["eventInfo"]
+		ti = time.strftime('%X')
+		# print ddat["Event-sid"]
+		print "%-7s %-4s\t%-22s\t%-12s\t%s\t%s" % \
+		    (ti, ddat["Event-seqnum"], ectrl, node, ddat["action"], evi )
+	    elif  ddat["control"] == "_1" and ddat["action"] in ["6", "7", "3"] :
+		print ddat["control"], " : ", ddat
+		print arg
+
+	    pass
 	    #print ddat
 	    # print data
 	except :
@@ -263,12 +281,13 @@ class ISYEvent(object) :
 	    try:
 		r, w, e = select.select(self.connect_list, [], [], poll_interval)
 		for rs in r :
-		    d = self._process_event(rs)
+		    d, x = self._process_event(rs)
 		    # print "d :", type(d)
 		    if ignorelist :
 			if d["control"] in ignorelist :
 			    continue
-		    self.process_func(d, self.process_func_arg)
+		    #self.process_func(d, self.process_func_arg)
+		    self.process_func(d, x)
 	    except socket.error :
 		print "socket error({0}): {1}".format(e.errno, e.strerror)
 		self.reconnect()

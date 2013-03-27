@@ -129,9 +129,14 @@ class Isy(IsyUtil):
 			print "_read_event :", d["node"],d["control"],d["action"]
 			print arg._nodedict[d["node"]]["property"]
 	    else :
+#_1  :  {'control': '_1', 'node': None, 'eventInfo': {'var': {'ts': '20130327 11:52:07', 'val': '1'}, 'var-type': '1', 'var-id': '16'}, 'Event-seqnum': '93', 'action': '6', 'Event-sid': 'uuid:313'}
+#<?xml version="1.0"?><Event seqnum="93" sid="uuid:313"><control>_1</control><action>6</action><node></node><eventInfo><var type="1" id="16"><val>1</val><ts>20130327 11:52:07</ts></var></eventInfo></Event>
+
+
 		print "d :",d
 		print "Event for Unknown Node : '{0}'".format(d["node"])
 		print arg
+	# if d["control"] == "_1" :
 	     
 	# print "arg :",arg
 
@@ -168,6 +173,8 @@ class Isy(IsyUtil):
 
 	self._writedict(self._nodegroups, "nodegroups.txt")
 
+	self._writedict(self.folderlist, "folderlist.txt")
+
 	self.load_vars()
 	self._writedict(self._vardict, "vardict.txt")
 
@@ -179,6 +186,7 @@ class Isy(IsyUtil):
 
 	self.load_prog()
 	self._writedict(self._progdict, "progdict.txt")
+
 
 
     ##
