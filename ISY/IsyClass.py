@@ -1,4 +1,3 @@
-
 """Simple Python lib for the ISY home automation netapp
 
  This is a Python interface to the ISY rest interface
@@ -36,7 +35,7 @@ from IsyEvent import ISYEvent
 # 0x02 = report urls used
 # 0x04 = report func call
 # 0x08 = Dump loaded data
-# 0x10 = print loaded data to file
+# 0x10 = report changes to nodes
 # 0x20 =
 # 0x40 =
 # 0x80 =
@@ -51,6 +50,12 @@ __all__ = ['Isy']
 
 # def batch .write
 
+
+# _nodedict	dictionary of node data indexed by node ID
+# node2addr	dictionary mapping node names to node ID
+# nodeCdict	dictionary cache or node objects indexed by node ID
+
+
 class Isy(IsyUtil):
     """ Obj class the represents the ISY device """
     password_mgr = URL.HTTPPasswordMgrWithDefaultRealm()
@@ -64,6 +69,7 @@ class Isy(IsyUtil):
 	self.debug = kwargs.get("debug", 0)
 	self.cachetime = kwargs.get("cachetime", 0)
 	self.faststart = kwargs.get("faststart", 1)
+	self.eventupdates = kwargs.get("eventupdates", 0)
 
         if self.debug & 0x01 :
             print "class Isy __init__"
@@ -85,15 +91,72 @@ class Isy(IsyUtil):
 	    print "baseurl: " + self.baseurl + " : " + userl + " : " + userp
         if not self.faststart :
             self.load_conf()
-        #
+
+        # There for id's to Node/Var/Prog objects
         self.nodeCdict = dict ()
         self.varCdict = dict ()
         self.progCdict = dict ()
+        self.folderCdict = dict ()
 
-    def _preload_all(self):
+	if self.eventupdates :
+	    self.start_event_thread()
+
+    def start_event_thread(self):
+	from threading import Thread
+
+	print "start preload"
+	self._preload()
+	print "start complete"
+
+	self.event_thread = ISYEvent(update_node_data=1, myisy=self )
+	print self.event_thread
+	print self.thread
+
+    @staticmethod
+    def _read_event(d, arg) :
+	# print "_read_event"
+
+	if d["control"] in ["ST", "RR", "OL"] :
+	    if d["node"] in arg._nodedict :
+		# print "d :",d
+		#print arg._nodedict[d["node"]]
+		if d["control"] in arg._nodedict[d["node"]]["property"] :
+		    arg._nodedict[d["node"]]["property"][d["control"]]["value"] \
+			    = d["action"]
+		    arg._nodedict[d["node"]]["property"][d["control"]]["formatted"] \
+			    = arg._format_val( d["action"] )
+		    if ( arg.debug & 0x10 ) :
+			print "_read_event :", d["node"],d["control"],d["action"]
+			print arg._nodedict[d["node"]]["property"]
+	    else :
+		print "d :",d
+		print "Event for Unknown Node : '{0}'".format(d["node"])
+		print arg
+	     
+	# print "arg :",arg
+
+    def _format_val(self, v) :
+	try:
+	    v = int(v)
+	except ValueError :
+	    return "0"
+	else :
+	    if ( v == 0 ) :
+		return "off"
+	    elif  v == 255 :
+		return "on"
+	    else :
+		return str ( (int(v)*100) // 255)
+
+
+    def _preload(self):
+        self.load_conf()
         self.load_nodes()
         self.load_clim()
-        self.load_conf()
+        self.load_vars()
+        self.load_prog()
+        self.load_wol()
+	self.load_node_types()
 
     def _savedict(self) :
 
@@ -181,6 +244,7 @@ class Isy(IsyUtil):
 	return self.config["app_version"]
     app_version = property(_get_app_version)
 
+
     ##
     ## Node funtions
     ##
@@ -188,23 +252,31 @@ class Isy(IsyUtil):
         """ Load node list scene list and folder info """
         self._nodedict = dict ()
         # self.nodeCdict = dict ()
-        self.name2addr = dict ()
+        self.node2addr = dict ()
         if self.debug & 0x01 :
             print "load_nodes pre _getXML"
         nodeinfo = self._getXMLetree("/rest/nodes")
         self._gen_nodedict(nodeinfo)
-        # self._gen_folder_list(nodeinfo)
+        self._gen_folder_list(nodeinfo)
         self._gen_nodegroups(nodeinfo)
         # self._printdict(self._nodedict)
+	print "load_nodes self.node2addr : ", len(self.node2addr)
 
     def _gen_folder_list(self, nodeinfo) :
         """ generate folder dictionary for load_node """
         self.folderlist = dict ()
+        self.folder2addr = dict ()
         for fold in nodeinfo.iter('folder'):
             fprop = dict ()
             for child in list(fold):
                 fprop[child.tag] = child.text
-            self.folderlist[fprop["address"]] = fprop["name"]
+		if child.attrib :
+		    for k, v in child.items() :
+			fprop[child.tag + "-" + k] =  v
+            self.folderlist[fprop["address"]] = fprop
+	    self.folder2addr[fprop["name"]] = fprop["address"]
+	#self._printdict(self.folderlist)
+	#self._printdict(self.folder2addr)
 
     def _gen_nodegroups(self, nodeinfo) :
         """ generate scene / group dictionary for load_node """
@@ -270,10 +342,10 @@ class Isy(IsyUtil):
             if "address" in idict :
                 self._nodedict[idict["address"]] = idict
                 if "name" in idict :
-		    if idict["name"] in self.name2addr :
+		    if idict["name"] in self.node2addr :
 			warning.warn("Duplicate Node Name", RuntimeWarning)
 		    else :
-			self.name2addr[idict["name"]] = idict["address"]
+			self.node2addr[idict["name"]] = idict["address"]
 
             else :
 		# should raise an exception
@@ -293,11 +365,11 @@ class Isy(IsyUtil):
             returns a dict of ( Node names : Node address )
 	"""
         try:
-            self.name2addr
+            self.node2addr
         except AttributeError:
             self.load_nodes()
         finally:
-            return self.name2addr[:]
+            return self.node2addr[:]
 
     def scene_names(self) :
         """ access method for scene names
@@ -370,9 +442,9 @@ class Isy(IsyUtil):
         if string.upper(n) in self._nodedict :
             # print "_get_node_id : " + n + " nodedict " + string.upper(n)
             return string.upper(n)
-        if n in self.name2addr :
-            # print "_get_node_id : " + n + " name2addr " + self.name2addr[n]
-            return self.name2addr[n]
+        if n in self.node2addr :
+            # print "_get_node_id : " + n + " node2addr " + self.node2addr[n]
+            return self.node2addr[n]
         if n in self.groups2addr :
             # print "_get_node_id : " + n + " groups2addr " + self.groups2addr[n]
             return self.groups2addr[n]
@@ -464,7 +536,7 @@ class Isy(IsyUtil):
     def _updatenode(self, naddr) :
         """ update a node's property from ISY device """
         xurl = "/rest/nodes/" + self._nodedict[naddr]["address"]
-        if self.debug & 0x01 :
+        if self.debug & (0x01 & 0x10) :
             print "_updatenode pre _getXML"
         _nodestat = self._getXMLetree(xurl)
         # del self._nodedict[naddr]["property"]["ST"]
@@ -1104,8 +1176,8 @@ class Isy(IsyUtil):
     def __iter__(self):
 	return self.node_iter()
 
-    def __repr__(self):
-        return "<Isy %s at 0x%x>" % (self.addr, id(self))
+#    def __repr__(self):
+#        return "<Isy %s at 0x%x>" % (self.addr, id(self))
 
     def debugerror(self) :
 	print "debugerror"

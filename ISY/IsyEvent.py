@@ -34,37 +34,49 @@ class ISYEvent(object) :
 
 	update_node_data = kwargs.get("update_node_data", 0)
 	myisy = kwargs.get("myisy", 0)
+	self.connect_list = []
+	self.debug = kwargs.get("debug", 0)
+	self.shut_down = 0
 
 	if  update_node_data and myisy != None :
+	    #print "a myisy: ", myisy
+	    self.debug = myisy.debug
 	    self.update_node_loop(myisy)
 	    return
 
 	self.process_func = kwargs.get("process_func", None)
 	self.process_func_arg = kwargs.get("process_func_arg", None)
 
-	self.debug = kwargs.get("debug", 0)
 
 	if self.process_func :
 	    assert callable(self.process_func), "process_func Arg must me callable"
 
-	self.connect_list = []
 
 	if addr :
 	    connect_list.append(ISYEventConnection(addr,self))
 
-	self.__is_shut_down = 0
 
 
 
     def update_node_loop(self, myisy) :
 
+	if self.debug & 0x01 :
+	    print  "ISYEvent ", self.__class__.__name__
+	    print "update_node_loop"
+
 	#add  check myisy class
+	from threading import Thread
 
 	self.subscribe(myisy.addr)
-	self.process_func = myisy._node_update_event
+	self.process_func = myisy._read_event
 	self.process_func_arg = myisy
 
-	self.events_loop()
+	# argdict={ "myisy":myisy, "isyevent":self }
+	myisy.thread = Thread(target=self.events_loop, name="event_looper" )
+	myisy.thread.daemon = True
+	myisy.thread.start()
+
+	print "t =",myisy.thread
 
 	
 
@@ -77,13 +89,16 @@ class ISYEvent(object) :
 		RuntimeWarning)
 	    return
 
-	isyconn = s[s.index(x)]
+	isyconn = self.connect_lists[self.connect_list.index(addr)]
 
 	isyconn.disconnect()
 	del(isyconn)
 
 
     def subscribe(self, addr):
+
+	if self.debug & 0x01 :
+	    print "subscribe ", addr
 
 	if addr in self.connect_list :
 	    warning.warn("Duplicate addr", RuntimeWarning)
@@ -111,7 +126,6 @@ class ISYEvent(object) :
 		print x, " ",
 		l = conn_obj.event_rf.readline()
 		if ( l[:5] == 'POST ' ) :
-		    print 
 		    break
 	    else :
 		raise IOError("can not resync event stream")
@@ -201,7 +215,7 @@ class ISYEvent(object) :
 	for s in self.connect_list:
 	    s.connect()
 
-	while not self.__is_shut_down  :
+	while not self.shut_down  :
 	    try:
 		r, w, e = select.select(self.connect_list, [], [], poll_interval)
 		for rl in r :
@@ -226,6 +240,12 @@ class ISYEvent(object) :
 	    finally:
 		pass
 
+    @staticmethod
+    def events_loop_static( **kwargs ) :
+	if self.debug & 0x01 :
+	    print  "events_loop_static ", self.__class__.__name__
+
+
     def events_loop(self, ignorelist=None, poll_interval=0.5) :
 	"""Loop thought events
 
@@ -233,10 +253,13 @@ class ISYEvent(object) :
 
 	""" 
 
+	if self.debug & 0x01 :
+	    print  "events_loop ", self.__class__.__name__
+
 	for s in self.connect_list:
 	    s.connect()
 
-	while not self.__is_shut_down  :
+	while not self.shut_down  :
 	    try:
 		r, w, e = select.select(self.connect_list, [], [], poll_interval)
 		for rs in r :
@@ -317,12 +340,14 @@ class ISYEventConnection(object):
 	    pass
 
     def connect(self):
+	if self.debug & 0x01 :
+	    print  "connect ", self.__class__.__name__
 	self._opensock()
 	self._subscribe()
 
     def _opensock(self):
 
-	if self.debug :
+	if self.debug & 0x01 :
 	    print "_opensock ", self.isyaddr
 
 	# self.event_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -349,8 +374,9 @@ class ISYEventConnection(object):
 
     def _subscribe(self):
 
-	if self.debug :
-	    print "_subscribe : "
+	if self.debug & 0x01 :
+	    print "_subscribe : ", self.__class__.__name__
+
 	# <ns0:Unsubscribe><SID>uuid:168</SID><flag></flag></ns0:Unsubscribe>
 	post_body = "<s:Envelope><s:Body>" \
 	    "<u:Subscribe xmlns:u=\"urn:udicom:service:X_Insteon_Lighting_Service:1\">" \
@@ -368,7 +394,7 @@ class ISYEventConnection(object):
 
 	post = post_head + post_body
 
-	if self.debug :
+	if self.debug & 0x02:
 	    print post
 
 	msglen = len(post)
@@ -395,7 +421,7 @@ class ISYEventConnection(object):
 
 
 	reply = self.event_rf.read(data_len) 
-	if self.debug :
+	if self.debug & 0x01 :
 	    print "_subscribe reply = '", reply, "'"
 
 

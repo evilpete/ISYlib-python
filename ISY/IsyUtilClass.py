@@ -130,6 +130,13 @@ class IsySubClass(IsyUtil):
 	return "<%s %s @ %s at 0x%x>" % ( self.__class__.__name__,
 		self._get_prop("id"), self.isy.addr, id(self))
 
+    # This allows for 
+    def __eq__(self,other):
+	if isinstance(other, str) :
+	    return self._mydict[id] == other
+	if not hasattr(other._mydict, "id") :
+	    return object.__eq__(self,other)
+	return self._mydict[id] == other._mydict[id]
 
 #
 # Do nothing

@@ -39,8 +39,10 @@ class IsyNode(IsySubClass):
             print "error : class IsyNode called without isyUtilClass"
             raise TypeError("IsyNode: isy is wrong class")
         # only update if not a scene
-        if not (int(self._mydict["flag"]) & 0x04) :
-            self.update()
+
+	if not self.isy.eventupdates :
+	    if not (int(self._mydict["flag"]) & 0x04) :
+		self.update()
 
         if self.debug & 0x01 :
 	    print "Init Node : \"" + self._mydict["address"] + \
@@ -74,6 +76,8 @@ class IsyNode(IsySubClass):
 		return None
 
 	    if prop in self._mydict["property"] :
+		# print self._mydict["property"] 
+		# print "prop value", prop,value
 		return self._mydict["property"][prop][value]
 	    else :
 		return None
@@ -266,6 +270,7 @@ class IsyNode(IsySubClass):
     #
     #
     def update(self) :
+	""" force object to manualy update it's propertys """
         xurl = "/rest/nodes/" + self._mydict["address"]
         if self.debug & 0x01 :
             print "_updatenode pre _getXML"
@@ -295,9 +300,36 @@ class IsyNode(IsySubClass):
         return float ( int(self._mydict["property"]["ST"]["value"]) / float(255) )
 
 class IsyScene(IsySubClass):
-    pass
+    def __init__(self):
+	pass
+
+    def members_iter(flag=0):
+        if "members" in self._mydict :
+            for k in self._mydict["members"].keys() :
+		if flag and not (flag & self._mydict["members"][k]) :
+		    continue
+		else :
+		    yield k
+
+    def __iter__(self): 
+	return self.members_iter()
+
+    # check if scene _contains_ node
+    def __contains__(self):
+	pass
+
+
+class IsyNodeFolder(IsySubClass):
+    def __init__(self):
+	pass
 
     def members_iter():
+	pass
+
+    def __iter__(self): 
+	return self.members_iter()
+
+    def __contains__(self):
 	pass
 
 #

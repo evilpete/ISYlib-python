@@ -206,7 +206,7 @@ def isy_discover( **kwargs ):
 if __name__ == "__main__":
     import __main__
     print __main__.__file__
-    print("ISY.py syntax ok")
+    print("syntax ok")
 
 #    res = isy_discover( count=1, timeout=10, passive=0)
 #    for h in res :
