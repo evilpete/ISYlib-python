@@ -103,6 +103,15 @@ class IsySubClass(IsyUtil):
 	pass
 
 
+    def _getaddr(self):
+	""" property : Address of Node (readonly) """
+        return self._mydict["address"]
+    address = property(_getaddr)
+
+    def _getname(self):
+	""" property : Name of Node (readonly) """
+        return self._mydict["name"]
+    name = property(_getname)
 
     def __getitem__(self, prop):
 	return self._get_prop(prop)
@@ -120,6 +129,7 @@ class IsySubClass(IsyUtil):
 	self._set_prop("value", val)
 
     def __iter__(self):
+	print "IsyUtil __iter__"
 	for p in self.getlist :
 	    if p in self._mydict :
 		yield (p , self._mydict[p])
@@ -132,6 +142,9 @@ class IsySubClass(IsyUtil):
 
     # This allows for 
     def __eq__(self,other):
+	print "IsyUtil __eq__"
+	print "self", self
+	print "other", other
 	if isinstance(other, str) :
 	    return self._mydict[id] == other
 	if not hasattr(other._mydict, "id") :

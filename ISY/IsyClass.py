@@ -429,7 +429,7 @@ class Isy(IsyUtil):
                 return self.nodeCdict[nodeid]
             elif nodeid in self._nodegroups:
                 if not nodeid in self.nodeCdict :
-                    self.nodeCdict[nodeid] = IsyNode(self, self._nodegroups[nodeid])
+                    self.nodeCdict[nodeid] = IsyScene(self, self._nodegroups[nodeid])
                 return self.nodeCdict[nodeid]
             else :
                 print "Isy get_node no node : \"%s\"" % nodeid

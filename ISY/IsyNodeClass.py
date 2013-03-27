@@ -8,7 +8,7 @@ from IsyExceptionClass import *
 # from IsyVarClass import *
 
 
-__all__ = ['IsyNode']
+__all__ = ['IsyNode', 'IsyNodeFolder', 'IsyScene']
 
 # def rate
 # def onlevel
@@ -18,12 +18,13 @@ class IsyNode(IsySubClass):
 	ramprate onlevel status address name type members
     """
     getlist = ['address', 'enabled', 'formatted',
-		'members', 'name', 'pnode', 'flag',
+		'name', 'pnode', 'flag',
 		'OL', 'RR', 'ST', 'type']
     setlist = ['ST', 'RR', 'OL', 'status', 'ramprate', 'onlevel' ]
     propalias = { 'status': 'ST', 'value': 'ST', 'val': 'ST',
 		    'id': 'address', 'addr': 'address',
-		    'ramprate': 'RR', 'onlevel': 'OL'  }
+		    'ramprate': 'RR', 'onlevel': 'OL',
+		    "node-flag": "flag" }
 
     def __init__(self, isy, ndict) :
         if isinstance(ndict, dict):
@@ -187,14 +188,6 @@ class IsyNode(IsySubClass):
     #
     # readonly to node attribute
     #
-    def _getaddr(self):
-        return self._mydict["address"]
-    address = property(_getaddr)
-
-    def _getname(self):
-	""" property : Name of Node (readonly) """
-        return self._mydict["name"]
-    name = property(_getname)
 
     def _gettype(self):
         if "type" in self._mydict :
@@ -206,19 +199,6 @@ class IsyNode(IsySubClass):
             #	"Error getting' property Attribute : \"type\""
 	    return None
     type = property(_gettype)
-
-    def _getmembers(self) :
-	""" property : List members of a scene or group """
-        if "members" in self._mydict :
-            return self._mydict["members"]
-        else :
-            return None
-    members = property(_getmembers)
-    """
-    Get members list for Scene
-    :rtype: list
-    :return: list of Nodes
-    """
 
     def scene_nodes(self) :
         pass
@@ -300,8 +280,28 @@ class IsyNode(IsySubClass):
         return float ( int(self._mydict["property"]["ST"]["value"]) / float(255) )
 
 class IsyScene(IsySubClass):
-    def __init__(self):
-	pass
+    getlist = ['address', 'name' "ELK_ID", "deviceGroup",
+		'flag', 'parent', 'parent-type'  ]
+    setlist = [ ]
+    propalias = { 'id': 'address', 'addr': 'address',
+		    "group-flag": "flag" }
+
+    # status property
+    # obj mathod for getting/setting a Node's value
+    # where in most cases light is how bright the light is
+    def set_status(self, new_value):
+	""" set status value of Scene """
+        return self._set_prop("ST", new_value)
+
+    status = property(None, set_status)
+
+    def _getmembers(self) :
+	""" property : List members of a scene or group """
+        if "members" in self._mydict :
+            return self._mydict["members"]
+        else :
+            return None
+    members = property(_getmembers)
 
     def members_iter(flag=0):
         if "members" in self._mydict :
@@ -315,13 +315,20 @@ class IsyScene(IsySubClass):
 	return self.members_iter()
 
     # check if scene _contains_ node
-    def __contains__(self):
-	pass
+    def __contains__(self, other):
+	if isinstance(other, str)  :
+	    return other in self._mydict["members"].keys()
+	elif isinstance(other, IsySubClass)  :
+	    return other._mydict["address"] in self._mydict["members"].keys() 
+	else :
+	    print "scene __contains__ else" 
+
 
 
 class IsyNodeFolder(IsySubClass):
-    def __init__(self):
-	pass
+    propalias = { 'id': 'address', 'addr': 'address', "folder-flag": "flag" }
+    getlist = ['address', 'name', 'flag']
+    setlist = [ ]
 
     def members_iter():
 	pass
@@ -329,7 +336,7 @@ class IsyNodeFolder(IsySubClass):
     def __iter__(self): 
 	return self.members_iter()
 
-    def __contains__(self):
+    def __contains__(self, other):
 	pass
 
 #
