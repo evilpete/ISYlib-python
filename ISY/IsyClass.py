@@ -122,7 +122,7 @@ class Isy(IsyUtil):
     # @staticmethod
     def _read_event(self, d, *arg) :
 	# print "_read_event"
-	skip = ["_2", "_3", "_4", "_5", "_6", "_7", "_8",
+	skip = ["_0", "_2", "_4", "_5", "_6", "_7", "_8",
 		"_9", "_10", "_11", "_12", "_13", "_14",
 		"_15", "_16", "_17", "_18", "_19", "_20",]
 
@@ -153,19 +153,28 @@ class Isy(IsyUtil):
 		    print "_read_event :", d["node"],d["control"],d["action"]
 		    print self._nodedict[d["node"]]["property"]
 	    else :
-		warning.warn("Event for Unknown Var : {0}".format(vid), \
+		warning.warn("Event for Unknown node : {0}".format(d["node"]), \
 			RuntimeWarning)
 
+
+	elif d["control"] == "_3" : # Node Change/Updated Event
+		print "Node Change/Updated Event :  {0}".format(d["node"])
+		print "d : ", d
 
 	# handle VAR value change
-	elif d["control"] == "_1" and  d["action"] == "6" :
-	    vid = d["eventInfo"]["var-type"] + ":" + d["eventInfo"]["var-id"]
-	    if vid in self._vardict :
-		self._vardict[vid]["val"] = d["eventInfo"]["var"]["val"]
-		self._vardict[vid]["ts"] = d["eventInfo"]["var"]["ts"]
-	    else :
-		warning.warn("Event for Unknown Var : {0}".format(vid), \
-			RuntimeWarning)
+	elif d["control"] == "_1" : # Trigger Event
+	    if d["action"] == "6" : # Var Status
+		vid = d["eventInfo"]["var-type"] + ":" + d["eventInfo"]["var-id"]
+		if vid in self._vardict :
+		    self._vardict[vid]["val"] = d["eventInfo"]["var"]["val"]
+		    self._vardict[vid]["ts"] = d["eventInfo"]["var"]["ts"]
+		else :
+		    warning.warn("Event for Unknown Var : {0}".format(vid), \
+			    RuntimeWarning)
+
+	    if d["action"] == "7" : # Var Initialized
+		print "Event for Var Initialized : ", d
+
 	else:
 	    print "d :",d
 	    print "Event for Unknown Node : '{0}'".format(d["node"])
@@ -494,7 +503,10 @@ class Isy(IsyUtil):
 #           return None
 
 
-        n = str(nid)
+	if isinstance(nid, IsySubClass) :
+	     return nid["addr"]
+	else :
+	    n = str(nid)
         if string.upper(n) in self._nodedict :
             # print "_get_node_id : " + n + " nodedict " + string.upper(n)
             return string.upper(n)
@@ -530,8 +542,8 @@ class Isy(IsyUtil):
     #
     def node_set_prop(self, naddr, prop, val) :
         """ calls /rest/nodes/<node-id>/set/<property>/<value> """
-        #if self.debug & 0x01 :
-        print "node_set_prop"
+        if self.debug & 0x01 :
+	    print "node_set_prop"
         node_id = self._get_node_id(naddr)
         if not node_id :
             raise LookupError("node_set_prop: unknown node : " + str(naddr) )
@@ -548,6 +560,7 @@ class Isy(IsyUtil):
 		    " val=" + val )
         xurl = "/rest/nodes/" + naddr + "/set/" + prop + "/" + val
         resp = self._getXMLetree(xurl)
+        self._printXML(resp)
         if resp.attrib["succeeded"] != 'true' :
             raise IsyResponseError("Node Property Set error : node=%s prop=%s val=%s" %
 		    naddr, prop, val )
@@ -856,7 +869,10 @@ class Isy(IsyUtil):
 #           print "Unexpected error:", sys.exc_info()[0]
 #           return None
         
-        v = str(vname)
+	if isinstance(vname, IsyVar) :
+	     return vname["id"]
+	else :
+	    v = str(vname)
         if string.upper(v) in self._vardict :
             # print "_get_var_id : " + v + " vardict " + string.upper(v)
             return string.upper(v)
@@ -1146,7 +1162,10 @@ class Isy(IsyUtil):
         """ Lookup prog value by name or ID
 	returns ISY Id  or None
 	"""
-        p = str(pname)
+	if isinstance(pname, IsyProgram) :
+	     return vname["id"]
+	else :
+	    p = str(pname)
         if string.upper(p) in self._progdict :
             # print "_get_prog_id : " + p + " progdict " + string.upper(p)
             return string.upper(p)

@@ -216,7 +216,8 @@ class IsySubClass(IsyUtil):
 	if attr_v :
 	    return attr_v
 	else :
-	    raise IsyPropertyError, attr
+	    print "attr =",attr
+	    raise AttributeError, attr
 
 
     # check if obj _contains_  attib
