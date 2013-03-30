@@ -35,19 +35,19 @@ class IsyVar(IsySubClass):
 # Var :    {  '1:1': {  'id': '1:1', 'init': '0', 'name': 'enter_light',
 #	   'ts': '20130114 14:33:35', 'type': '1', 'val': '0'}
 
-    def get_var_ts(self):
-	""" returns var timestamp
-	this is also avalible via the property : ts
-	"""
-	return self._get_prop("ts")
-    ts = property(get_var_ts)
+#    def get_var_ts(self):
+#	""" returns var timestamp
+#	this is also avalible via the property : ts
+#	"""
+#	return self._get_prop("ts")
+#    ts = property(get_var_ts)
 
-    def get_var_type(self):
-	""" returns var timestamp
-	this is also avalible via the property : type
-	"""
-	return self._get_prop("type")
-    type = property(get_var_type)
+#    def get_var_type(self):
+#	""" returns var timestamp
+#	this is also avalible via the property : type
+#	"""
+#	return self._get_prop("type")
+#    type = property(get_var_type)
 
     def get_var_init(self):
 	""" returns var init value
@@ -81,13 +81,29 @@ class IsyVar(IsySubClass):
     this can also be read or set
     """
 
-    def get_var_id(self):
-	return self._get_prop("id")
-    id = property(get_var_id)
+#    def get_var_id(self):
+#	return self._get_prop("id")
+#    id = property(get_var_id)
 
-    def get_var_name(self):
-	return self._get_prop("name")
-    name = property(get_var_name)
+#    def get_var_name(self):
+#	return self._get_prop("name")
+#    name = property(get_var_name)
+
+    def __int__(self) :
+	return int (self._mydict["val"])
+
+
+    def __nonzero__(self) :
+	return int( self._mydict["val"]) != 0
+
+    def __lt__(self,other):
+	if isinstance(other, str) :
+	    return self._get_prop("val") > other
+	if isinstance(other, (long, int, float)) :
+	    return int(self._get_prop("val")) >  other
+	if type(self) != type(other) :
+	    return false
+	return int(self._mydict["val"]) > int(other._mydict["val"])
 
     def __lt__(self,other):
 	if isinstance(other, str) :
@@ -107,6 +123,9 @@ class IsyVar(IsySubClass):
 	if type(self) != type(other) :
 	    return false
 	return int(self._mydict["val"]) == int(other._mydict["val"])
+
+    def __ne__(self,other):
+	return not self.__eq__(other)
 
 
 

@@ -55,7 +55,8 @@ class IsyNode(IsySubClass):
         # only update if not a scene
 
 	if not self.isy.eventupdates :
-	    if not (int(self._mydict["flag"]) & 0x04) :
+	    #update only nodes
+	    if "node-flag" in self._mydict :
 		self.update()
 
         if self.debug & 0x01 :
@@ -77,9 +78,6 @@ class IsyNode(IsySubClass):
 	if prop in self.propalias :
 	    prop = self.propalias[prop]
 
-	if prop == 'type' and int(self._mydict["flag"]) & 0x04 :
-            return "scene"
-
         if not prop in self.getlist :
 	    raise IsyPropertyError("no property Attribute " + prop)
 
@@ -87,8 +85,6 @@ class IsyNode(IsySubClass):
 
         if prop in ['ST', 'OL', 'RR'] :
 	    # Scene's do not have property values
-	    if int(self._mydict["flag"]) & 0x04 :
-		return None
 
 	    if prop in self._mydict["property"] :
 		# print self._mydict["property"] 
@@ -118,30 +114,31 @@ class IsyNode(IsySubClass):
 	if prop in self.propalias :
 	    prop = self.propalias[prop]
 
-	if int(self._mydict["flag"]) & 0x04 :
-	    raise IsyPropertyError("_set_prop : "
-		"Can't set Scene property Attribute " + prop)    
-
         if not prop in self.setlist :
 	    raise IsyPropertyError("_set_prop : "
 		"Invalid property Attribute " + prop)    
 
-        if not str(new_value).isdigit :
-            TypeError("Set Property : Bad Value : node=%s prop=%s val=%s" %
+        if prop in ['ST', 'OL', 'RR'] :
+	    if not str(new_value).isdigit :
+		TypeError("Set Property : Bad Value : node=%s prop=%s val=%s" %
 			    self._mydict["address"], prop, str(new_value))
 
-        self.isy._node_set_prop(self._mydict["address"], prop, str(new_value))
+	    self.isy._node_set_prop(self._mydict["address"], prop, str(new_value))
 
-        self._mydict["property"]["time"] = 0
+	    self._mydict["property"]["time"] = 0
 
             
-	if prop in self._mydict["property"] :
-            if isinstance(new_value, (long, int, float))  :
-                self._mydict["property"][prop]["value"] = new_value
+	    if prop in self._mydict["property"] :
+		if isinstance(new_value, (long, int, float))  :
+		    self._mydict["property"][prop]["value"] = new_value
+
+	# we need to tie this to some action 
+	elif prop in self._mydict :
+	    # self._mydict[prop] = new_value
+	    pass 
 	else :
             #print "_set_prop AttributeError"
-            #raise AttributeError("no Attribute " + prop)
-	    pass
+            raise AttributeError("no Attribute " + prop)
 
 
         # exception TypeError
@@ -332,9 +329,6 @@ class IsyNodeFolder(IsySubClass):
     getlist = ['address', 'name', 'flag']
     setlist = [ ]
     propalias = { 'id', 'address', 'addr', 'address', "folder-flag", "flag" }
-
-    def members_iter():
-	pass
 
     def _gettype(self):
 	return "folder"

@@ -39,8 +39,12 @@ class IsyUtil(object):
         # print "_getXMLetree : self.opener.open "
         res = self.opener.open(req)
         data = res.read()
+	# print "res.getcode() ", res.getcode(), len(data)
         res.close()
-        return ET.fromstring(data)
+	if len(data) :
+	    return ET.fromstring(data)
+	else :
+	    return None
 
     def _printdict(self, d):
         """ Pretty Print dictionary """
@@ -126,6 +130,7 @@ class IsySubClass(IsyUtil):
 
 
     def _get_prop(self, prop):
+	""" Internal funtion call """
 	if prop in self.propalias :    
 	    prop = self.propalias[prop]
 
@@ -135,7 +140,7 @@ class IsySubClass(IsyUtil):
 	return(None)
 
     def _set_prop(self, prop, val):
-
+	""" Internal funtion call """
 	if prop in self.propalias :    
 	    prop = self.propalias[prop]
 
@@ -145,13 +150,39 @@ class IsySubClass(IsyUtil):
 	pass
 
 
+    def get_prop_list(self, l):
+	""" Get a list of properties
+
+	    args:
+		prop_list : a list of property names
+
+	    returns
+		a list of property values
+
+	    if I property does not exist a value of None is used instead
+	    of raising a Attribute error
+
+	"""
+	pass
+
     def on(self, *args) :
+	""" Send On command to a node
+
+	    args: 
+		take optional value for on level
+
+	"""
         self.isy._node_comm(self._mydict["address"], "DON", *args)
 	#if "property" in self._mydict :
         #    self._mydict["property"]["time"] = 0
         # self.update()
 
     def off(self) :
+	""" Send Off command to a node
+
+	    args: None
+
+	"""
         self.isy._node_comm(self._mydict["address"], "DOF")
 	if "property" in self._mydict :
             self._mydict["property"]["time"] = 0
@@ -173,26 +204,62 @@ class IsySubClass(IsyUtil):
     name = property(_getname)
 
     def __getitem__(self, prop):
+	""" Internal method 
+
+	    allows Objects properties to be accessed in  a dict style
+
+	"""
 	return self._get_prop(prop)
 
     def __setitem__(self, prop):
+	""" Internal method 
+
+	    allows Objects properties to be accessed/set in a dict style
+
+	"""
 	return self._set_prop(prop)
 
     def __delitem__(self, prop):
         raise IsyProperyError("__delitem__ : can't delete propery :  " + str(prop) )
 
     def __get__(self, instance, owner):
+	""" Internal method 
+
+	    allows Object status to be access as the value of the obj
+
+	"""
 	return self._get_prop("value")
     def __set__(self,  val):
+	""" Internal method 
+
+	    allows Object status to be set as the value of the obj
+
+	"""
 	self._set_prop("value", val)
 
     def __iter__(self):
+	""" Internal method 
+
+	    allows Objects properties to be access through iteration
+
+	"""
 	print "IsyUtil __iter__"
 	for p in self.getlist :
 	    if p in self._mydict :
 		yield (p , self._get_prop(p))
 	    else :
 		yield (p , None)
+
+    def members_iter(self):
+	return self.members_list()
+
+    def members_list(self):
+	if 'members' in self._mydict :
+	    if type(self._mydict['members']) == 'dict' :
+		return self._mydict['members'].keys()
+	    if type(self._mydict['members']) in [ 'list', 'set' ] :
+		return self._mydict['members']
+	return [ ]
 
     def __repr__(self):
 	return "<%s %s @ %s at 0x%x>" % ( self.__class__.__name__,

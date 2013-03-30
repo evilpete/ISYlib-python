@@ -142,32 +142,35 @@ class ISYEvent(object) :
 	#print "_process_event ", data,"\n\n"
 
 
-	for e in list(ev) :
-	    n = list(e)
-	    if  n  :
-		cdict = dict ()
-		for child in n:
-		    if child.attrib :
-			for k, v in child.attrib.iteritems() :
-			    cdict[child.tag + "-" + k] = v
-		    if list(child) :
-			gdict  = dict ()
-			for gchild in child:
-			    gdict[gchild.tag] = gchild.text
-			    if gchild.attrib :
-				for k, v in gchild.attrib.iteritems() :
-				    gdict[gchild.tag + "-" + k] = v
-			cdict[child.tag] = gdict
-		    else :
-			cdict[child.tag] = child.text
-		ddat[e.tag] = cdict
-	    else :
-		ddat[e.tag] = e.text
-	    if e.attrib :
-		for k, v in e.attrib.iteritems() :
-		    ddat[e.tag + "-" + k] = v
-	for k, v in ev.attrib.iteritems() :
-	    ddat[ev.tag + "-" + k] = v
+	ddat = self.et2d(ev)
+
+	if 0 :
+	    for e in list(ev) :
+		n = list(e)
+		if  n  :
+		    cdict = dict ()
+		    for child in n:
+			if child.attrib :
+			    for k, v in child.attrib.iteritems() :
+				cdict[child.tag + "-" + k] = v
+			if list(child) :
+			    gdict  = dict ()
+			    for gchild in child:
+				gdict[gchild.tag] = gchild.text
+				if gchild.attrib :
+				    for k, v in gchild.attrib.iteritems() :
+					gdict[gchild.tag + "-" + k] = v
+			    cdict[child.tag] = gdict
+			else :
+			    cdict[child.tag] = child.text
+		    ddat[e.tag] = cdict
+		else :
+		    ddat[e.tag] = e.text
+		if e.attrib :
+		    for k, v in e.attrib.iteritems() :
+			ddat[e.tag + "-" + k] = v
+	    for k, v in ev.attrib.iteritems() :
+		ddat[ev.tag + "-" + k] = v
 
 
 	# print ddat
@@ -176,6 +179,40 @@ class ISYEvent(object) :
 	# print ddat
 	return(ddat,data)
 	#return( ddat )
+
+
+    def et2d(self, et) :
+	""" Etree to Dict
+
+	    converts an ETree to a Dict Tree
+	    lists are created for duplicate tag 
+
+	    arg: a ETree obj
+	    returns: a dict obj
+
+	"""
+	d = dict ()
+	children = list(et)
+	if et.attrib :
+	    for k, v in et.items() :
+		d[et.tag + "-" + k] =  v
+	if children :
+	    for c in children :
+		if c.tag in d :
+		    if type(d[c.tag]) != list :
+			t = d[c.tag]
+			d[c.tag] = [ t ]
+		if list(c) :
+		    if c.tag in d :
+			d[c.tag].append( self.et2d(c) )
+		    else :
+			d[c.tag] = self.et2d(c)
+		else :
+		    if c.tag in d :
+			d[c.tag].append( c.text )
+		    else :
+			d[c.tag] = c.text
+	return d
 
     @staticmethod
     def print_event( *arg):
@@ -192,11 +229,10 @@ class ISYEvent(object) :
 		# print ddat["Event-sid"]
 		print "%-7s %-4s\t%-22s\t%-12s\t%s\t%s" % \
 		    (ti, ddat["Event-seqnum"], ectrl, node, ddat["action"], evi )
-	    elif  ddat["control"] == "_1" and ddat["action"] in ["6", "7", "3"] :
-		print ddat["control"], " : ", ddat
-		print arg
+	    #elif  ddat["control"] == "_1" and ddat["action"] in ["6", "7", "3"] :
+	#	print ddat["control"], " : ", ddat
+	#	print arg
 
-	    pass
 	    #print ddat
 	    # print data
 	except :

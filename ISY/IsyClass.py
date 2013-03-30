@@ -162,18 +162,16 @@ class Isy(IsyUtil):
 		print "d : ", d
 
 	# handle VAR value change
-	elif d["control"] == "_1" : # Trigger Event
-	    if d["action"] == "6" : # Var Status
-		vid = d["eventInfo"]["var-type"] + ":" + d["eventInfo"]["var-id"]
+	elif d["control"] == "_1" :
+	    if d["action"] == "6" or  d["action"] == "7" : # Var Status / Initialized
+		vid = d['eventInfo']['var']['var-type'] + ":" + d['eventInfo']['var']['var-id']
 		if vid in self._vardict :
-		    self._vardict[vid]["val"] = d["eventInfo"]["var"]["val"]
-		    self._vardict[vid]["ts"] = d["eventInfo"]["var"]["ts"]
+		    for p in ['init', 'val', 'ts'] :
+			if p in d['eventInfo']['var'] :
+			    self._vardict[vid][p] = d['eventInfo']['var'][p]
 		else :
 		    warning.warn("Event for Unknown Var : {0}".format(vid), \
 			    RuntimeWarning)
-
-	    if d["action"] == "7" : # Var Initialized
-		print "Event for Var Initialized : ", d
 
 	else:
 	    print "d :",d
@@ -199,34 +197,31 @@ class Isy(IsyUtil):
     def _preload(self):
         self.load_conf()
         self.load_nodes()
-        self.load_clim()
+	# self._gen_member_list()
+        # self.load_clim()
         self.load_vars()
         self.load_prog()
-        self.load_wol()
+        #self.load_wol()
 	self.load_node_types()
 
     def _savedict(self) :
 
-	self.load_wol()
-	self._writedict(self.wolinfo, "wolinfo.txt")
+	self._preload()
 
-	self.load_nodes()
+	# self._writedict(self.wolinfo, "wolinfo.txt")
+
 	self._writedict(self._nodedict, "nodedict.txt")
 
 	self._writedict(self._nodegroups, "nodegroups.txt")
 
 	self._writedict(self.folderlist, "folderlist.txt")
 
-	self.load_vars()
 	self._writedict(self._vardict, "vardict.txt")
 
-        self.load_clim()
-	self._writedict(self.climateinfo, "climateinfo.txt")
+	# self._writedict(self.climateinfo, "climateinfo.txt")
 
-        self.load_conf()
 	self._writedict(self.controls, "controls.txt")
 
-	self.load_prog()
 	self._writedict(self._progdict, "progdict.txt")
 
 
@@ -323,6 +318,65 @@ class Isy(IsyUtil):
         self._gen_nodegroups(nodeinfo)
         # self._printdict(self._nodedict)
 	print "load_nodes self.node2addr : ", len(self.node2addr)
+	self._gen_member_list()
+
+    def _gen_member_list(self) :
+	try:
+	    self._nodedict
+        except AttributeError:
+	    return
+	else :
+
+	    # Folders can only belong to Folders
+	    for fa in self.folderlist :
+		# make code easier to read
+		f = self.folderlist[fa]
+		# add members list if needed
+		if 'members' not in f :
+		    f['members'] = list()
+		# check if folder obj has a parent
+		if 'parent' in f :
+		    # this should always be true
+		    if f['parent-type'] == '3' and  f['parent'] in self.folderlist :
+			if 'members' not in self.folderlist[f['parent']] :
+			    self.folderlist[f['parent']]['members'] = list()
+			self.folderlist[f['parent']]['members'].append( f['address'])  
+		    else:
+			print "warn bad parenting f =", f
+
+	    # Scenes can only belong to Folders
+	    for sa in self._nodegroups :
+		s = self._nodegroups[sa]
+		if "parent" in s :
+		    if s['parent-type']== '3' and  s['parent'] in self.folderlist :
+			self.folderlist[s['parent']]['members'].append( s['address'])
+		    else:
+			print "warn bad parenting s = ", s
+
+	    # A Node can belong only to ONE and only ONE Folder or another Node
+	    for na in self._nodedict :
+		n = self._nodedict[na]
+		# print "n = ", n
+		if 'pnode' in n and n['pnode'] != n['address'] :
+		    if 'members' not in self._nodedict[n['pnode']] :
+			self._nodedict[n['pnode']]['members'] = list ()
+		    self._nodedict[n['pnode']]['members'].append( n['pnode'] )
+
+		if 'parent' in n :
+		    if 'pnode' not in n or n['pnode'] != n['pnode'] :
+			if n['parent-type'] == 3 :
+			    if n['parent'] in self.folderlist :
+				self.folderlist[n['parent']]['members'].append( n['address'])
+			elif  n['parent-type'] == 1 :
+			    if n['parent'] in self._nodegroups :
+				self._nodegroups[n['parent']]['members'].add( n['address'])
+		# 'parent': '16 6C D2 1', 'parent-type': '1',
+		# 'parent': '12743', 'parent-type': '3',
+		# if n.pnode == n.parent and n.pnode == n.address
+		    next
+		pass
+
+
 
     def _gen_folder_list(self, nodeinfo) :
         """ generate folder dictionary for load_node """
@@ -330,6 +384,8 @@ class Isy(IsyUtil):
         self.folder2addr = dict ()
         for fold in nodeinfo.iter('folder'):
             fprop = dict ()
+            for k, v in fold.items() :
+                fprop[fold.tag + "-" + k] = v
             for child in list(fold):
                 fprop[child.tag] = child.text
 		if child.attrib :
@@ -347,7 +403,7 @@ class Isy(IsyUtil):
         for grp in nodeinfo.iter('group'):
             gprop = dict ()
             for k, v in grp.items() :
-                gprop[k] = v
+                gprop[grp.tag + "-" + k] = v
             for child in list(grp) :
 		if child.tag == "parent" :
                     gprop[child.tag] = child.text
@@ -382,14 +438,15 @@ class Isy(IsyUtil):
             # self._printinfo(inode, "\n\n inode")
             idict = dict ()
             for k, v in inode.items() :
-                idict[k] = v
+                idict[inode.tag + "-" + k] = v
             for child in list(inode) :
                 # self._printinfo(child, "\tchild")
 
                 if child.tag == "parent" :
                     idict[child.tag] = child.text
                     for k, v in child.items() :
-                        idict[child.tag + "_" + k] = v
+                        idict[child.tag + "-" + k] = v
+		# special case where ST, OL, and RR
                 elif child.tag == "property" :
                     nprop = dict ()
                     for k, v in child.items() :
@@ -966,8 +1023,10 @@ class Isy(IsyUtil):
         if self.debug & 0x01 :
             print "load_clim called"
         clim_tree = self._getXMLetree("/rest/climate")
-        # Isy._printXML(self.climateinfo)
         self.climateinfo = dict ()
+	if clim_tree == None :
+	    return 
+        # Isy._printXML(self.climateinfo)
 
         for cl in clim_tree.iter("climate") :
             for k, v in cl.items() :

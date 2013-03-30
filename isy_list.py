@@ -12,6 +12,7 @@ def list_nodes(myisy) :
 	   print pfmt.format(nod.name, nod.address, "-")
        else :
 	   print pfmt.format(nod.name, nod.address, nod.formatted)
+       # print " members : ", len(nod.members_list())
 
 if __name__ == '__main__' :
     myisy = ISY.Isy( )

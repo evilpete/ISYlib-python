@@ -43,49 +43,49 @@ class IsyProgram(IsySubClass):
 	    'addr': 'id', 'address': 'id' }
 
 
-    def get_prog_enabled(self):
-	return self._get_prop("enabled")
-    enabled = property(get_prog_enabled)
+#    def get_prog_enabled(self):
+#	return self._get_prop("enabled")
+#    enabled = property(get_prog_enabled)
 
-    def get_prog_folder(self):
-	return self._get_prop("folder")
-    folder = property(get_prog_folder)
+#    def get_prog_folder(self):
+#	return self._get_prop("folder")
+#    folder = property(get_prog_folder)
 
-    def get_prog_id(self):
-	return self._get_prop("id")
-    type = property(get_prog_id)
+#    def get_prog_id(self):
+#	return self._get_prop("id")
+#    type = property(get_prog_id)
 
-    def get_prog_lastFinishTime(self):
-	return self._get_prop("lastFinishTime")
-    lastFinishTime = property(get_prog_lastFinishTime)
+#    def get_prog_lastFinishTime(self):
+#	return self._get_prop("lastFinishTime")
+#    lastFinishTime = property(get_prog_lastFinishTime)
 
-    def get_prog_lastRunTime(self):
-	return self._get_prop("lastRunTime")
-    lastRunTime = property(get_prog_lastRunTime)
+#    def get_prog_lastRunTime(self):
+#	return self._get_prop("lastRunTime")
+#    lastRunTime = property(get_prog_lastRunTime)
 
-    def get_prog_name(self):
-	return self._get_prop("name")
-    name = property(get_prog_name)
+#    def get_prog_name(self):
+#	return self._get_prop("name")
+#    name = property(get_prog_name)
 
-    def get_prog_nextScheduledRunTime(self):
-	return self._get_prop("nextScheduledRunTime")
-    nextScheduledRunTime = property(get_prog_nextScheduledRunTime)
+#    def get_prog_nextScheduledRunTime(self):
+#	return self._get_prop("nextScheduledRunTime")
+#    nextScheduledRunTime = property(get_prog_nextScheduledRunTime)
 
-    def get_prog_parentId(self):
-	return self._get_prop("parentId")
-    parentId = property(get_prog_parentId)
+#    def get_prog_parentId(self):
+#	return self._get_prop("parentId")
+#    parentId = property(get_prog_parentId)
 
-    def get_prog_runAtStartup(self):
-	return self._get_prop("runAtStartup")
-    runAtStartup = property(get_prog_runAtStartup)
+#    def get_prog_runAtStartup(self):
+#	return self._get_prop("runAtStartup")
+#    runAtStartup = property(get_prog_runAtStartup)
 
-    def get_prog_running(self):
-	return self._get_prop("running")
-    running = property(get_prog_running)
+#    def get_prog_running(self):
+#	return self._get_prop("running")
+#    running = property(get_prog_running)
 
-    def get_prog_status(self):
-	return self._get_prop("status")
-    status = property(get_prog_status)
+#    def get_prog_status(self):
+#	return self._get_prop("status")
+#    status = property(get_prog_status)
 
     def send_command(self, cmd):
 	self.prog_comm(self._mydict['id'], cmd)
