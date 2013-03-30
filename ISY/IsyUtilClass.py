@@ -125,7 +125,6 @@ class IsySubClass(IsyUtil):
 	    self._printdict(self._mydict)
 
 
-
     def _get_prop(self, prop):
 	if prop in self.propalias :    
 	    prop = self.propalias[prop]
@@ -146,13 +145,30 @@ class IsySubClass(IsyUtil):
 	pass
 
 
+    def on(self, *args) :
+        self.isy._node_comm(self._mydict["address"], "DON", *args)
+	#if "property" in self._mydict :
+        #    self._mydict["property"]["time"] = 0
+        # self.update()
+
+    def off(self) :
+        self.isy._node_comm(self._mydict["address"], "DOF")
+	if "property" in self._mydict :
+            self._mydict["property"]["time"] = 0
+	    if "ST" in  self._mydict["property"] :
+		self._mydict["property"]["ST"]["value"] = 0
+		self._mydict["property"]["ST"]["formatted"] = "off"
+
+    def beep(self) :
+        self.isy._node_comm(self._mydict["address"], "BEEP")
+
     def _getaddr(self):
-	""" property : Address of Node (readonly) """
+	"""  Address or ID of Node (readonly) """
         return self._get_prop("address")
     address = property(_getaddr)
 
     def _getname(self):
-	""" property : Name of Node (readonly) """
+	"""  Name of Node (readonly) """
         return self._get_prop("name")
     name = property(_getname)
 
@@ -194,6 +210,14 @@ class IsySubClass(IsyUtil):
 #        if not hasattr(other, "myval") :
 #            return -1
 #        return ( str.__cmp__(self.myval ,other.myval) )
+
+    def __getattr__(self,attr):
+	attr_v = self._get_prop(attr)
+	if attr_v :
+	    return attr_v
+	else :
+	    raise IsyPropertyError, attr
+
 
     # check if obj _contains_  attib
     def __contains__(self, other):

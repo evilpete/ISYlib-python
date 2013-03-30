@@ -15,9 +15,22 @@ __all__ = ['IsyNode', 'IsyNodeFolder', 'IsyScene']
 class IsyNode(IsySubClass):
     """ Node Class for ISY
 	attributes :
-	ramprate onlevel status address name type members
+	    status / ST
+	    ramprate / RR
+	    onlevel / OL
+
+	readonly attributes :
+	    address
+	    formatted
+	    enabled
+	    pnode
+	    type
+	    name
+	    ELK_ID
+	    flag
     """
     getlist = ['address', 'enabled', 'formatted',
+		'ELK_ID',
 		'name', 'pnode', 'flag',
 		'OL', 'RR', 'ST', 'type']
     setlist = ['ST', 'RR', 'OL', 'status', 'ramprate', 'onlevel' ]
@@ -51,6 +64,7 @@ class IsyNode(IsySubClass):
 	    # self.isy._printdict(self.__dict__)
 
 
+    # Special case from BaseClass due to ST/RR/OL props
     def _get_prop(self, prop):
         # print "----get_status call"
 
@@ -167,10 +181,10 @@ class IsyNode(IsySubClass):
     onlevel = property(get_ol, set_ol)
 
 
-    def get_fm(self):
-	""" property On Level Value of Node """
-        return self._get_prop("formatted")
-    formatted = property(get_fm)
+#    def get_fm(self):
+#	""" property On Level Value of Node """
+#        return self._get_prop("formatted")
+#    formatted = property(get_fm)
 
     # status property
     # obj mathod for getting/setting a Node's value
@@ -189,62 +203,23 @@ class IsyNode(IsySubClass):
     # readonly to node attribute
     #
 
-    def _gettype(self):
-        if "type" in self._mydict :
-            return self._mydict["type"]
-        elif int(self._mydict["flag"]) & 0x04 :
-            return "scene"
-        else :
-	    #raise IsyPropertyError("_set_prop : "
-            #	"Error getting' property Attribute : \"type\""
-	    return None
-    type = property(_gettype)
 
-    def scene_nodes(self) :
-        pass
-
-    def pdict(self):
-        self._printdict(self._mydict)
-
-
-    #
-    #
-    # direct (non obj) call to get value
-    #
-    def value(self) :
-        try:
-            return self._mydict["property"]["ST"]["value"]
-        except:
-            return None
-        #else:
-        #    return self._mydict["property"]["ST"]["value"]
-
-    # direct (non obj) call to set value
-    def svalue(self, v) :
-        try:
-            self._mydict["property"]["ST"]["value"]
-        except:
-            return None
-        else:
-            self._mydict["property"]["ST"]["value"] = v
-
-
-    def on(self) :
-        self.isy._node_comm(self._mydict["address"], "DON")
-	if "property" in self._mydict :
-            self._mydict["property"]["time"] = 0
-        # self.update()
-
-    def off(self) :
-        self.isy._node_comm(self._mydict["address"], "DOF")
-	if "property" in self._mydict :
-            self._mydict["property"]["time"] = 0
-	    if "ST" in  self._mydict["property"] :
-		self._mydict["property"]["ST"]["value"] = 0
-
-
-    def beep(self) :
-        self.isy._node_comm(self._mydict["address"], "BEEP")
+#    def on(self) :
+#        self.isy._node_comm(self._mydict["address"], "DON")
+#	#if "property" in self._mydict :
+#        #    self._mydict["property"]["time"] = 0
+#        # self.update()
+#
+#    def off(self) :
+#        self.isy._node_comm(self._mydict["address"], "DOF")
+#	if "property" in self._mydict :
+#            self._mydict["property"]["time"] = 0
+#	    if "ST" in  self._mydict["property"] :
+#		self._mydict["property"]["ST"]["value"] = 0
+#		self._mydict["property"]["ST"]["formatted"] = "off"
+#
+#    def beep(self) :
+#        self.isy._node_comm(self._mydict["address"], "BEEP")
 
     #
     #
@@ -280,14 +255,28 @@ class IsyNode(IsySubClass):
         return float ( int(self._mydict["property"]["ST"]["value"]) / float(255) )
 
 class IsyScene(IsySubClass):
-    getlist = ['address', 'name' "ELK_ID", "deviceGroup",
+    """ Node Folder Class for ISY
+
+	writeonly attributes :
+	    status
+
+	readonly attributes :
+	    address
+	    name 
+	    flag 
+	    deviceGroup
+	    parent
+	    parent-type
+	    ELK_ID
+    """
+    getlist = ['address', 'name', "ELK_ID", "deviceGroup",
 		'flag', 'parent', 'parent-type'  ]
     setlist = [ ]
     propalias = { 'id': 'address', 'addr': 'address',
 		    "group-flag": "flag" }
 
     # status property
-    # obj mathod for getting/setting a Node's value
+    # obj mathod for getting/setting a  Scene's value
     # where in most cases light is how bright the light is
     def set_status(self, new_value):
 	""" set status value of Scene """
@@ -295,8 +284,12 @@ class IsyScene(IsySubClass):
 
     status = property(None, set_status)
 
+    def _gettype(self):
+	return "scene"
+    type = property(_gettype)
+
     def _getmembers(self) :
-	""" property : List members of a scene or group """
+	""" List members of a scene or group """
         if "members" in self._mydict :
             return self._mydict["members"].keys()
         else :
@@ -304,10 +297,10 @@ class IsyScene(IsySubClass):
     members = property(_getmembers)
 
     def is_member(self, obj) :
-	if isinstance(other, str)  :
-	    return other in self._mydict["members"]
-	elif isinstance(other, IsySubClass)  :
-	    return other._get_prop("address") in self._mydict["members"]
+	if isinstance(obj, str)  :
+	    return obj in self._mydict["members"]
+	elif isinstance(obj, IsySubClass)  :
+	    return obj._get_prop("address") in self._mydict["members"]
 	else :
 	    return False
 
@@ -329,15 +322,27 @@ class IsyScene(IsySubClass):
 
 
 class IsyNodeFolder(IsySubClass):
-    propalias = { 'id': 'address', 'addr': 'address', "folder-flag": "flag" }
+    """ Node Folder Class for ISY
+
+	readonly attributes :
+	    address
+	    name
+	    flag
+    """
     getlist = ['address', 'name', 'flag']
     setlist = [ ]
+    propalias = { 'id', 'address', 'addr', 'address', "folder-flag", "flag" }
 
     def members_iter():
 	pass
 
+    def _gettype(self):
+	return "folder"
+    type = property(_gettype)
+
     def __iter__(self): 
-	return self.members_iter()
+	#return self.members_iter()
+	pass
 
     def __contains__(self, other):
 	pass

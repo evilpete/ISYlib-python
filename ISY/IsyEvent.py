@@ -32,79 +32,64 @@ class ISYEvent(object) :
     def __init__(self, addr=None,  **kwargs):
 	# print  "ISYEvent ", self.__class__.__name__
 
-	update_node_data = kwargs.get("update_node_data", 0)
-	myisy = kwargs.get("myisy", 0)
-	self.connect_list = []
 	self.debug = kwargs.get("debug", 0)
+	self.connect_list = []
 	self.shut_down = 0
 
-	if  update_node_data and myisy != None :
-	    #print "a myisy: ", myisy
-	    self.debug = myisy.debug
-	    self.update_node_loop(myisy)
-	    return
-
-	self.process_func = kwargs.get("process_func", None)
+	self.process_func = kwargs.get("process_func", ISYEvent.print_event)
 	self.process_func_arg = kwargs.get("process_func_arg", None)
-
 
 	if self.process_func :
 	    assert callable(self.process_func), "process_func Arg must me callable"
-
 
 	if addr :
 	    connect_list.append(ISYEventConnection(addr,self))
 
 
+    def set_process_func(self, func, arg) :
+
+	if func :
+	    self.process_func = func
+	    assert callable(self.process_func), "process_func Arg must me callable"
+	else:
+	    self.process_func = ISYEvent.print_event
+
+	if arg :
+	    self.process_func_arg = arg
 
 
-    def update_node_loop(self, myisy) :
 
+    def subscribe(self, addr):
+	""" subscribe to Isy device event stream
+
+	    this function adds an ISY device to the list of devices to
+	    receive events from
+
+	    arg: IP address  or hostname of isydevice
+	"""
 	if self.debug & 0x01 :
-	    print  "ISYEvent ", self.__class__.__name__
-	    print "update_node_loop"
-
-	#add  check myisy class
-	from threading import Thread
-
-	self.subscribe(myisy.addr)
-	self.process_func = myisy._read_event
-	self.process_func_arg = myisy
-
-	# argdict={ "myisy":myisy, "isyevent":self }
-	myisy.thread = Thread(target=self.events_loop, name="event_looper" )
-	myisy.thread.daemon = True
-	myisy.thread.start()
-
-	print "t =",myisy.thread
-
-	
+	    print "subscribe ", addr
+	if addr in self.connect_list :
+	    warning.warn("Duplicate addr", RuntimeWarning)
+	    return
+	self.connect_list.append(ISYEventConnection(addr, self))
 
     def unsubscribe(self, addr):
+	""" unsubscribe to Isy device event stream
 
+	    this function removes an ISY device to the list of devices to
+	    receive events from
+
+	    arg: IP address  or hostname of isydevice
+	"""
 	remote_ip = socket.gethostbyname( host )
-
 	if not addr in self.connect_list :
 	    warning.warn("address {0}/{1} not subscribed".format(addr, remote_ip),
 		RuntimeWarning)
 	    return
-
 	isyconn = self.connect_lists[self.connect_list.index(addr)]
-
 	isyconn.disconnect()
 	del(isyconn)
-
-
-    def subscribe(self, addr):
-
-	if self.debug & 0x01 :
-	    print "subscribe ", addr
-
-	if addr in self.connect_list :
-	    warning.warn("Duplicate addr", RuntimeWarning)
-	    return
-
-	self.connect_list.append(ISYEventConnection(addr, self))
 
     def _process_event(self, conn_obj) :
 	""" 
@@ -193,9 +178,9 @@ class ISYEvent(object) :
 	#return( ddat )
 
     @staticmethod
-    def print_event(ddat, arg):
+    def print_event( *arg):
 
-
+	ddat = arg[0]
 
 	try:
 	    if ddat["control"] in ["ST", "RR", "OL"] : 
@@ -220,7 +205,6 @@ class ISYEvent(object) :
 	    # print data
 	finally:
 	    pass
-
 
 
     def event_iter(self, ignorelist=None, poll_interval=0.5) :
@@ -258,18 +242,14 @@ class ISYEvent(object) :
 	    finally:
 		pass
 
-    @staticmethod
-    def events_loop_static( **kwargs ) :
-	if self.debug & 0x01 :
-	    print  "events_loop_static ", self.__class__.__name__
-
-
-    def events_loop(self, ignorelist=None, poll_interval=0.5) :
+    def events_loop(self, **kargs) :
 	"""Loop thought events
 
 	    reads events packets and passes them to processor
 
 	""" 
+	ignorelist=kargs.get("ignorelist", None)
+	poll_interval=kargs.get("poll_interval", 0.5) 
 
 	if self.debug & 0x01 :
 	    print  "events_loop ", self.__class__.__name__
@@ -286,8 +266,8 @@ class ISYEvent(object) :
 		    if ignorelist :
 			if d["control"] in ignorelist :
 			    continue
-		    #self.process_func(d, self.process_func_arg)
-		    self.process_func(d, x)
+		    self.process_func(d, self.process_func_arg, x)
+		    # self.process_func(d, x)
 	    except socket.error :
 		print "socket error({0}): {1}".format(e.errno, e.strerror)
 		self.reconnect()
