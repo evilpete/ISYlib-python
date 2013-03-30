@@ -4,14 +4,14 @@ import ISY
 
 
 def list_nodes(myisy) :
-    print "%-20s %-12s\t%s" % ("Node Name", "Address", "Status")
-    print "%-20s %-12s\t%s" % ("---------", "-------", "------")
+    pfmt = "{:<20} {:<12}\t{:<12}"
+    print pfmt.format("Node Name", "Address", "Status")
+    print pfmt.format("---------", "-------", "------")
     for nod in myisy :
        if nod.type == "scene" :
-	   #print "%-20s %-12s\t%s" % (nod.name, nod.address, nod.members )
-	   print "%-20s %-12s\t%s" % (nod.name, nod.address, "-")
+	   print pfmt.format(nod.name, nod.address, "-")
        else :
-	   print "%-20s %-12s\t%s" % (nod.name, nod.address, nod.formatted)
+	   print pfmt.format(nod.name, nod.address, nod.formatted)
 
 if __name__ == '__main__' :
     myisy = ISY.Isy( )
