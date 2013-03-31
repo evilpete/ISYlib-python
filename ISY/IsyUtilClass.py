@@ -1,6 +1,7 @@
 # from xml.dom.minidom import parse, parseString
 #from StringIO import StringIO
 import xml.etree.ElementTree as ET
+from IsyExceptionClass import *
 # import base64
 import urllib2 as URL
 # import re
@@ -48,14 +49,9 @@ class IsyUtil(object):
 
     def _printdict(self, d):
         """ Pretty Print dictionary """
-        try:
-            self.pp
-        except AttributeError:
-            self.pp = pprint.PrettyPrinter(indent=3)
-        finally:
-	    print "===START==="
-            self.pp.pprint(d)
-	    print "===END==="
+	print "===START==="
+	pprint(d)
+	print "===END==="
 
     def _printinfo(self, uobj, ulabel="\t"):
 	""" Debug util """
@@ -139,15 +135,15 @@ class IsySubClass(IsyUtil):
 		return(self._mydict[prop])
 	return(None)
 
-    def _set_prop(self, prop, val):
-	""" Internal funtion call """
-	if prop in self.propalias :    
-	    prop = self.propalias[prop]
-
-	if not prop in self.setlist :
-	    raise IsyPropertyError("_set_prop : "
-		"no property Attribute " + prop)
-	pass
+#    def _set_prop(self, prop, val):
+#	""" Internal funtion call """
+#	if prop in self.propalias :    
+#	    prop = self.propalias[prop]
+#
+#	if not prop in self.setlist :
+#	    raise IsyPropertyError("_set_prop : "
+#		"no property Attribute " + prop)
+#	pass
 
 
     def get_prop_list(self, l):
@@ -229,13 +225,13 @@ class IsySubClass(IsyUtil):
 
 	"""
 	return self._get_prop("value")
-    def __set__(self,  val):
-	""" Internal method 
-
-	    allows Object status to be set as the value of the obj
-
-	"""
-	self._set_prop("value", val)
+#    def __set__(self,  val):
+#	""" Internal method 
+#
+#	    allows Object status to be set as the value of the obj
+#
+#	"""
+#	self._set_prop("value", val)
 
     def __iter__(self):
 	""" Internal method 
@@ -250,15 +246,17 @@ class IsySubClass(IsyUtil):
 	    else :
 		yield (p , None)
 
-    def members_iter(self):
+    def member_iter(self):
 	return self.members_list()
 
-    def members_list(self):
+    def member_list(self):
+    
 	if 'members' in self._mydict :
+	    # print "mydict['members'] : ", type(self._mydict['members']) 
 	    if type(self._mydict['members']) == 'dict' :
 		return self._mydict['members'].keys()
-	    if type(self._mydict['members']) in [ 'list', 'set' ] :
-		return self._mydict['members']
+	    # if type(self._mydict['members']) == 'list' :
+	    return self._mydict['members'][:]
 	return [ ]
 
     def __repr__(self):
@@ -271,42 +269,54 @@ class IsySubClass(IsyUtil):
 #        #print "_hash__ called"
 #        return str.__hash__(self._get_prop("id]").myval)
  
-#    def __compare__(self,other):
+#    def __compare__(self, other):
 #        print "__compare__ called"
 #	if isinstance(other, str) :
 #        if not hasattr(other, "myval") :
 #            return -1
-#        return ( str.__cmp__(self.myval ,other.myval) )
+#        return ( str.__cmp__(self.myval, other.myval) )
 
-    def __getattr__(self,attr):
+    def __getattr__(self, attr):
 	attr_v = self._get_prop(attr)
 	if attr_v :
 	    return attr_v
 	else :
-	    print "attr =",attr
+	    print "attr =", attr
 	    raise AttributeError, attr
 
+    def is_member(self, obj) :
+	if "members" in self._mydict :
+	    if isinstance(obj, str)  :
+		return obj in self._mydict["members"]
+	    elif isinstance(obj, IsySubClass)  :
+		return obj._get_prop("address") in self._mydict["members"]
+	return False
+
+    # check if scene _contains_ node
+    def __contains__(self, other):
+	    return self.is_member(other)
 
     # check if obj _contains_  attib
-    def __contains__(self, other):
-	if isinstance(other, str)  :
-	    return other in self.getlist
-	else :
-	    return False
+#    def __contains__(self, other):
+#	if isinstance(other, str)  :
+#	    return other in self.getlist
+#	else :
+#	    return False
 
     # This allows for 
-    def __eq__(self,other):
+    def __eq__(self, other):
 	print "IsyUtil __eq__"
 	print "self", self
 	print "other", other
 	if isinstance(other, str) :
 	    return self._get_prop("id") == other
 	if type(self) != type(other) :
-	    return false
+	    return False
 	    # NotImplemented 
-	if not hasattr(other._mydict, "id") :
-	    return object.__eq__(self,other)
-	return self._get_prop("id") == other._get_prop("id")
+	if hasattr(other._mydict, "id") :
+	    return self._get_prop("id") == other._get_prop("id")
+	return False
+
 
 #
 # Do nothing

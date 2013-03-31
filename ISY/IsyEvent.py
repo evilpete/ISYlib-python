@@ -10,15 +10,16 @@
 import time
 
 import sys
-import os
-import traceback
+# import os
+# import traceback
+import warnings
 # import re
 import socket
 import select
 
 import xml.etree.ElementTree as ET
 
-from IsyEventData import event_ctrl
+from IsyEventData import EVENT_CTRL
 
 try:
     import fcntl
@@ -43,7 +44,7 @@ class ISYEvent(object) :
 	    assert callable(self.process_func), "process_func Arg must me callable"
 
 	if addr :
-	    connect_list.append(ISYEventConnection(addr,self))
+	    self.connect_list.append(ISYEventConnection(addr, self))
 
 
     def set_process_func(self, func, arg) :
@@ -82,7 +83,7 @@ class ISYEvent(object) :
 
 	    arg: IP address  or hostname of isydevice
 	"""
-	remote_ip = socket.gethostbyname( host )
+	remote_ip = socket.gethostbyname( addr )
 	if not addr in self.connect_list :
 	    warning.warn("address {0}/{1} not subscribed".format(addr, remote_ip),
 		RuntimeWarning)
@@ -132,52 +133,23 @@ class ISYEvent(object) :
 	while data_remaining :
 	    chunk = conn_obj.event_rf.read(data_remaining)     
 	    if not chunk :
-		break;
+		break
 	    L.append(chunk)
 	    data_remaining -= len(chunk)
 	data = ''.join(L)
 
 	ddat = dict ( )
 	ev = ET.fromstring(data)
-	#print "_process_event ", data,"\n\n"
+	#print "_process_event ", data, "\n\n"
 
 
 	ddat = self.et2d(ev)
-
-	if 0 :
-	    for e in list(ev) :
-		n = list(e)
-		if  n  :
-		    cdict = dict ()
-		    for child in n:
-			if child.attrib :
-			    for k, v in child.attrib.iteritems() :
-				cdict[child.tag + "-" + k] = v
-			if list(child) :
-			    gdict  = dict ()
-			    for gchild in child:
-				gdict[gchild.tag] = gchild.text
-				if gchild.attrib :
-				    for k, v in gchild.attrib.iteritems() :
-					gdict[gchild.tag + "-" + k] = v
-			    cdict[child.tag] = gdict
-			else :
-			    cdict[child.tag] = child.text
-		    ddat[e.tag] = cdict
-		else :
-		    ddat[e.tag] = e.text
-		if e.attrib :
-		    for k, v in e.attrib.iteritems() :
-			ddat[e.tag + "-" + k] = v
-	    for k, v in ev.attrib.iteritems() :
-		ddat[ev.tag + "-" + k] = v
-
 
 	# print ddat
 	#if ddat[control][0] == "_" :
 	#	return
 	# print ddat
-	return(ddat,data)
+	return(ddat, data)
 	#return( ddat )
 
 
@@ -221,7 +193,7 @@ class ISYEvent(object) :
 
 	try:
 	    if ddat["control"] in ["ST", "RR", "OL"] : 
-		ectrl = event_ctrl.get(ddat["control"], ddat["control"])
+		ectrl = EVENT_CTRL.get(ddat["control"], ddat["control"])
 		node = ddat["node"]
 
 		evi = ddat["eventInfo"]
@@ -243,7 +215,7 @@ class ISYEvent(object) :
 	    pass
 
 
-    def event_iter(self, ignorelist=None, poll_interval=0.5) :
+    def event_iter(self, ignorelist = None, poll_interval = 0.5) :
 	"""Loop thought events
 
 	    reads events packets and passes them to processor
@@ -278,6 +250,10 @@ class ISYEvent(object) :
 	    finally:
 		pass
 
+    def reconnect(self) :
+	for isy_conn in self.connect_list:
+	    isy_conn.reconnect()
+
     def events_loop(self, **kargs) :
 	"""Loop thought events
 
@@ -290,8 +266,8 @@ class ISYEvent(object) :
 	if self.debug & 0x01 :
 	    print  "events_loop ", self.__class__.__name__
 
-	for s in self.connect_list:
-	    s.connect()
+	for isystream in self.connect_list:
+	    isystream.connect()
 
 	while not self.shut_down  :
 	    try:
@@ -335,11 +311,11 @@ class ISYEventConnection(object):
 #    def __del__(self):
 #	pass
 
-    def __eq__(self,other):
+    def __eq__(self, other):
 	if isinstance(other, str) :
 	    return self.isyaddr == other
 	if not hasattr(other, "isyaddr") :
-	    return object.__eq__(self,other)
+	    return False
 	return self.isyaddr == other.isyaddr
 
     def fileno(self): 
@@ -347,7 +323,7 @@ class ISYEventConnection(object):
 	return self.event_sock.fileno() 
 
     def reconnect(self):
-	print "--reconnect to self.isyaddr--"
+	# print "--reconnect to self.isyaddr--"
 	self.error += 1
 	self.disconnect()
 	self.connect()
@@ -357,21 +333,21 @@ class ISYEventConnection(object):
 	    if self.event_rf :
 		self.event_rf.close()
 		self.event_rf = False
-	except :
+	except IOError :
 	    pass
 
 	try :
 	    if self.event_wf :
 		self.event_wf.close()
 		self.event_wf = False
-	except :
+	except IOError :
 	    pass
 
 	try :
 	    if self.event_sock :
 		self.event_sock.close()
 		self.event_sock = False
-	except :
+	except IOError :
 	    pass
 
     def connect(self):
@@ -405,7 +381,7 @@ class ISYEventConnection(object):
 	self.event_rf = self.event_sock.makefile("rb")
 	self.event_wf = self.event_sock.makefile("wb")
 
-	return self.event_sock;
+	return self.event_sock
 
     def _subscribe(self):
 
@@ -432,9 +408,6 @@ class ISYEventConnection(object):
 	if self.debug & 0x02:
 	    print post
 
-	msglen = len(post)
-	totalsent = 0
-
 	self.event_wf.write(post)
 	self.event_wf.flush()
 
@@ -442,7 +415,6 @@ class ISYEventConnection(object):
 	if ( l[:5] != 'HTTP/' ) :
 	    raise ValueError( l )
 
-	l.split(' ', 1)[1]
 	if ( l.split(' ')[1] != "200") :
 	    raise ValueError( l )
 

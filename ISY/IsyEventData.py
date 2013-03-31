@@ -1,7 +1,7 @@
 
 __all__ = ['event_ctrl']
 
-event_ctrl  = {
+EVENT_CTRL  = {
         "_0" : "Heartbeat", 
         "_1" : "Trigger", 
         "_2" : "Protocol Specific", 

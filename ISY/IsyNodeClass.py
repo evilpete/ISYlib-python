@@ -1,6 +1,6 @@
+ 
 
-
-from IsyUtilClass import *
+from IsyUtilClass import IsySubClass
 from IsyExceptionClass import *
 # from IsyClass import *
 # from IsyNodeClass import *
@@ -88,7 +88,7 @@ class IsyNode(IsySubClass):
 
 	    if prop in self._mydict["property"] :
 		# print self._mydict["property"] 
-		# print "prop value", prop,value
+		# print "prop value", prop, value
 		return self._mydict["property"][prop][value]
 	    else :
 		return None
@@ -293,15 +293,18 @@ class IsyScene(IsySubClass):
             return None
     members = property(_getmembers)
 
-    def is_member(self, obj) :
-	if isinstance(obj, str)  :
-	    return obj in self._mydict["members"]
-	elif isinstance(obj, IsySubClass)  :
-	    return obj._get_prop("address") in self._mydict["members"]
-	else :
-	    return False
+    def member_list(self) :
+	return self._getmembers()
 
-    def members_iter(self, flag=0):
+    def is_member(self, obj) :
+	if "members" in self._mydict :
+	    if isinstance(obj, str)  :
+		return obj in self._mydict["members"]
+	    elif isinstance(obj, IsySubClass)  :
+		return obj._get_prop("address") in self._mydict["members"]
+	return False
+
+    def member_iter(self, flag=0):
         if "members" in self._mydict :
             for k in self._mydict["members"].keys() :
 		if flag and not (flag & self._mydict["members"][k]) :
@@ -310,7 +313,7 @@ class IsyScene(IsySubClass):
 		    yield k
 
     def __iter__(self): 
-	return self.members_iter()
+	return self.member_iter()
 
     # check if scene _contains_ node
     def __contains__(self, other):
@@ -335,7 +338,7 @@ class IsyNodeFolder(IsySubClass):
     type = property(_gettype)
 
     def __iter__(self): 
-	#return self.members_iter()
+	#return self.member_iter()
 	pass
 
     def __contains__(self, other):

@@ -14,14 +14,14 @@ import urllib2 as URL
 
 import re
 from pprint import pprint
-from pprint import pprint
 
 
 import signal
 
 __all__ = ['isy_discover']
 
-class UpnpLimitExpired(Exception): pass
+class UpnpLimitExpired(Exception):
+    pass
 
 
 def isy_discover( **kwargs ):
@@ -73,7 +73,7 @@ def isy_discover( **kwargs ):
 	sock.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
 
 	if not ddata.passive :
-	    probe= "M-SEARCH * HTTP/1.1\r\nHOST:239.255.255.250:1900\r\n" \
+	    probe = "M-SEARCH * HTTP/1.1\r\nHOST:239.255.255.250:1900\r\n" \
 		"MAN:\"ssdp.discover\"\r\nMX:1\r\n"  \
 		"ST:urn:udi-com:device:X_Insteon_Lighting_Device:1\r\n\r\n" 
 
@@ -141,7 +141,7 @@ def isy_discover( **kwargs ):
 
     for s in ddata.upnp_urls : 
 	req = URL.Request(s)
-	resp= URL.urlopen(req)
+	resp = URL.urlopen(req)
 	pagedata = resp.read()
 	resp.close()
 
@@ -168,31 +168,31 @@ def isy_discover( **kwargs ):
 
 	isy_res = dict ()
 
-	el = xmlres.find("URLBase")
-	if hasattr(el, 'text') :
-	    isy_res["URLBase"] = el.text
+	xelm = xmlres.find("URLBase")
+	if hasattr(xelm, 'text') :
+	    isy_res["URLBase"] = xelm.text
 
-	el = xmlres.find("device/friendlyName")
-	if hasattr(el, 'text') :
-	    isy_res["friendlyName"] = el.text
+	xelm = xmlres.find("device/friendlyName")
+	if hasattr(xelm, 'text') :
+	    isy_res["friendlyName"] = xelm.text
 
-	el = xmlres.find("device/UDN")
-	if hasattr(el, 'text') :
-	    isy_res["UDN"] = el.text
+	xelm = xmlres.find("device/UDN")
+	if hasattr(xelm, 'text') :
+	    isy_res["UDN"] = xelm.text
 
-	for el in xmlres.iter("service") :
-	    serv = el.find('serviceType')
+	for elm in xmlres.iter("service") :
+	    serv = xelm.find('serviceType')
 	    if hasattr(serv, 'text') and serv.text == "urn:udi-com:service:X_Insteon_Lighting_Service:1" :
 
-		serv = el.find('SCPDURL')
+		serv = elm.find('SCPDURL')
 		if hasattr(serv, 'text') :
 		    isy_res["SCPDURL"] = serv.text
 
-		serv = el.find('controlURL')
+		serv = elm.find('controlURL')
 		if hasattr(serv, 'text') :
 		    isy_res["controlURL"] = serv.text
 
-		serv = el.find('eventSubURL>')
+		serv = elm.find('eventSubURL>')
 		if hasattr(serv, 'text') :
 		    isy_res["eventSubURL>"] = serv.text
 

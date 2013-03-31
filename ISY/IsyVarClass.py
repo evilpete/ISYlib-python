@@ -1,7 +1,7 @@
 
 
 from IsyExceptionClass import *
-from IsyUtilClass import *
+from IsyUtilClass import IsySubClass
 
 __all__ = ['IsyVar']
 
@@ -59,7 +59,7 @@ class IsyVar(IsySubClass):
 	""" sets var init value
 	this can also be set via the property : init
 	"""
-	isy._set_var_value(self._mydict['id'], new_value, 1)
+	self.isy._set_var_value(self._mydict['id'], new_value, "init")
 
     init = property(get_var_init, set_var_init)
     """ init property
@@ -75,11 +75,8 @@ class IsyVar(IsySubClass):
 	""" sets var value
 	this can also be set via the property : value
 	"""
-	isy._set_var_value(self._mydict['id'], new_value)
+	self.isy._set_var_value(self._mydict['id'], new_value)
     value = property(get_var_value, set_var_value)
-    """ value property
-    this can also be read or set
-    """
 
 #    def get_var_id(self):
 #	return self._get_prop("id")
@@ -89,42 +86,55 @@ class IsyVar(IsySubClass):
 #	return self._get_prop("name")
 #    name = property(get_var_name)
 
+    def __set__(self,  val):
+	""" Internal method
+		
+	    allows Object status to be set as the value of the obj
+			     
+	"""
+	print "__set", val
+	self.isy._set_var_value(self._mydict['id'], val)
+
+
     def __int__(self) :
+	print "var __int__"
 	return int (self._mydict["val"])
 
+    def __str__(self) :
+	return str (self._mydict["val"])
 
     def __nonzero__(self) :
 	return int( self._mydict["val"]) != 0
 
-    def __lt__(self,other):
+    def __lt__(self, other):
 	if isinstance(other, str) :
 	    return self._get_prop("val") > other
 	if isinstance(other, (long, int, float)) :
 	    return int(self._get_prop("val")) >  other
 	if type(self) != type(other) :
-	    return false
+	    return False
 	return int(self._mydict["val"]) > int(other._mydict["val"])
 
-    def __lt__(self,other):
+    def __gt__(self, other):
 	if isinstance(other, str) :
 	    return self._get_prop("val") < other
 	if isinstance(other, (long, int, float)) :
 	    return int(self._get_prop("val")) <  other
 	if type(self) != type(other) :
-	    return false
+	    return False
 	return int(self._mydict["val"]) < int(other._mydict["val"])
 
     # This allows for 
-    def __eq__(self,other):
+    def __eq__(self, other):
 	if isinstance(other, str) :
 	    return self._get_prop("val") == other
 	if isinstance(other, (long, int, float)) :
 	    return int(self._get_prop("val")) ==  other
 	if type(self) != type(other) :
-	    return false
+	    return False
 	return int(self._mydict["val"]) == int(other._mydict["val"])
 
-    def __ne__(self,other):
+    def __ne__(self, other):
 	return not self.__eq__(other)
 
 
