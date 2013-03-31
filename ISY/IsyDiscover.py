@@ -1,4 +1,4 @@
-#!/usr/local/bin/python 
+#!/usr/local/bin/python
 
 #
 # THIS IS BAD CODE
@@ -24,7 +24,7 @@ class UpnpLimitExpired(Exception):
     pass
 
 
-def isy_discover( **kwargs ):
+def isy_discover(**kwargs):
 
     class DiscoveryData:
 	debug = 0
@@ -42,7 +42,7 @@ def isy_discover( **kwargs ):
 
     if ddata.debug :
 	print "isy_discover :debug=%s\ttimeout=%s\tpassive=%s\tcount=%s\n" % \
-	    (ddata.debug, ddata.timeout, ddata.passive, ddata.count )
+	    (ddata.debug, ddata.timeout, ddata.passive, ddata.count)
 
     def isy_discover_timeout(signum, frame):
 	print "isy_discover_timeout CALL"
@@ -52,13 +52,13 @@ def isy_discover( **kwargs ):
 	print "isy_timeout CALL"
 	print 'Signal handler called with signal', signum
 
-    def isy_upnp( ddata):
+    def isy_upnp(ddata):
 
 	if ddata.debug :
 	    print "isy_upnp CalL"
 
 	    print "isy_upnp debug=%s\ttimeout=%s\tpassive=%s\tcount=%s\n" % \
-		    (ddata.debug, ddata.timeout, ddata.passive, ddata.count )
+		    (ddata.debug, ddata.timeout, ddata.passive, ddata.count)
 
 	multicast_group = '239.255.255.250'
 	multicast_port = 1900
@@ -75,7 +75,7 @@ def isy_discover( **kwargs ):
 	if not ddata.passive :
 	    probe = "M-SEARCH * HTTP/1.1\r\nHOST:239.255.255.250:1900\r\n" \
 		"MAN:\"ssdp.discover\"\r\nMX:1\r\n"  \
-		"ST:urn:udi-com:device:X_Insteon_Lighting_Device:1\r\n\r\n" 
+		"ST:urn:udi-com:device:X_Insteon_Lighting_Device:1\r\n\r\n"
 
 	    #print "sending : ", probe
 	    sock.sendto(probe, (multicast_group, multicast_port))
@@ -94,12 +94,12 @@ def isy_discover( **kwargs ):
 		print "ddata.upnp_urls = ", ddata.upnp_urls
 
 	    # only ISY devices
-	    # if should I look for 
+	    # if should I look for
 	    # SERVER:UCoS, UPnP/1.0, UDI/1.0
 	    if not "X_Insteon_Lighting_" in data :
 		continue
 
-	    upnp_packet = data.splitlines() 
+	    upnp_packet = data.splitlines()
 
 	    if "M-SEARCH " in upnp_packet[0] :
 		continue
@@ -109,7 +109,7 @@ def isy_discover( **kwargs ):
 		a = l.split(':', 1)
 		if len(a) == 2 :
 		    if str(a[0]).upper() == "LOCATION" :
-			ddata.upnp_urls.append( str(a[1]).strip() )
+			ddata.upnp_urls.append(str(a[1]).strip())
 			# uniq the list
 			ddata.upnp_urls = list(set(ddata.upnp_urls))
 
@@ -120,16 +120,16 @@ def isy_discover( **kwargs ):
 
     #isy_upnp(ddata)
     try :
-	signal.alarm(ddata.timeout) 
+	signal.alarm(ddata.timeout)
 	isy_upnp(ddata)
-	signal.alarm(0) 
+	signal.alarm(0)
 	signal.signal(signal.SIGALRM, old_handler)
     except UpnpLimitExpired:
 	pass
     except :
 	print "Unexpected error:", sys.exc_info()[0]
     finally :
-	signal.alarm(0) 
+	signal.alarm(0)
 	signal.signal(signal.SIGALRM, old_handler)
 	if ddata.debug :
 	    print "return data.upnp_urls = ", ddata.upnp_urls
@@ -139,13 +139,11 @@ def isy_discover( **kwargs ):
 		"controlURL", "eventSubURL"]
 
 
-    for s in ddata.upnp_urls : 
+    for s in ddata.upnp_urls :
 	req = URL.Request(s)
 	resp = URL.urlopen(req)
 	pagedata = resp.read()
 	resp.close()
-
-
 
 	# does this even work ??
 	# ET.register_namespace("isy", 'urn:schemas-upnp-org:device-1-0')
@@ -153,7 +151,7 @@ def isy_discover( **kwargs ):
 
 	# this is a hack to deal with namespace :
 	pa = re.sub(r" xmlns=\"urn:schemas-upnp-org:device-1-0\"", "", pagedata)
-	# grok the XML from the Upnp discovered server 
+	# grok the XML from the Upnp discovered server
 	xmlres = ET.fromstring(pa)
 
 	# print "_namespace_map : ",
@@ -208,7 +206,7 @@ if __name__ == "__main__":
     print __main__.__file__
     print("syntax ok")
 
-#    res = isy_discover( count=1, timeout=10, passive=0)
+#    res = isy_discover(count=1, timeout=10, passive=0)
 #    for h in res :
 #	print "res : ", h
     exit(0)
