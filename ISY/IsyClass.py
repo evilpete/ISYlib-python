@@ -844,7 +844,7 @@ class Isy(IsyUtil):
             raise LookupError("var_set_value: unknown var : " + str(var) )
         if not prop in ['init', 'val'] :
 	    raise TypeError("var_set_value: unknown propery : " + str(prop) )
-	self._var_set_value(self, varid, val, prop)
+	self._var_set_value(varid, val, prop)
 
     def _var_set_value(self, varid, val, prop) :
         """ Set var value by name or ID """
@@ -852,9 +852,9 @@ class Isy(IsyUtil):
             print "_var_set_value ", val, " : ", prop
 	a = varid.split(':')
 	if prop == "init" :
-	    xurl = "/vars/init/" + a[0] + "/" + a[1] + "/" + val
+	    xurl = "/rest/vars/init/" + a[0] + "/" + a[1] + "/" + val
 	else :
-	    xurl = "/vars/set/" + a[0] + "/" + a[1] + "/" + val
+	    xurl = "/rest//vars/set/" + a[0] + "/" + a[1] + "/" + val
         resp = self._getXMLetree(xurl)
         if resp.attrib["succeeded"] != 'true' :
             raise IsyResponseError("Var Value Set error : var=%s prop=%s val=%s" %
@@ -1479,7 +1479,7 @@ class Isy(IsyUtil):
     def _printdict(self, dic):
 	""" Pretty Print dictionary """
 	print "===START==="
-	pprint(dic)
+	pprint.pprint(dic)
 	print "===END==="
 
     def _writedict(self, d, filen):
