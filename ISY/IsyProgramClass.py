@@ -35,11 +35,11 @@ class IsyProgram(IsySubClass):
 	    get_prog_name() :	get name of var
 
     """
-    getlist = ['enabled', 'folder', 'id', 'lastFinishTime',
+    _getlist = ['enabled', 'folder', 'id', 'lastFinishTime',
 	'lastRunTime', 'name', 'nextScheduledRunTime', 'parentId',
 	'runAtStartup', 'running', 'status']
-    setlist = [ 'enabled' ]
-    propalias = { 'val':  'status', 'value': 'status',
+    _setlist = [ 'enabled' ]
+    _propalias = { 'val':  'status', 'value': 'status',
 	    'addr': 'id', 'address': 'id' }
 
 

@@ -22,10 +22,10 @@ import pprint
 import time
 import warnings
 
-from IsyUtilClass import *
-from IsyNodeClass import *
+from IsyUtilClass import IsyUtil, IsySubClass
+from IsyNodeClass import IsyNode, IsyScene, IsyNodeFolder
 from IsyProgramClass import *
-from IsyVarClass import *
+from IsyVarClass import IsyVar
 from IsyExceptionClass import *
 from IsyEvent import ISYEvent
 
@@ -1382,8 +1382,8 @@ class Isy(IsyUtil):
     ##
     ## X10 Code
     ##
-    x10re = re.compile('([a-pA-P]\d{,2)')
-    x10comm = { 'alllightsoff' : 1,
+    _x10re = re.compile('([a-pA-P]\d{,2)')
+    _x10comm = { 'alllightsoff' : 1,
         'status off' : 2,
         'on' : 3,
         'Preset dim' : 4,
@@ -1408,8 +1408,8 @@ class Isy(IsyUtil):
                 return comm
             else :
                 raise IsyValueError("bad x10 command digit : " + comm)
-        if comm in self.x10comm :
-            return self.x10comm[comm]
+        if comm in self._x10comm :
+            return self._x10comm[comm]
         else :
             raise IsyValueError("unknown x10 command : " + comm)
 

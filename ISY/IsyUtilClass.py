@@ -101,9 +101,9 @@ class IsySubClass(IsyUtil):
 
     """
 
-    getlist = [ "name", "id", "value", "address", "type" ]
-    setlist = [ ]
-    propalias = { }
+    _getlist = [ "name", "id", "value", "address", "type" ]
+    _setlist = [ ]
+    _propalias = { }
 
     def __init__(self, isy, objdict) :
 	""" INIT """
@@ -127,20 +127,20 @@ class IsySubClass(IsyUtil):
 
     def _get_prop(self, prop):
 	""" Internal funtion call """
-	if prop in self.propalias :    
-	    prop = self.propalias[prop]
+	if prop in self._propalias :    
+	    prop = self._propalias[prop]
 
-	if prop in self.getlist : 
+	if prop in self._getlist : 
 	    if prop in self._mydict :
 		return(self._mydict[prop])
 	return(None)
 
 #    def _set_prop(self, prop, val):
 #	""" Internal funtion call """
-#	if prop in self.propalias :    
-#	    prop = self.propalias[prop]
+#	if prop in self._propalias :    
+#	    prop = self._propalias[prop]
 #
-#	if not prop in self.setlist :
+#	if not prop in self._setlist :
 #	    raise IsyPropertyError("_set_prop : "
 #		"no property Attribute " + prop)
 #	pass
@@ -240,7 +240,7 @@ class IsySubClass(IsyUtil):
 
 	"""
 	print "IsyUtil __iter__"
-	for p in self.getlist :
+	for p in self._getlist :
 	    if p in self._mydict :
 		yield (p , self._get_prop(p))
 	    else :
@@ -299,7 +299,7 @@ class IsySubClass(IsyUtil):
     # check if obj _contains_  attib
 #    def __contains__(self, other):
 #	if isinstance(other, str)  :
-#	    return other in self.getlist
+#	    return other in self._getlist
 #	else :
 #	    return False
 

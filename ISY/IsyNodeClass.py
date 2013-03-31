@@ -1,4 +1,4 @@
-from IsyUtilClass import IsySubClass
+from IsyUtilClass import IsyUtil, IsySubClass
 from IsyExceptionClass import *
 # from IsyClass import *
 # from IsyNodeClass import *
@@ -26,12 +26,12 @@ class IsyNode(IsySubClass):
             ELK_ID
             flag
     """
-    getlist = ['address', 'enabled', 'formatted',
+    _getlist = ['address', 'enabled', 'formatted',
             'ELK_ID',
             'name', 'pnode', 'flag',
             'OL', 'RR', 'ST', 'type']
-    setlist = ['ST', 'RR', 'OL', 'status', 'ramprate', 'onlevel']
-    propalias = {'status': 'ST', 'value': 'ST', 'val': 'ST',
+    _setlist = ['ST', 'RR', 'OL', 'status', 'ramprate', 'onlevel']
+    _propalias = {'status': 'ST', 'value': 'ST', 'val': 'ST',
             'id': 'address', 'addr': 'address',
             'ramprate': 'RR', 'onlevel': 'OL',
             "node-flag": "flag"}
@@ -72,10 +72,10 @@ class IsyNode(IsySubClass):
         else :
             value = "value"
 
-        if prop in self.propalias :
-            prop = self.propalias[prop]
+        if prop in self._propalias :
+            prop = self._propalias[prop]
 
-        if not prop in self.getlist :
+        if not prop in self._getlist :
             raise IsyPropertyError("no property Attribute " + prop)
 
         # check if we have a property
@@ -108,10 +108,10 @@ class IsyNode(IsySubClass):
         if self.debug & 0x04 :
             print "_set_prop ", prop, " : ", new_value
 
-        if prop in self.propalias :
-            prop = self.propalias[prop]
+        if prop in self._propalias :
+            prop = self._propalias[prop]
 
-        if not prop in self.setlist :
+        if not prop in self._setlist :
             raise IsyPropertyError("_set_prop : " \
 		"Invalid property Attribute " + prop)
 
@@ -258,10 +258,10 @@ class IsyScene(IsySubClass):
             parent-type
             ELK_ID
     """
-    getlist = ['address', 'name', "ELK_ID", "deviceGroup",
+    _getlist = ['address', 'name', "ELK_ID", "deviceGroup",
                 'flag', 'parent', 'parent-type']
-    setlist = []
-    propalias = {'id': 'address', 'addr': 'address',
+    _setlist = []
+    _propalias = {'id': 'address', 'addr': 'address',
                     "group-flag": "flag"}
 
     # status property
@@ -321,9 +321,9 @@ class IsyNodeFolder(IsySubClass):
             name
             flag
     """
-    getlist = ['address', 'name', 'flag']
-    setlist = []
-    propalias = {'id', 'address', 'addr', 'address', "folder-flag", "flag"}
+    _getlist = ['address', 'name', 'flag']
+    _setlist = []
+    _propalias = {'id', 'address', 'addr', 'address', "folder-flag", "flag"}
 
     def _gettype(self):
         return "folder"

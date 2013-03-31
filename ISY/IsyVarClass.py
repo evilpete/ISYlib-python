@@ -28,9 +28,9 @@ class IsyVar(IsySubClass):
 
     """
 
-    getlist = ['id', 'type', 'init', 'val', 'ts', 'name']
-    setlist = ['init', 'val']
-    propalias = {'value': 'val', 'status': 'val', 'addr': 'id', 'address': 'id'}
+    _getlist = ['id', 'type', 'init', 'val', 'ts', 'name']
+    _setlist = ['init', 'val']
+    _propalias = {'value': 'val', 'status': 'val', 'addr': 'id', 'address': 'id'}
 
 # Var :    {  '1:1': {  'id': '1:1', 'init': '0', 'name': 'enter_light',
 #          'ts': '20130114 14:33:35', 'type': '1', 'val': '0'}
