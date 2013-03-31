@@ -15,8 +15,13 @@ import sys
 import getopt
 
 
-def list_vars_bash(myisy):
-    fmt = "{0}={1}"
+def list_vars_bash(myisy, csh=0):
+
+    if csh :
+	fmt = "set {0}={1}"
+    else :
+	fmt = "{0}={1}"
+
     for var in myisy.var_iter() :
 	print fmt.format( var.name, var.value )
 
@@ -36,6 +41,7 @@ class Options:
     debug = 0
     list = 0
     bash = 0
+    csh = 0
 
 def parseargs():
     options = Options()
@@ -47,8 +53,8 @@ def parseargs():
 
     try:
         opts, args = getopt.getopt(
-            sys.argv[1:], "hbld",
-            ['bash', 'list', 'help', 'debug='])
+            sys.argv[1:], "hbldc",
+            ['bash', 'csh', 'list', 'help', 'debug='])
     except getopt.error, e:
         usage(1, e)
  
@@ -57,6 +63,8 @@ def parseargs():
             usage(0)
         elif opt in ('-b', '--bash'):
             options.bash = 1
+        elif opt in ('-c', '--csh'):
+            options.csh = 1
         elif opt in ('-l', '--list'):
             options.list = 1
         elif opt in ('-d', '--debug'):
@@ -85,8 +93,8 @@ if __name__ == '__main__':
 
     if options.list :
 	list_vars(myisy)
-    elif options.bash:
-	list_vars_bash(myisy)
+    elif options.bash or options.csh:
+	list_vars_bash(myisy, options.csh)
 
     if len(arg) :
 	set_vars(myisy, *arg)
