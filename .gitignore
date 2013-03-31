@@ -1,8 +1,11 @@
 *.py[cod]
 
+EGG-INFO
+suds
 .exrc 
 tt.py
 test.*
+Sav/*
 
 # C extensions
 *.so
