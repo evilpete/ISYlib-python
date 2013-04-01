@@ -69,7 +69,20 @@ class Isy(IsyUtil):
 	self.cachetime = kwargs.get("cachetime", 0)
 	self.faststart = kwargs.get("faststart", 1)
 	self.eventupdates = kwargs.get("eventupdates", 0)
-        self.addr = kwargs.get("addr", os.getenv('ISY_ADDR', '10.1.1.36'))
+        self.addr = kwargs.get("addr", os.getenv('ISY_ADDR', None))
+
+	if self.addr == None :
+	    from ISY.IsyDiscover import isy_discover
+
+	    units = isy_discover(count=1) 
+	    for device in units.values() :
+		self.addr = device['URLBase'][7:]
+		self.baseurl = device['URLBase']
+	else :
+	    self.baseurl = "http://" + self.addr
+
+	if self.addr == None :
+	    raise Exception("No ISY address given or found")
 
         if self.debug & 0x01 :
             print "class Isy __init__"
@@ -82,7 +95,6 @@ class Isy(IsyUtil):
         #
         # general setup logic
         #
-        self.baseurl = "http://" + self.addr
         Isy._handler.add_password(None, self.addr, userl, userp)
         # self._opener = URL.build_opener(Isy._handler, URL.HTTPHandler(debuglevel=1))
         # self._opener = URL.build_opener(Isy._handler)
