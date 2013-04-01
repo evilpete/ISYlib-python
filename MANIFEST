@@ -16,3 +16,4 @@ bin/isy_find.py
 bin/isy_list.py
 bin/isy_log.py
 bin/isy_showevents.py
+bin/isy_var.py
