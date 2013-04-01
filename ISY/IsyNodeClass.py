@@ -1,5 +1,43 @@
-from IsyUtilClass import IsyUtil, IsySubClass
-from IsyExceptionClass import *
+"""
+
+Devices controled my the ISY are representd at "nodes" on the ISY device and
+with Node Objects in the API
+
+There are three types of Node Object:
+
+    * IsyNode - Node Object 
+	Represent lights, switches, motion sensors 
+    * IsyScene - Scene Object
+	Represents Scenes contains Nodes that comprise a "Scene"
+    * IsyNodeFolder - Can hold Scene's or Nodes
+	a organizational obj for Scene's and Nodes
+
+Only IsyNode Objects maintain "state" 
+
+    What states are maintined depend on the physical node device itself
+    but they can include
+	- on, off of dim level
+	- temperature
+	- wattage
+
+    Nodes can have "members" or subnodes
+
+IsyScene Objects can take commands but do not maintin a queryable state
+
+    A Scene is predefined state for one or more nodes
+    scenes can only be comprised of nodes which are call "members"
+
+    only nodes can be members of a scene 
+
+IsyNodeFolders are just for organizing  
+
+    Nodes, Scenes and Folders can be members of a Folder 
+
+
+
+"""
+from ISY.IsyUtilClass import IsyUtil, IsySubClass
+from ISY.IsyExceptionClass import *
 # from IsyClass import *
 # from IsyNodeClass import *
 #from IsyProgramClass import *
