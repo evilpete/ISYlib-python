@@ -37,8 +37,8 @@ class IsyUtil(object):
             print "_getXMLetree : " + xurl
         # print "_getXMLetree : URL.Request"
         req = URL.Request(xurl)
-        # print "_getXMLetree : self.opener.open "
-        res = self.opener.open(req)
+        # print "_getXMLetree : self._opener.open "
+        res = self._opener.open(req)
         data = res.read()
 	# print "res.getcode() ", res.getcode(), len(data)
         res.close()

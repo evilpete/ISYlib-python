@@ -57,9 +57,9 @@ __all__ = ['Isy']
 
 class Isy(IsyUtil):
     """ Obj class the represents the ISY device """
-    password_mgr = URL.HTTPPasswordMgrWithDefaultRealm()
-    handler = URL.HTTPBasicAuthHandler(password_mgr)
-    opener = URL.build_opener(handler)
+    _password_mgr = URL.HTTPPasswordMgrWithDefaultRealm()
+    _handler = URL.HTTPBasicAuthHandler(_password_mgr)
+    _opener = URL.build_opener(_handler)
 
     def __init__(self, userl="admin", userp="admin", **kwargs):
         #
@@ -83,9 +83,9 @@ class Isy(IsyUtil):
         # general setup logic
         #
         self.baseurl = "http://" + self.addr
-        Isy.handler.add_password(None, self.addr, userl, userp)
-        # self.opener = URL.build_opener(Isy.handler, URL.HTTPHandler(debuglevel=1))
-        # self.opener = URL.build_opener(Isy.handler)
+        Isy._handler.add_password(None, self.addr, userl, userp)
+        # self._opener = URL.build_opener(Isy._handler, URL.HTTPHandler(debuglevel=1))
+        # self._opener = URL.build_opener(Isy._handler)
         if self.debug & 0x02:
 	    print "baseurl: " + self.baseurl + " : " + userl + " : " + userp
 
@@ -546,7 +546,7 @@ class Isy(IsyUtil):
         """ Get a Node object for given node or scene name or ID
 
 	    args:
-		nodee : node name of id
+		node : node name of id
 
 	    return:
 		An IsyNode object representing the requested Scene or Node
@@ -1369,7 +1369,7 @@ class Isy(IsyUtil):
         if self.debug & 0x02 :
 	    print "xurl = " + xurl
 	req = URL.Request(xurl)
-        res = self.opener.open(req)
+        res = self._opener.open(req)
         data = res.read()
         res.close()
         return data.splitlines()

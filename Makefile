@@ -15,6 +15,9 @@ t: style
 FILES= ISY/IsyClass.py ISY/IsyExceptionClass.py ISY/IsyNodeClass.py ISY/IsyProgramClass.py ISY/IsyUtilClass.py ISY/IsyVarClass.py ISY/__init__.py ISY/IsyDiscover.py ISY/IsyEventData.py ISY/IsyEvent.py
 BINFILES= bin/isy_find.py bin/isy_list.py bin/isy_list.pyc bin/isy_log.py bin/isy_showevents.py
 
+README.txt:  ${FILES}
+	pydoc ISY > README.txt
+
 syntax:
 	for targ in ${FILES} ; do \
 	    python $$targ ; \
@@ -48,7 +51,7 @@ lint:
 
 checkin: commit push
 
-commit:
+commit: README.txt
 	${GIT} commit -a
 
 push:

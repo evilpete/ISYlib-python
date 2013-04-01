@@ -7,7 +7,17 @@ __all__ = [ 'IsyError', 'IsyCommandError', 'IsyNodeError',
 # The Following was lifted from other modules used as examples
 #
 class IsyError(Exception):
-    """Base exception."""
+    """ISY Base exception
+
+SubClasses :
+    - IsyResponseError(IsyError):
+    - IsyPropertyError(IsyError):
+    - IsyValueError(IsyError):
+    - IsyInvalidCmdError(IsyError):
+    - IsyPropertyValueError(IsyError):
+    - IsyAttributeError(IsyError):
+
+    """
     def __init__(self, msg, exception=None):
         """Creates an exception. The message is required, but the exception
         is optional."""

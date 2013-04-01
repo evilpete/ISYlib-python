@@ -25,15 +25,31 @@ class UpnpLimitExpired(Exception):
 
 
 def isy_discover(**kwargs):
+    """ Get a Node object for given node or scene name or ID
 
-    class DiscoveryData:
+	named args:
+	    node : node name of id
+	    timeout : how long to wait for replies
+	    count : number of devices to wait for
+	    passively : passivly wait for broadcast
+	    debug : print debug info
+
+	return: a list of dict obj containing :
+		- friendlyName: the device name
+		- URLBase: base URL for device
+		- UDN: uuid
+	    ( optional : eventSubURL controlURL SCPDURL  )
+
+
+    """
+    class _IsyDiscoveryData:
 	debug = 0
 	timeout = 20
 	passive = 0
 	count = 2
 	upnp_urls = []
 
-    ddata = DiscoveryData()
+    ddata = _IsyDiscoveryData()
 
     ddata.debug = kwargs.get("debug", 0)
     ddata.timeout = kwargs.get("timeout", 30)
@@ -190,9 +206,9 @@ def isy_discover(**kwargs):
 		if hasattr(serv, 'text') :
 		    isy_res["controlURL"] = serv.text
 
-		serv = elm.find('eventSubURL>')
+		serv = elm.find('eventSubURL')
 		if hasattr(serv, 'text') :
-		    isy_res["eventSubURL>"] = serv.text
+		    isy_res["eventSubURL"] = serv.text
 
 	result[isy_res["UDN"]] = isy_res
 

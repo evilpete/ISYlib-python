@@ -11,12 +11,13 @@ __all__ = ['IsyNode', 'IsyNodeFolder', 'IsyScene']
 # def onlevel
 class IsyNode(IsySubClass):
     """ Node Class for ISY
-        attributes :
+
+        Attributes :
             status / ST
             ramprate / RR
             onlevel / OL
 
-        readonly attributes :
+        Readonly Attributes :
             address
             formatted
             enabled
@@ -25,6 +26,10 @@ class IsyNode(IsySubClass):
             name
             ELK_ID
             flag
+
+        funtions:
+	    get_rr:
+	    set_rr:
     """
     _getlist = ['address', 'enabled', 'formatted',
             'ELK_ID',
