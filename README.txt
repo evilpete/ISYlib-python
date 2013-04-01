@@ -22,8 +22,8 @@ DESCRIPTION
     
     to use set the following env vars
     
-    ISY_ADDR to the IP address of your ISY device
-    ISY_AUTH to your loging and password
+    ISY_ADDR the IP address of your ISY device
+    ISY_AUTH your loging and password
     
     eg:
     
@@ -37,7 +37,10 @@ DESCRIPTION
         bin/isy_list.py     - List registered devices
         bin/isy_log.py      - Get event or error logs
         bin/isy_showevents.py - print live stream of events from ISY
+        bin/isy_var.py      - Set, Get or display system vars
     
+    The example code included it ment to demonstrate API use with minimal  
+    code for clarity.
     
     
     
@@ -709,10 +712,10 @@ DATA
     __all__ = ['Isy', 'IsyUtil', 'IsyUtilClass', 'IsyClass', 'IsyNode', 'I...
     __author__ = 'Peter Shipley <peter.shipley@gmail.com>'
     __revision__ = '$Id$'
-    __version__ = '0.1.20130316'
+    __version__ = '0.1.20130331'
 
 VERSION
-    0.1.20130316
+    0.1.20130331
 
 AUTHOR
     Peter Shipley <peter.shipley@gmail.com>
