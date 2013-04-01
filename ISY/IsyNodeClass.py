@@ -83,14 +83,14 @@ class IsyNode(IsySubClass):
         if isinstance(ndict, dict):
             self._mydict = ndict
         else :
-            print "error : class IsyNode called without ndict"
+            print("error : class IsyNode called without ndict")
             raise TypeError("IsyNode: called without ndict")
 
         if isinstance(isy, IsyUtil):
             self.isy = isy
             self.debug = isy.debug
         else :
-            print "error : class IsyNode called without isyUtilClass"
+            print("error : class IsyNode called without isyUtilClass")
             raise TypeError("IsyNode: isy is wrong class")
         # only update if not a scene
 
@@ -100,8 +100,8 @@ class IsyNode(IsySubClass):
                 self.update()
 
         if self.debug & 0x01 :
-            print "Init Node : \"" + self._mydict["address"] + \
-                "\" : \"" + self._mydict["name"] + "\""
+            print("Init Node : \"" + self._mydict["address"] + \
+                "\" : \"" + self._mydict["name"] + "\"")
             # self.isy._printdict(self.__dict__)
 
 
@@ -149,7 +149,7 @@ class IsyNode(IsySubClass):
     def _set_prop(self, prop, new_value):
         """  generic property set """
         if self.debug & 0x04 :
-            print "_set_prop ", prop, " : ", new_value
+            print("_set_prop ", prop, " : ", new_value)
 
         if prop in self._propalias :
             prop = self._propalias[prop]
@@ -169,7 +169,7 @@ class IsyNode(IsySubClass):
 
 
             if prop in self._mydict["property"] :
-                if isinstance(new_value, (long, int, float))  :
+                if isinstance(new_value, (int, float))  :
                     self._mydict["property"][prop]["value"] = new_value
 
         # we need to tie this to some action
@@ -260,19 +260,19 @@ class IsyNode(IsySubClass):
         """ force object to manualy update it's propertys """
         xurl = "/rest/nodes/" + self._mydict["address"]
         if self.debug & 0x01 :
-            print "_updatenode pre _getXML"
+            print("_updatenode pre _getXML")
         _nodestat = self.isy._getXMLetree(xurl)
         # del self._mydict["property"]["ST"]
         for prop in _nodestat.iter('property'):
             tprop = dict()
-            for k, v in prop.items() :
+            for k, v in list(prop.items()) :
                 tprop[k] = v
             if "id" in tprop :
                 self._mydict["property"][tprop["id"]] = tprop
         # self._mydict["property"]["time"] = time.gmtime()
 
     # experimental
-    def __nonzero__(self) :
+    def __bool__(self) :
         #print "__nonzero__ call", self._mydict["property"]["ST"]["value"], \
         #        " :: ", int(self._mydict["property"]["ST"]["value"])
         return(int(self._mydict["property"]["ST"]["value"]) > 0)
@@ -323,7 +323,7 @@ class IsyScene(IsySubClass):
     def _getmembers(self) :
         """ List members of a scene or group """
         if "members" in self._mydict :
-            return self._mydict["members"].keys()
+            return list(self._mydict["members"].keys())
         else :
             return None
     members = property(_getmembers)
@@ -341,7 +341,7 @@ class IsyScene(IsySubClass):
 
     def member_iter(self, flag=0):
         if "members" in self._mydict :
-            for k in self._mydict["members"].keys() :
+            for k in list(self._mydict["members"].keys()) :
                 if flag and not(flag & self._mydict["members"][k]) :
                     continue
                 else :
@@ -385,6 +385,6 @@ class IsyNodeFolder(IsySubClass):
 #
 if __name__ == "__main__":
     import __main__
-    print __main__.__file__
+    print(__main__.__file__)
     print("syntax ok")
     exit(0)

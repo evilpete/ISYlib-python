@@ -19,7 +19,8 @@ import select
 
 import xml.etree.ElementTree as ET
 
-from IsyEventData import EVENT_CTRL
+from ISY.IsyEventData import EVENT_CTRL
+import collections
 
 try:
     import fcntl
@@ -41,7 +42,7 @@ class ISYEvent(object) :
         self.process_func_arg = kwargs.get("process_func_arg", None)
 
         if self.process_func :
-            assert callable(self.process_func), "process_func Arg must me callable"
+            assert isinstance(self.process_func, collections.Callable), "process_func Arg must me callable"
 
         if addr :
             self.connect_list.append(ISYEventConnection(addr, self))
@@ -51,7 +52,7 @@ class ISYEvent(object) :
 
         if func :
             self.process_func = func
-            assert callable(self.process_func), "process_func Arg must me callable"
+            assert isinstance(self.process_func, collections.Callable), "process_func Arg must me callable"
         else:
             self.process_func = ISYEvent.print_event
 
@@ -69,7 +70,7 @@ class ISYEvent(object) :
             arg: IP address  or hostname of isydevice
         """
         if self.debug & 0x01 :
-            print "subscribe ", addr
+            print("subscribe ", addr)
         if addr in self.connect_list :
             warning.warn("Duplicate addr", RuntimeWarning)
             return
@@ -107,9 +108,9 @@ class ISYEvent(object) :
             # conn_obj._subscribe()
         # print "_process_event = ", l
         if (l[:5] != 'POST ') :
-            print "Stream Sync Error"
+            print("Stream Sync Error")
             for x in range(10) :
-                print x, " ",
+                print(x, " ")
                 l = conn_obj.event_rf.readline()
                 if (l[:5] == 'POST ') :
                     break
@@ -166,7 +167,7 @@ class ISYEvent(object) :
         d = dict()
         children = list(et)
         if et.attrib :
-            for k, v in et.items() :
+            for k, v in list(et.items()) :
                 d[et.tag + "-" + k] =  v
         if children :
             for c in children :
@@ -199,8 +200,8 @@ class ISYEvent(object) :
                 evi = ddat["eventInfo"]
                 ti = time.strftime('%X')
                 # print ddat["Event-sid"]
-                print "%-7s %-4s\t%-22s\t%-12s\t%s\t%s" % \
-                    (ti, ddat["Event-seqnum"], ectrl, node, ddat["action"], evi)
+                print("%-7s %-4s\t%-22s\t%-12s\t%s\t%s" % \
+                    (ti, ddat["Event-seqnum"], ectrl, node, ddat["action"], evi))
             #elif  ddat["control"] == "_1" and ddat["action"] in ["6", "7", "3"] :
         #       print ddat["control"], " : ", ddat
         #       print arg
@@ -208,8 +209,8 @@ class ISYEvent(object) :
             #print ddat
             # print data
         except :
-            print "Unexpected error:", sys.exc_info()[0]
-            print ddat
+            print("Unexpected error:", sys.exc_info()[0])
+            print(ddat)
             # print data
         finally:
             pass
@@ -235,15 +236,15 @@ class ISYEvent(object) :
                             continue
                     yield d
             except socket.error :
-                print "socket error({0}): {1}".format(e.errno, e.strerror)
+                print("socket error({0}): {1}".format(e.errno, e.strerror))
                 self.reconnect()
             except IOError as e:
-                print "I/O error({0}): {1}".format(e.errno, e.strerror)
+                print("I/O error({0}): {1}".format(e.errno, e.strerror))
                 self.reconnect()
             except KeyboardInterrupt :
                 return
             #except :
-                print "Unexpected Error:", sys.exc_info()[0]
+                print("Unexpected Error:", sys.exc_info()[0])
                 #traceback.print_stack()
                 #print repr(traceback.extract_stack())
                 #print repr(traceback.format_stack())
@@ -264,7 +265,7 @@ class ISYEvent(object) :
         poll_interval=kargs.get("poll_interval", 0.5)
 
         if self.debug & 0x01 :
-            print  "events_loop ", self.__class__.__name__
+            print("events_loop ", self.__class__.__name__)
 
         for isystream in self.connect_list:
             isystream.connect()
@@ -281,10 +282,10 @@ class ISYEvent(object) :
                     self.process_func(d, self.process_func_arg, x)
                     # self.process_func(d, x)
             except socket.error :
-                print "socket error({0}): {1}".format(e.errno, e.strerror)
+                print("socket error({0}): {1}".format(e.errno, e.strerror))
                 self.reconnect()
             except IOError as e:
-                print "I/O error({0}): {1}".format(e.errno, e.strerror)
+                print("I/O error({0}): {1}".format(e.errno, e.strerror))
                 self.reconnect()
 #           except :
 #               print "Unexpected error:", sys.exc_info()[0]
@@ -352,14 +353,14 @@ class ISYEventConnection(object):
 
     def connect(self):
         if self.debug & 0x01 :
-            print  "connect ", self.__class__.__name__
+            print("connect ", self.__class__.__name__)
         self._opensock()
         self._subscribe()
 
     def _opensock(self):
 
         if self.debug & 0x01 :
-            print "_opensock ", self.isyaddr
+            print("_opensock ", self.isyaddr)
 
         # self.event_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
@@ -386,7 +387,7 @@ class ISYEventConnection(object):
     def _subscribe(self):
 
         if self.debug & 0x01 :
-            print "_subscribe : ", self.__class__.__name__
+            print("_subscribe : ", self.__class__.__name__)
 
         # <ns0:Unsubscribe><SID>uuid:168</SID><flag></flag></ns0:Unsubscribe>
         post_body = "<s:Envelope><s:Body>" \
@@ -406,7 +407,7 @@ class ISYEventConnection(object):
         post = post_head + post_body
 
         if self.debug & 0x02:
-            print post
+            print(post)
 
         self.event_wf.write(post)
         self.event_wf.flush()
@@ -429,7 +430,7 @@ class ISYEventConnection(object):
 
         reply = self.event_rf.read(data_len)
         if self.debug & 0x01 :
-            print "_subscribe reply = '", reply, "'"
+            print("_subscribe reply = '", reply, "'")
 
 
 #
@@ -438,7 +439,7 @@ class ISYEventConnection(object):
 #
 if __name__ == "__main__":
     import __main__
-    print __main__.__file__
+    print(__main__.__file__)
 
     print("syntax ok")
     exit(0)

@@ -6,13 +6,12 @@
  
 """
 
-from IsyExceptionClass import *
+from ISY.IsyExceptionClass import *
 
 #from xml.dom.minidom import parse, parseString
 # from StringIO import StringIO
 # import xml.etree.ElementTree as # ET
 # import base64
-import urllib2 as URL
 import re
 import os
 from pprint import pprint
@@ -22,12 +21,19 @@ import pprint
 import time
 import warnings
 
-from IsyUtilClass import IsyUtil, IsySubClass
-from IsyNodeClass import IsyNode, IsyScene, IsyNodeFolder
-from IsyProgramClass import *
-from IsyVarClass import IsyVar
-from IsyExceptionClass import *
-from IsyEvent import ISYEvent
+if sys.hexversion < 0x3000000 :
+    import urllib2 as URL
+    # HTTPPasswordMgrWithDefaultRealm = URL.HTTPPasswordMgrWithDefaultRealm
+else :
+    import urllib as URL
+    from urllib.request import HTTPPasswordMgrWithDefaultRealm
+
+from ISY.IsyUtilClass import IsyUtil, IsySubClass
+from ISY.IsyNodeClass import IsyNode, IsyScene, IsyNodeFolder
+from ISY.IsyProgramClass import *
+from ISY.IsyVarClass import IsyVar
+from ISY.IsyExceptionClass import *
+from ISY.IsyEvent import ISYEvent
 
 # Debug Flags:
 # 0x01 = report loads
@@ -50,47 +56,52 @@ __all__ = ['Isy']
 # def batch .write
 
 
-# _nodedict	dictionary of node data indexed by node ID
-# node2addr	dictionary mapping node names to node ID
-# nodeCdict	dictionary cache or node objects indexed by node ID
+# _nodedict     dictionary of node data indexed by node ID
+# node2addr     dictionary mapping node names to node ID
+# nodeCdict     dictionary cache or node objects indexed by node ID
 
 
 class Isy(IsyUtil):
     """ Obj class the represents the ISY device """
-    _password_mgr = URL.HTTPPasswordMgrWithDefaultRealm()
-    _handler = URL.HTTPBasicAuthHandler(_password_mgr)
-    _opener = URL.build_opener(_handler)
+    if sys.hexversion < 0x3000000 :
+        _password_mgr = URL.HTTPPasswordMgrWithDefaultRealm()
+        _handler = URL.HTTPBasicAuthHandler(_password_mgr)
+        _opener = URL.build_opener(_handler)
+    else:
+        _password_mgr = URL.request.HTTPPasswordMgrWithDefaultRealm()
+        _handler = URL.request.HTTPBasicAuthHandler(_password_mgr)
+        _opener = URL.request.build_opener(_handler)
 
     def __init__(self, userl="admin", userp="admin", **kwargs):
         #
         # Keyword args
         #
-	self.debug = kwargs.get("debug", 0)
-	self.cachetime = kwargs.get("cachetime", 0)
-	self.faststart = kwargs.get("faststart", 1)
-	self.eventupdates = kwargs.get("eventupdates", 0)
+        self.debug = kwargs.get("debug", 0)
+        self.cachetime = kwargs.get("cachetime", 0)
+        self.faststart = kwargs.get("faststart", 1)
+        self.eventupdates = kwargs.get("eventupdates", 0)
         self.addr = kwargs.get("addr", os.getenv('ISY_ADDR', None))
 
-	if self.addr == None :
-	    from ISY.IsyDiscover import isy_discover
+        if self.addr == None :
+            from ISY.IsyDiscover import isy_discover
 
-	    units = isy_discover(count=1) 
-	    for device in units.values() :
-		self.addr = device['URLBase'][7:]
-		self.baseurl = device['URLBase']
-	else :
-	    self.baseurl = "http://" + self.addr
+            units = isy_discover(count=1) 
+            for device in units.values() :
+                self.addr = device['URLBase'][7:]
+                self.baseurl = device['URLBase']
+        else :
+            self.baseurl = "http://" + self.addr
 
-	if self.addr == None :
-	    raise Exception("No ISY address given or found")
+        if self.addr == None :
+            raise Exception("No ISY address given or found")
 
         if self.debug & 0x01 :
-            print "class Isy __init__"
-            print "debug ", self.debug
-            print "cachetime ", self.cachetime
-            print "faststart ", self.faststart
+            print("class Isy __init__")
+            print("debug ", self.debug)
+            print("cachetime ", self.cachetime)
+            print("faststart ", self.faststart)
 
-	# parse   ISY_AUTH as   LOGIN:PASS
+        # parse   ISY_AUTH as   LOGIN:PASS
 
         #
         # general setup logic
@@ -99,7 +110,7 @@ class Isy(IsyUtil):
         # self._opener = URL.build_opener(Isy._handler, URL.HTTPHandler(debuglevel=1))
         # self._opener = URL.build_opener(Isy._handler)
         if self.debug & 0x02:
-	    print "baseurl: " + self.baseurl + " : " + userl + " : " + userp
+            print("baseurl: " + self.baseurl + " : " + userl + " : " + userp)
 
         if not self.faststart :
             self.load_conf()
@@ -110,148 +121,148 @@ class Isy(IsyUtil):
         self.progCdict = dict ()
         self.folderCdict = dict ()
 
-	if self.eventupdates :
-	    self._start_event_thread()
+        if self.eventupdates :
+            self._start_event_thread()
 
     def _start_event_thread(self):
         """  starts event stream updare thread
 
-	    internal function call
+            internal function call
 
-	"""
-	from threading import Thread
+        """
+        from threading import Thread
 
-	print "start preload"
-	self._preload()
-	print "start complete"
+        print("start preload")
+        self._preload()
+        print("start complete")
 
-	self.isy_event = ISYEvent()
-	self.isy_event.subscribe(self.addr)
-	self.isy_event.set_process_func(self._read_event, self)
-	
-	self.event_thread = Thread(target=self.isy_event.events_loop, name="event_looper" )
-	self.event_thread.daemon = True
-	self.event_thread.start()
+        self.isy_event = ISYEvent()
+        self.isy_event.subscribe(self.addr)
+        self.isy_event.set_process_func(self._read_event, self)
+        
+        self.event_thread = Thread(target=self.isy_event.events_loop, name="event_looper" )
+        self.event_thread.daemon = True
+        self.event_thread.start()
 
-	print self.event_thread
+        print(self.event_thread)
 
     # @staticmethod
     def _read_event(self, evnt_dat, *arg) :
         """ read event stream data and copy into internal state cache
 
-	    internal function call
+            internal function call
 
-	"""
-	# print "_read_event"
-	skip = ["_0", "_2", "_4", "_5", "_6", "_7", "_8",
-		"_9", "_10", "_11", "_12", "_13", "_14",
-		"_15", "_16", "_17", "_18", "_19", "_20",
-		"DON", "DOF",
-		]
+        """
+        # print("_read_event")
+        skip = ["_0", "_2", "_4", "_5", "_6", "_7", "_8",
+                "_9", "_10", "_11", "_12", "_13", "_14",
+                "_15", "_16", "_17", "_18", "_19", "_20",
+                "DON", "DOF",
+                ]
 
-	
-	ar = arg[1]
+        
+        ar = arg[1]
 
-	#print "ar", arg
+        #print("ar", arg)
 
-	assert isinstance(evnt_dat, dict), "_read_event Arg must me dict"
+        assert isinstance(evnt_dat, dict), "_read_event Arg must me dict"
 
-	if evnt_dat["control"] in skip :
-	    return
+        if evnt_dat["control"] in skip :
+            return
 
-	if evnt_dat["control"] in ["ST", "RR", "OL"] :
-	    if evnt_dat["node"] in self._nodedict :
-		# print "===evnt_dat :", evnt_dat
-		# print "===a :", ar
-		#print self._nodedict[evnt_dat["node"]]
-		target_node =  self._nodedict[evnt_dat["node"]]
+        if evnt_dat["control"] in ["ST", "RR", "OL"] :
+            if evnt_dat["node"] in self._nodedict :
+                # print("===evnt_dat :", evnt_dat)
+                # print("===a :", ar)
+                #print(self._nodedict[evnt_dat["node"]])
+                target_node =  self._nodedict[evnt_dat["node"]]
 
-		# create property if we do not have it yet
-		if not evnt_dat["control"] in target_node["property"] :
-		    target_node["property"][evnt_dat["control"]] = dict ( )
+                # create property if we do not have it yet
+                if not evnt_dat["control"] in target_node["property"] :
+                    target_node["property"][evnt_dat["control"]] = dict ( )
 
-		target_node["property"][evnt_dat["control"]]["value"] \
-			= evnt_dat["action"]
-		target_node["property"][evnt_dat["control"]]["formatted"] \
-			= self._format_val( evnt_dat["action"] )
+                target_node["property"][evnt_dat["control"]]["value"] \
+                        = evnt_dat["action"]
+                target_node["property"][evnt_dat["control"]]["formatted"] \
+                        = self._format_val( evnt_dat["action"] )
 
-		if ( self.debug & 0x10 ) :
-		    print "_read_event :", evnt_dat["node"], evnt_dat["control"], evnt_dat["action"]
-		    print ">>>", self._nodedict[evnt_dat["node"]]["property"]
-	    else :
-		warning.warn("Event for Unknown node : {0}".format(evnt_dat["node"]), \
-			RuntimeWarning)
+                if ( self.debug & 0x10 ) :
+                    print("_read_event :", evnt_dat["node"], evnt_dat["control"], evnt_dat["action"])
+                    print(">>>", self._nodedict[evnt_dat["node"]]["property"])
+            else :
+                warning.warn("Event for Unknown node : {0}".format(evnt_dat["node"]), \
+                        RuntimeWarning)
 
 
-	elif evnt_dat["control"] == "_3" : # Node Change/Updated Event
-		print "Node Change/Updated Event :  {0}".format(evnt_dat["node"])
-		print "evnt_dat : ", evnt_dat
+        elif evnt_dat["control"] == "_3" : # Node Change/Updated Event
+                print("Node Change/Updated Event :  {0}".format(evnt_dat["node"]))
+                print("evnt_dat : ", evnt_dat)
 
-	# handle VAR value change
-	elif evnt_dat["control"] == "_1" :
-	    # Var Status / Initialized
-	    if evnt_dat["action"] == "6" or  evnt_dat["action"] == "7" :
-		var_eventInfo =  evnt_dat['eventInfo']['var']
-		vid = var_eventInfo['var-type'] + ":" + var_eventInfo['var-id']
-		# check if the event var exists in out world
-		if vid in self._vardict :
-		    # copy var properties from event
-		    for prop in ['init', 'val', 'ts'] :
-			if prop in var_eventInfo :
-			    self._vardict[vid][prop] = var_eventInfo[prop]
-		else :
-		    warning.warn("Event for Unknown Var : {0}".format(vid), \
-			    RuntimeWarning)
+        # handle VAR value change
+        elif evnt_dat["control"] == "_1" :
+            # Var Status / Initialized
+            if evnt_dat["action"] == "6" or  evnt_dat["action"] == "7" :
+                var_eventInfo =  evnt_dat['eventInfo']['var']
+                vid = var_eventInfo['var-type'] + ":" + var_eventInfo['var-id']
+                # check if the event var exists in out world
+                if vid in self._vardict :
+                    # copy var properties from event
+                    for prop in ['init', 'val', 'ts'] :
+                        if prop in var_eventInfo :
+                            self._vardict[vid][prop] = var_eventInfo[prop]
+                else :
+                    warning.warn("Event for Unknown Var : {0}".format(vid), \
+                            RuntimeWarning)
 
-	else:
-	    print "evnt_dat :", evnt_dat
-	    print "Event fall though : '{0}'".format(evnt_dat["node"])
+        else:
+            print("evnt_dat :", evnt_dat)
+            print("Event fall though : '{0}'".format(evnt_dat["node"]))
 
 
 
     def _format_val(self, v) :
-	try:
-	    v = int(v)
-	except ValueError :
-	    return "0"
-	else :
-	    if ( v == 0 ) :
-		return "off"
-	    elif  v == 255 :
-		return "on"
-	    else :
-		return str ( (int(v)*100) // 255)
+        try:
+            v = int(v)
+        except ValueError :
+            return "0"
+        else :
+            if ( v == 0 ) :
+                return "off"
+            elif  v == 255 :
+                return "on"
+            else :
+                return str ( (int(v)*100) // 255)
 
 
     def _preload(self):
         self.load_conf()
         self.load_nodes()
-	# self._gen_member_list()
+        # self._gen_member_list()
         # self.load_clim()
         self.load_vars()
         self.load_prog()
         #self.load_wol()
-	self.load_node_types()
+        self.load_node_types()
 
     def _savedict(self) :
 
-	self._preload()
+        self._preload()
 
-	# self._writedict(self.wolinfo, "wolinfo.txt")
+        # self._writedict(self.wolinfo, "wolinfo.txt")
 
-	self._writedict(self._nodedict, "nodedict.txt")
+        self._writedict(self._nodedict, "nodedict.txt")
 
-	self._writedict(self._nodegroups, "nodegroups.txt")
+        self._writedict(self._nodegroups, "nodegroups.txt")
 
-	self._writedict(self.folderlist, "folderlist.txt")
+        self._writedict(self.folderlist, "folderlist.txt")
 
-	self._writedict(self._vardict, "vardict.txt")
+        self._writedict(self._vardict, "vardict.txt")
 
-	# self._writedict(self.climateinfo, "climateinfo.txt")
+        # self._writedict(self.climateinfo, "climateinfo.txt")
 
-	self._writedict(self.controls, "controls.txt")
+        self._writedict(self.controls, "controls.txt")
 
-	self._writedict(self._progdict, "progdict.txt")
+        self._writedict(self._progdict, "progdict.txt")
 
 
 
@@ -261,13 +272,13 @@ class Isy(IsyUtil):
     def load_conf(self) :
         """ Load configuration of the system with permissible commands 
 
-	    args : none
+            args : none
 
-	    internal function call
+            internal function call
 
-	"""
+        """
         if self.debug & 0x01 :
-            print "load_conf pre _getXMLetree"
+            print("load_conf pre _getXMLetree")
         self.configinfo = self._getXMLetree("/rest/config")
         # Isy._printXML(self.configinfo)
 
@@ -279,7 +290,7 @@ class Isy(IsyUtil):
             cprop = dict ( )
 
             for child in list(ctl):
-                # print "child.tag " + str(child.tag) + "\t=" + str(child.text)
+                # print("child.tag " + str(child.tag) + "\t=" + str(child.text))
                 if child.tag == "actions" :
                     adict = dict ()
                     for act in child.iter('action') :
@@ -293,35 +304,35 @@ class Isy(IsyUtil):
             for n, v in child.items() :
                 cprop[n] = v
 
-            # print "cprop ", cprop
+            # print("cprop ", cprop)
             if "name" in cprop :
                 self.controls[cprop["name"].upper()] = cprop
                 if "label" in cprop :
                     self.name2control[cprop["label"].upper()] \
-			= cprop["name"].upper()
+                        = cprop["name"].upper()
 
-	self.config = dict ()
-	for v in ( "platform", "app_version" ):
-	    n = self.configinfo.find(v)
-	    if not n is None:
-		if isinstance(n.text, str):
-		    self.config[v] = n.text
+        self.config = dict ()
+        for v in ( "platform", "app_version" ):
+            n = self.configinfo.find(v)
+            if not n is None:
+                if isinstance(n.text, str):
+                    self.config[v] = n.text
 
-        # print "self.controls : ", self.controls
+        # print("self.controls : ", self.controls)
         #self._printdict(self.controls)
-        #print "self.name2control : ", self.name2control
+        #print("self.name2control : ", self.name2control)
 
     ##
     ## property
     ##
     def _get_platform(self) :
-	""" name of ISY platform (readonly) """
- 	return self.config["platform"]
+        """ name of ISY platform (readonly) """
+        return self.config["platform"]
     platform = property(_get_platform)
 
     def _get_app_version(self) :
-	""" name of ISY app_version (readonly) """
-	return self.config["app_version"]
+        """ name of ISY app_version (readonly) """
+        return self.config["app_version"]
     app_version = property(_get_app_version)
 
 
@@ -331,84 +342,84 @@ class Isy(IsyUtil):
     def load_nodes(self) :
         """ Load node list scene list and folder info
 
-	    args : none
+            args : none
 
-	    internal function call
+            internal function call
 
-	"""
+        """
         self._nodedict = dict ()
         # self.nodeCdict = dict ()
         self.node2addr = dict ()
         if self.debug & 0x01 :
-            print "load_nodes pre _getXML"
+            print("load_nodes pre _getXML")
         nodeinfo = self._getXMLetree("/rest/nodes")
         self._gen_nodedict(nodeinfo)
         self._gen_folder_list(nodeinfo)
         self._gen_nodegroups(nodeinfo)
         # self._printdict(self._nodedict)
-	print "load_nodes self.node2addr : ", len(self.node2addr)
-	self._gen_member_list()
+        print("load_nodes self.node2addr : ", len(self.node2addr))
+        self._gen_member_list()
 
     def _gen_member_list(self) :
-	"""ganerates node connecton lists
+        """ganerates node connecton lists
 
-	    internal function call
+            internal function call
 
-	"""
-	try:
-	    self._nodedict
+        """
+        try:
+            self._nodedict
         except AttributeError:
-	    return
-	else :
+            return
+        else :
 
-	    # Folders can only belong to Folders
-	    for faddr in self.folderlist :
-		# make code easier to read
-		foldr = self.folderlist[faddr]
-		# add members list if needed
-		if 'members' not in foldr :
-		    foldr['members'] = list()
-		# check if folder obj has a parent
-		if 'parent' in foldr :
-		    # this should always be true
-		    if foldr['parent-type'] == '3' and \
-			    foldr['parent'] in self.folderlist :
-			if 'members' not in self.folderlist[foldr['parent']] :
-			    self.folderlist[foldr['parent']]['members'] = list()
-			self.folderlist[foldr['parent']]['members'].append( foldr['address'])  
-		    else:
-			print "warn bad parenting foldr =", foldr
+            # Folders can only belong to Folders
+            for faddr in self.folderlist :
+                # make code easier to read
+                foldr = self.folderlist[faddr]
+                # add members list if needed
+                if 'members' not in foldr :
+                    foldr['members'] = list()
+                # check if folder obj has a parent
+                if 'parent' in foldr :
+                    # this should always be true
+                    if foldr['parent-type'] == '3' and \
+                            foldr['parent'] in self.folderlist :
+                        if 'members' not in self.folderlist[foldr['parent']] :
+                            self.folderlist[foldr['parent']]['members'] = list()
+                        self.folderlist[foldr['parent']]['members'].append( foldr['address'])  
+                    else:
+                        print("warn bad parenting foldr =", foldr)
 
-	    # Scenes can only belong to Folders
-	    for sa in self._nodegroups :
-		s = self._nodegroups[sa]
-		if "parent" in s :
-		    if s['parent-type'] == '3' and  s['parent'] in self.folderlist :
-			self.folderlist[s['parent']]['members'].append( s['address'])
-		    else:
-			print "warn bad parenting s = ", s
+            # Scenes can only belong to Folders
+            for sa in self._nodegroups :
+                s = self._nodegroups[sa]
+                if "parent" in s :
+                    if s['parent-type'] == '3' and  s['parent'] in self.folderlist :
+                        self.folderlist[s['parent']]['members'].append( s['address'])
+                    else:
+                        print("warn bad parenting s = ", s)
 
-	    # A Node can belong only to ONE and only ONE Folder or another Node
-	    for naddr in self._nodedict :
-		n = self._nodedict[naddr]
-		# print "n = ", n
-		if 'pnode' in n and n['pnode'] != n['address'] :
-		    if 'members' not in self._nodedict[n['pnode']] :
-			self._nodedict[n['pnode']]['members'] = list ()
-		    self._nodedict[n['pnode']]['members'].append( n['address'] )
+            # A Node can belong only to ONE and only ONE Folder or another Node
+            for naddr in self._nodedict :
+                n = self._nodedict[naddr]
+                # print("n = ", n)
+                if 'pnode' in n and n['pnode'] != n['address'] :
+                    if 'members' not in self._nodedict[n['pnode']] :
+                        self._nodedict[n['pnode']]['members'] = list ()
+                    self._nodedict[n['pnode']]['members'].append( n['address'] )
 
-		if 'parent' in n :
-		    if 'pnode' not in n or n['parent'] != n['pnode'] :
-			if n['parent-type'] == 3 :
-			    if n['parent'] in self.folderlist :
-				self.folderlist[n['parent']]['members'].append( n['address'])
-			elif  n['parent-type'] == 1 :
-			    if n['parent'] in self._nodegroups :
-				self._nodegroups[n['parent']]['members'].add( n['address'])
-		# 'parent': '16 6C D2 1', 'parent-type': '1',
-		# 'parent': '12743', 'parent-type': '3',
-		# if n.pnode == n.parent and n.pnode == n.address
-		    next
+                if 'parent' in n :
+                    if 'pnode' not in n or n['parent'] != n['pnode'] :
+                        if n['parent-type'] == 3 :
+                            if n['parent'] in self.folderlist :
+                                self.folderlist[n['parent']]['members'].append( n['address'])
+                        elif  n['parent-type'] == 1 :
+                            if n['parent'] in self._nodegroups :
+                                self._nodegroups[n['parent']]['members'].add( n['address'])
+                # 'parent': '16 6C D2 1', 'parent-type': '1',
+                # 'parent': '12743', 'parent-type': '3',
+                # if n.pnode == n.parent and n.pnode == n.address
+                    next
 
 
 
@@ -422,13 +433,13 @@ class Isy(IsyUtil):
                 fprop[fold.tag + "-" + k] = v
             for child in list(fold):
                 fprop[child.tag] = child.text
-		if child.attrib :
-		    for k, v in child.items() :
-			fprop[child.tag + "-" + k] =  v
+                if child.attrib :
+                    for k, v in child.items() :
+                        fprop[child.tag + "-" + k] =  v
             self.folderlist[fprop["address"]] = fprop
-	    self.folder2addr[fprop["name"]] = fprop["address"]
-	#self._printdict(self.folderlist)
-	#self._printdict(self.folder2addr)
+            self.folder2addr[fprop["name"]] = fprop["address"]
+        #self._printdict(self.folderlist)
+        #self._printdict(self.folder2addr)
 
     def _gen_nodegroups(self, nodeinfo) :
         """ generate scene / group dictionary for load_node """
@@ -439,30 +450,30 @@ class Isy(IsyUtil):
             for k, v in grp.items() :
                 gprop[grp.tag + "-" + k] = v
             for child in list(grp) :
-		if child.tag == "parent" :
+                if child.tag == "parent" :
                     gprop[child.tag] = child.text
-		    for k, v in child.items() :
-			gprop[child.tag + "-" + k] =  v
+                    for k, v in child.items() :
+                        gprop[child.tag + "-" + k] =  v
                 elif child.tag == "members" :
                     glist = dict ()
                     for lnk in child.iter('link'):
-			glist[lnk.text] = lnk.attrib['type']
+                        glist[lnk.text] = lnk.attrib['type']
                     gprop[child.tag] = glist
                 else :
                     gprop[child.tag] = child.text
-		    if child.attrib :
-			for k, v in child.items() :
-			    gprop[child.tag + "-" + k] =  v
+                    if child.attrib :
+                        for k, v in child.items() :
+                            gprop[child.tag + "-" + k] =  v
 
             if "address" in gprop :
                 self._nodegroups[gprop["address"]] = gprop
                 if "name" in gprop :
-		    if gprop["name"] in self.groups2addr :
-			print "Dup group name", gprop["name"], str(gprop["address"])
-		    else :
-			self.groups2addr[gprop["name"]] = str(gprop["address"])
+                    if gprop["name"] in self.groups2addr :
+                        print("Dup group name", gprop["name"], str(gprop["address"]))
+                    else :
+                        self.groups2addr[gprop["name"]] = str(gprop["address"])
             else :
-		# should raise an exception ?
+                # should raise an exception ?
                 self._printinfo(grp, "Error : no address in group :")
 
     def _gen_nodedict(self, nodeinfo) :
@@ -480,11 +491,11 @@ class Isy(IsyUtil):
                     idict[child.tag] = child.text
                     for k, v in child.items() :
                         idict[child.tag + "-" + k] = v
-		# special case where ST, OL, and RR
+                # special case where ST, OL, and RR
                 elif child.tag == "property" :
                     nprop = dict ()
                     for k, v in child.items() :
-                        # print "child.items", k, v
+                        # print("child.items", k, v)
                         nprop[k] = v
                     if "id" in nprop :
                         idict[child.tag] = dict ()
@@ -495,16 +506,16 @@ class Isy(IsyUtil):
             if "address" in idict :
                 self._nodedict[idict["address"]] = idict
                 if "name" in idict :
-		    if idict["name"] in self.node2addr :
-			warning.warn("Duplicate Node Name", RuntimeWarning)
-		    else :
-			self.node2addr[idict["name"]] = idict["address"]
+                    if idict["name"] in self.node2addr :
+                        warning.warn("Duplicate Node Name", RuntimeWarning)
+                    else :
+                        self.node2addr[idict["name"]] = idict["address"]
 
             else :
-		# should raise an exception
+                # should raise an exception
                 # self._printinfo(inode, "Error : no address in node :")
-		warning.warn("Error : no address in node", RuntimeWarning)
-        #print "\n>>>>\t", self._nodedict, "\n<<<<<\n"
+                warning.warn("Error : no address in node", RuntimeWarning)
+        #print("\n>>>>\t", self._nodedict, "\n<<<<<\n")
 
 # if hasattr(instance, 'tags') and isinstance(instance.tags, dict):
 #     for tag in instance.tags:
@@ -516,69 +527,69 @@ class Isy(IsyUtil):
     def node_names(self) :
         """  access method for node names
             returns a dict of ( Node names : Node address )
-	"""
+        """
         try:
             self.node2addr
         except AttributeError:
             self.load_nodes()
-	return self.node2addr[:]
+        return self.node2addr[:]
 
     def scene_names(self) :
         """ access method for scene names
             returns a dict of ( Node names : Node address )
-	"""
+        """
         try:
             self.groups2addr
         except AttributeError:
             self.load_nodes()
-	return self.groups2addr[:]
+        return self.groups2addr[:]
 
     def node_addrs(self) :
         """ access method for node addresses
             returns a iist scene/group addresses
-	"""
+        """
         try:
             self._nodedict
         except AttributeError:
             self.load_nodes()
-	return self._nodedict.viewkeys()
+        return self._nodedict.viewkeys()
 
     def scene_addrs(self) :
         """ access method for scene addresses
             returns a iist scene/group addresses
-	"""
+        """
         try:
             self._nodegroups
         except AttributeError:
             self.load_nodes()
-	return self._nodegroups.viewkeys()
+        return self._nodegroups.viewkeys()
 
 
     def get_node(self, node_id) :
         """ Get a Node object for given node or scene name or ID
 
-	    args:
-		node : node name of id
+            args:
+                node : node name of id
 
-	    return:
-		An IsyNode object representing the requested Scene or Node
+            return:
+                An IsyNode object representing the requested Scene or Node
 
-	"""
+        """
         if self.debug & 0x01 :
-            print "get_node"
+            print("get_node")
 
-	nodeid = self._get_node_id(node_id)
-	if nodeid in self._nodedict :
-	    if not nodeid in self.nodeCdict :
-		self.nodeCdict[nodeid] = IsyNode(self, self._nodedict[nodeid])
-	    return self.nodeCdict[nodeid]
-	elif nodeid in self._nodegroups:
-	    if not nodeid in self.nodeCdict :
-		self.nodeCdict[nodeid] = IsyScene(self, self._nodegroups[nodeid])
-	    return self.nodeCdict[nodeid]
-	else :
-	    print "Isy get_node no node : \"%s\"" % nodeid
-	    raise LookupError("no node such Node : " + str(nodeid) )
+        nodeid = self._get_node_id(node_id)
+        if nodeid in self._nodedict :
+            if not nodeid in self.nodeCdict :
+                self.nodeCdict[nodeid] = IsyNode(self, self._nodedict[nodeid])
+            return self.nodeCdict[nodeid]
+        elif nodeid in self._nodegroups:
+            if not nodeid in self.nodeCdict :
+                self.nodeCdict[nodeid] = IsyScene(self, self._nodegroups[nodeid])
+            return self.nodeCdict[nodeid]
+        else :
+            print("Isy get_node no node : \"%s\"" % nodeid)
+            raise LookupError("no node such Node : " + str(nodeid) )
 
 
     def _get_node_id(self, nid):
@@ -589,27 +600,27 @@ class Isy(IsyUtil):
         except AttributeError:
             self.load_nodes()
 #       except:
-#           print "Unexpected error:", sys.exc_info()[0]
+#           print("Unexpected error:", sys.exc_info()[0])
 #           return None
 
 
-	if isinstance(nid, IsySubClass) :
-	     return nid["addr"]
-	else :
-	    n = str(nid)
+        if isinstance(nid, IsySubClass) :
+             return nid["addr"]
+        else :
+            n = str(nid)
         if string.upper(n) in self._nodedict :
-            # print "_get_node_id : " + n + " nodedict " + string.upper(n)
+            # print("_get_node_id : " + n + " nodedict " + string.upper(n))
             return string.upper(n)
         if n in self.node2addr :
-            # print "_get_node_id : " + n + " node2addr " + self.node2addr[n]
+            # print("_get_node_id : " + n + " node2addr " + self.node2addr[n])
             return self.node2addr[n]
         if n in self.groups2addr :
-            # print "_get_node_id : " + n + " groups2addr " + self.groups2addr[n]
+            # print("_get_node_id : " + n + " groups2addr " + self.groups2addr[n])
             return self.groups2addr[n]
         if n in self._nodegroups :
-            # print "_get_node_id : " + n + " nodegroups " + n
+            # print("_get_node_id : " + n + " nodegroups " + n)
             return n
-        print "_get_node_id : " + n + " None"
+        print("_get_node_id : " + n + " None")
         return None
 
     def _get_command_id(self, comm):
@@ -633,7 +644,7 @@ class Isy(IsyUtil):
     def node_set_prop(self, naddr, prop, val) :
         """ calls /rest/nodes/<node-id>/set/<property>/<value> """
         if self.debug & 0x01 :
-	    print "node_set_prop"
+            print("node_set_prop")
         node_id = self._get_node_id(naddr)
         if not node_id :
             raise LookupError("node_set_prop: unknown node : " + str(naddr) )
@@ -645,15 +656,15 @@ class Isy(IsyUtil):
 
     def _node_set_prop(self, naddr, prop, val) :
         """ node_set_prop without argument validation """
-        #print "_node_set_prop : node=%s prop=%s val=%s" % str(naddr), prop, val
+        #print("_node_set_prop : node=%s prop=%s val=%s" % str(naddr), prop, val)
         print ("_node_set_prop : node=" + str(naddr) + " prop=" + prop +
-		    " val=" + val )
+                    " val=" + val )
         xurl = "/rest/nodes/" + naddr + "/set/" + prop + "/" + val
         resp = self._getXMLetree(xurl)
         self._printXML(resp)
         if resp.attrib["succeeded"] != 'true' :
             raise IsyResponseError("Node Property Set error : node=%s prop=%s val=%s" %
-		    naddr, prop, val )
+                    naddr, prop, val )
 
 
     #
@@ -662,16 +673,16 @@ class Isy(IsyUtil):
     def node_comm(self, naddr, cmd, *args) :
         """ send command to a node or scene """
         if self.debug & 0x04 :
-	    print "node_comm", naddr, cmd
+            print("node_comm", naddr, cmd)
         node_id = self._get_node_id(naddr)
         cmd_id = self._get_command_id(cmd)
 
-        #print "self.controls :", self.controls
-        #print "self.name2control :", self.name2control
+        #print("self.controls :", self.controls)
+        #print("self.name2control :", self.name2control)
 
         if not node_id :
             raise LookupError("node_comm: unknown node : " + str(naddr) )
-        print "naddr : ", naddr, " : ", node_id
+        print("naddr : ", naddr, " : ", node_id)
 
         if not cmd_id :
             raise TypeError("node_comm: unknown command : " + str(cmd) )
@@ -684,18 +695,18 @@ class Isy(IsyUtil):
     def _node_comm(self, node_id, cmd_id, *args) :
         """ send command to a node or scene without name to ID overhead """
         if self.debug & 0x04 :
-	    print "_node_comm", node_id, cmd_id
+            print("_node_comm", node_id, cmd_id)
         # rest/nodes/<nodeid>/cmd/<command_name>/<param1>/<param2>/.../<param5>
         xurl = ("/rest/nodes/" + node_id + "/cmd/" + cmd_id +
-	    "/" + "/".join(str(x) for x in args) )
+            "/" + "/".join(str(x) for x in args) )
 
         if self.debug & 0x02 :
-		print "xurl = " + xurl
+                print("xurl = " + xurl)
         resp = self._getXMLetree(xurl)
         self._printXML(resp)
         if resp.attrib["succeeded"] != 'true' :
             raise IsyResponseError("ISY command error : node_id=" +
-		str(node_id) + " cmd=" + str(cmd_id))
+                str(node_id) + " cmd=" + str(cmd_id))
 
 
     # redundant
@@ -703,7 +714,7 @@ class Isy(IsyUtil):
         """ update a node's property from ISY device """
         xurl = "/rest/nodes/" + self._nodedict[naddr]["address"]
         if self.debug & (0x01 & 0x10) :
-            print "_updatenode pre _getXML"
+            print("_updatenode pre _getXML")
         _nodestat = self._getXMLetree(xurl)
         # del self._nodedict[naddr]["property"]["ST"]
         for prop in _nodestat.iter('property'):
@@ -722,13 +733,13 @@ class Isy(IsyUtil):
     def load_node_types(self) :
         """ Load node type info into a multi dimentional dictionary
 
-	    args : none
+            args : none
 
-	    internal function call
+            internal function call
 
-	"""
+        """
         if self.debug & 0x01 :
-            print "load_node_types called"
+            print("load_node_types called")
         typeinfo = self._getXMLetree("/WEB/cat.xml")
         self.nodeCategory = dict ()
         for ncat in typeinfo.iter('nodeCategory'):
@@ -738,14 +749,14 @@ class Isy(IsyUtil):
         typeinfo = self._getXMLetree("/WEB/1_fam.xml")
         for ncat in typeinfo.iter('nodeCategory'):
             for subcat in ncat.iter('nodeSubCategory'):
-		## FIX
+                ## FIX
                 if not ncat.attrib["id"] in self.nodeCategory :
                     self.nodeCategory[ncat.attrib["id"]] = dict ()
-		# print "ID : ", ncat.attrib["id"], " : ", subcat.attrib["id"]
-		# print "ID  name: ", subcat.attrib["name"]
-		self.nodeCategory[ncat.attrib["id"]][subcat.attrib["id"]] = subcat.attrib["name"]
+                # print("ID : ", ncat.attrib["id"], " : ", subcat.attrib["id"])
+                # print("ID  name: ", subcat.attrib["name"])
+                self.nodeCategory[ncat.attrib["id"]][subcat.attrib["id"]] = subcat.attrib["name"]
                 #self._printinfo(subcat, "subcat :")
-        # print "nodeCategory : ", self.nodeCategory
+        # print("nodeCategory : ", self.nodeCategory)
         # self._printdict(self.nodeCategory)
 
     def node_get_type(self, typid) :
@@ -775,27 +786,27 @@ class Isy(IsyUtil):
 
 
     def node_iter(self, nodetype=""):
-	""" Iterate though nodes
+        """ Iterate though nodes
 
-	    args: 
-		nodetype : type of node to return
+            args: 
+                nodetype : type of node to return
 
-	    returns :
-		Return an iterator over the Node Obj
-	"""
+            returns :
+                Return an iterator over the Node Obj
+        """
         try:
             self._nodedict
         except AttributeError:
             self.load_nodes()
-	if nodetype == "node" :
-	    k = self._nodedict.keys()
-	elif nodetype == "scene" :
-	    k = self._nodegroups.keys()
-	else :
-	    k = self._nodedict.keys()
-	    k.extend(self._nodegroups.keys())
-	for n in k :
-	    yield self.get_node(n)
+        if nodetype == "node" :
+            k = self._nodedict.keys()
+        elif nodetype == "scene" :
+            k = self._nodegroups.keys()
+        else :
+            k = self._nodedict.keys()
+            k.extend(self._nodegroups.keys())
+        for n in k :
+            yield self.get_node(n)
 
     ##
     ## variable funtions
@@ -803,11 +814,11 @@ class Isy(IsyUtil):
     def load_vars(self) :
         """ Load variable names and values
 
-	    args : none
+            args : none
 
-	    internal function call
+            internal function call
 
-	"""
+        """
         self._vardict = dict ()
         self.name2var = dict ()
         for t in [ '1', '2' ] :
@@ -818,20 +829,20 @@ class Isy(IsyUtil):
                     if vd.tag != "var" :
                         vdat[vd.tag] = vd.text
                 self._vardict[t + ":" + v.attrib["id"]] = vdat
-	    # self._printdict(self._vardict)
+            # self._printdict(self._vardict)
 
             vinfo = self._getXMLetree("/rest/vars/definitions/" + t)
             for v in vinfo.iter("e") :
                 # self._printinfo(v, "e :")
-		vid = t + ":" + v.attrib["id"]
+                vid = t + ":" + v.attrib["id"]
                 self._vardict[vid]['name'] = v.attrib['name']
                 self._vardict[vid]["id"] = vid
                 self._vardict[vid]["type"] = t
-		if v.attrib['name'] in self.name2var :
-		    print "warning Dum var name :", v.attrib['name'], \
-			    vid, self.name2var[v.attrib['name']]
-		else :
-		    self.name2var[v.attrib['name']] = vid
+                if v.attrib['name'] in self.name2var :
+                    print("warning Dum var name :", v.attrib['name'], \
+                            vid, self.name2var[v.attrib['name']])
+                else :
+                    self.name2var[v.attrib['name']] = vid
 
         # self._printdict(self._vardict)
 
@@ -839,60 +850,60 @@ class Isy(IsyUtil):
     def var_set_value(self, var, val, prop="val") :
         """ Set var value by name or ID
 
-	    args:
-		var = var name or Id
-		val = new value
-		prop = property to addign value to (default = val)
+            args:
+                var = var name or Id
+                val = new value
+                prop = property to addign value to (default = val)
 
-	    raise:
-		LookupError :  if var name or Id is invalid
-		TypeError :  if property is not 'val or 'init'
+            raise:
+                LookupError :  if var name or Id is invalid
+                TypeError :  if property is not 'val or 'init'
 
-	"""
+        """
         #if self.debug & 0x04 :
-	print "var_set_value ", val, " : ", prop
-	varid = self._var_get_id(var)
+        print("var_set_value ", val, " : ", prop)
+        varid = self._var_get_id(var)
         if not varid :
             raise LookupError("var_set_value: unknown var : " + str(var) )
         if not prop in ['init', 'val'] :
-	    raise TypeError("var_set_value: unknown propery : " + str(prop) )
-	self._var_set_value(varid, val, prop)
+            raise TypeError("var_set_value: unknown propery : " + str(prop) )
+        self._var_set_value(varid, val, prop)
 
     def _var_set_value(self, varid, val, prop) :
         """ Set var value by name or ID """
         if self.debug & 0x04 :
-            print "_var_set_value ", val, " : ", prop
-	a = varid.split(':')
-	if prop == "init" :
-	    xurl = "/rest/vars/init/" + a[0] + "/" + a[1] + "/" + val
-	else :
-	    xurl = "/rest//vars/set/" + a[0] + "/" + a[1] + "/" + val
+            print("_var_set_value ", val, " : ", prop)
+        a = varid.split(':')
+        if prop == "init" :
+            xurl = "/rest/vars/init/" + a[0] + "/" + a[1] + "/" + val
+        else :
+            xurl = "/rest//vars/set/" + a[0] + "/" + a[1] + "/" + val
         resp = self._getXMLetree(xurl)
         if resp.attrib["succeeded"] != 'true' :
             raise IsyResponseError("Var Value Set error : var=%s prop=%s val=%s" %
-		    varid, prop, val )
+                    varid, prop, val )
         self._printdict(self._vardict[varid])
-	self._vardict[varid][prop] = val
+        self._vardict[varid][prop] = val
         self._printdict(self._vardict[varid])
-	return
+        return
 
     def var_get_value(self, var, prop="var") :
         """ Get var value by name or ID
-	    args:
-		var = var name or Id
-		prop = property to addign value to (default = val)
+            args:
+                var = var name or Id
+                prop = property to addign value to (default = val)
 
-	    raise:
-		LookupError :  if var name or Id is invalid
-		TypeError :  if property is not 'val or 'init'
-	"""
-	varid = self._var_get_id(var)
+            raise:
+                LookupError :  if var name or Id is invalid
+                TypeError :  if property is not 'val or 'init'
+        """
+        varid = self._var_get_id(var)
         if not varid :
             raise LookupError("var_set_value: unknown var : " + str(var) )
         if not prop in ['init', 'val'] :
-	    raise TypeError("var_set_value: unknown propery : " + str(prop) )
-	if varid in self._vardict :
-	    return(self._vardict[prop])
+            raise TypeError("var_set_value: unknown propery : " + str(prop) )
+        if varid in self._vardict :
+            return(self._vardict[prop])
 
 
 #    def var_names(self) :
@@ -902,16 +913,16 @@ class Isy(IsyUtil):
     def var_addrs(self)  :
         """ access method for var addresses
 
-	    args: None
+            args: None
 
             returns :  a iist view of var ids
-	"""
+        """
         try:
             self._vardict
         except AttributeError:
             self.load_vars()
 #       except:
-#           print "Unexpected error:", sys.exc_info()[0]
+#           print("Unexpected error:", sys.exc_info()[0])
 #           return None
         return self.name2var.viewkeys()
 
@@ -919,130 +930,130 @@ class Isy(IsyUtil):
     def get_var(self, vname) :
         """ get var class obj 
 
-	    args : var name or Id
+            args : var name or Id
 
-	    returns : a IsyVar obj
+            returns : a IsyVar obj
 
-	    raise:
-		LookupError :  if var name or Id is invalid
+            raise:
+                LookupError :  if var name or Id is invalid
 
-	"""
+        """
         if self.debug & 0x01 :
-	    print "get_var :" + vname
+            print("get_var :" + vname)
 
-	varid = self._var_get_id(vname)
-	# print "\tvarid : " + varid
-	if varid in self._vardict :
-	    if not varid in self.varCdict :
-		# print "not varid in self.varCdict:"
-		# self._printdict(self._vardict[varid])
-		self.varCdict[varid] = IsyVar(self, self._vardict[varid])
-	    #self._printdict(self._vardict)
-	    # print "return : ",
-	    #self._printdict(self.varCdict[varid])
-	    return self.varCdict[varid]
-	else :
-	    if self.debug & 0x01 :
-		print "Isy get_var no var : \"%s\"" % varid
-	    raise LookupError("no var : " + str(varid) )
+        varid = self._var_get_id(vname)
+        # print("\tvarid : " + varid)
+        if varid in self._vardict :
+            if not varid in self.varCdict :
+                # print("not varid in self.varCdict:")
+                # self._printdict(self._vardict[varid])
+                self.varCdict[varid] = IsyVar(self, self._vardict[varid])
+            #self._printdict(self._vardict)
+            # print("return : ",)
+            #self._printdict(self.varCdict[varid])
+            return self.varCdict[varid]
+        else :
+            if self.debug & 0x01 :
+                print("Isy get_var no var : \"%s\"" % varid)
+            raise LookupError("no var : " + str(varid) )
 
 
     def _var_get_id(self, vname):
         """ Lookup var value by name or ID
-	returns ISY Id  or None
-	"""
+        returns ISY Id  or None
+        """
         try:
             self._vardict
         except AttributeError:
             self.load_vars()
 #       except:
-#           print "Unexpected error:", sys.exc_info()[0]
+#           print("Unexpected error:", sys.exc_info()[0])
 #           return None
         
-	if isinstance(vname, IsyVar) :
-	     return vname["id"]
-	else :
-	    v = str(vname)
+        if isinstance(vname, IsyVar) :
+             return vname["id"]
+        else :
+            v = str(vname)
         if string.upper(v) in self._vardict :
-            # print "_get_var_id : " + v + " vardict " + string.upper(v)
+            # print("_get_var_id : " + v + " vardict " + string.upper(v))
             return string.upper(v)
         if v in self.name2var :
-            # print "_var_get_id : " + v + " name2var " + self.name2var[v]
+            # print("_var_get_id : " + v + " name2var " + self.name2var[v])
             return self.name2var[v]
 
-        # print "_var_get_id : " + n + " None"
+        # print("_var_get_id : " + n + " None")
         return None
 
     def var_get_type(self, var) :
-	""" Takes Var name or ID and returns type
+        """ Takes Var name or ID and returns type
 
-	    arg:
-		a var name  ID or Obj
+            arg:
+                a var name  ID or Obj
 
-	    return
-		"Integer" "State" or None
-	"""
-	v = self._var_get_id(var)
-	if v in self._vardict :
-	    type, id = str(v).split(':') 
-	    if  type == "1" :
-		return "Integer"
-	    elif type == "2" :
-		return "State"
-	return "none"
+            return
+                "Integer" "State" or None
+        """
+        v = self._var_get_id(var)
+        if v in self._vardict :
+            type, id = str(v).split(':') 
+            if  type == "1" :
+                return "Integer"
+            elif type == "2" :
+                return "State"
+        return "none"
 
 
     def var_iter(self, vartype=0):
-	""" Iterate though vars objects
+        """ Iterate though vars objects
 
-	    args: 
-		nodetype : type of var to return
+            args: 
+                nodetype : type of var to return
 
-	    returns :
-		Return an iterator over the Var Obj
-	"""
+            returns :
+                Return an iterator over the Var Obj
+        """
         try:
             self._vardict
         except AttributeError:
             self.load_vars()
 #       except:
-#           print "Unexpected error:", sys.exc_info()[0]
+#           print("Unexpected error:", sys.exc_info()[0])
 
-	k = self._vardict.keys()
-	for v in k :
-	    if vartype :
-		vartype = str(vartype)
-		if self._vardict[v]["type"] == vartype :
-		    yield self.get_var(v)
-	    else :
-		yield self.get_var(v)
+        k = self._vardict.keys()
+        for v in k :
+            if vartype :
+                vartype = str(vartype)
+                if self._vardict[v]["type"] == vartype :
+                    yield self.get_var(v)
+            else :
+                yield self.get_var(v)
 
     def set_var_value(self, vname, val, init=0):
         if self.debug & 0x01 :
-	    print "set_var :" + vname
+            print("set_var :" + vname)
 
-	varid = self._var_get_id(vname)
-	if varid in self._vardict :
-	    self._set_var_value(varid, val, init)
-	else :
-	    raise LookupError("var_set_value: unknown var : " + str(var) )
+        varid = self._var_get_id(vname)
+        if varid in self._vardict :
+            self._set_var_value(varid, val, init)
+        else :
+            raise LookupError("var_set_value: unknown var : " + str(var) )
 
 
     def _set_var_value(self, varid, val, init=0):
-	vid = varid.split(':')
-	if init :
-	    xurl = "/rest/vars/init/" + a[0] + "/" + a[1] + "/" + val
-	else :
-	    xurl = "/rest/vars/set/" + a[0] + "/" + a[1] + "/" + val
+        vid = varid.split(':')
+        if init :
+            xurl = "/rest/vars/init/" + a[0] + "/" + a[1] + "/" + val
+        else :
+            xurl = "/rest/vars/set/" + a[0] + "/" + a[1] + "/" + val
 
         if self.debug & 0x02 :
-            print "xurl = " + xurl
+            print("xurl = " + xurl)
 
         resp = self._getXMLetree(xurl)
         self._printXML(resp)
         if resp.attrib["succeeded"] != 'true' :
             raise IsyResponseError("ISY command error : varid=" +
-		str(varid) + " cmd=" + str(cmd_id))
+                str(varid) + " cmd=" + str(cmd_id))
 
 
     ##
@@ -1051,17 +1062,17 @@ class Isy(IsyUtil):
     def load_clim(self) :
         """ Load climate data from ISY device
 
-	    args : none
+            args : none
 
-	    internal function call
+            internal function call
 
-	"""
+        """
         if self.debug & 0x01 :
-            print "load_clim called"
+            print("load_clim called")
         clim_tree = self._getXMLetree("/rest/climate")
         self.climateinfo = dict ()
-	if clim_tree == None :
-	    return 
+        if clim_tree == None :
+            return 
         # Isy._printXML(self.climateinfo)
 
         for cl in clim_tree.iter("climate") :
@@ -1073,7 +1084,7 @@ class Isy(IsyUtil):
         self.climateinfo["time"] = time.gmtime()
 
     def clim_get_val(self, prop):
-	pass
+        pass
 
     def clim_query(self):
         """ returns dictionary of climate info """
@@ -1088,21 +1099,21 @@ class Isy(IsyUtil):
         return self.climateinfo
 
     def clim_iter(self):
-	""" Iterate though climate values
+        """ Iterate though climate values
 
-	    args:  
-		None
+            args:  
+                None
 
-	    returns :
-		Return an iterator over the climate values
-	"""
+            returns :
+                Return an iterator over the climate values
+        """
         try:
             self.climateinfo
         except AttributeError:
             self.load_clim()
-	k = self.climateinfo.keys()
-	for p in k :
-	    yield self.climateinfo[p]
+        k = self.climateinfo.keys()
+        for p in k :
+            yield self.climateinfo[p]
 
     ##
     ## WOL (Wake on LAN) funtions
@@ -1110,13 +1121,13 @@ class Isy(IsyUtil):
     def load_wol(self) :
         """ Load Wake On LAN IDs 
 
-	    args : none
+            args : none
 
-	    internal function call
+            internal function call
 
-	"""
+        """
         if self.debug & 0x01 :
-            print "load_wol called"
+            print("load_wol called")
         wol_tree = self._getXMLetree("/rest/networking/wol")
         self.wolinfo = dict ()
         self.name2wol = dict ()
@@ -1134,66 +1145,66 @@ class Isy(IsyUtil):
 
     def wol(self, wid) :
         """
-	    Send Wake On LAN to registared wol ID
-	"""
+            Send Wake On LAN to registared wol ID
+        """
 
-	wol_id = self._get_wol_id(wid)
+        wol_id = self._get_wol_id(wid)
 
         wol_id = str(wid).upper()
 
         if wol_id == None :
             raise IsyValueError("bad wol ID : " + wid)
 
-	xurl = "/rest/networking/wol/" + wol_id
+        xurl = "/rest/networking/wol/" + wol_id
 
         if self.debug & 0x02 :
-            print "wol : xurl = " + xurl
+            print("wol : xurl = " + xurl)
         resp = self._getXMLetree(xurl)
         self._printXML(resp)
         if resp.attrib["succeeded"] != 'true' :
             raise IsyResponseError("ISY command error : cmd=wol wol_id=" \
-		+ str(wol_id))
+                + str(wol_id))
 
 
     def _get_wol_id(self, name) :
         """ wol name to wol ID """
-	name = str(name).upper()
-	if name in self.wolinfo :
-	    return name
+        name = str(name).upper()
+        if name in self.wolinfo :
+            return name
 
-	if name in self.name2wol :
-	    return self.name2wol[name]
+        if name in self.name2wol :
+            return self.name2wol[name]
 
-	return None
+        return None
 
 
     def wol_names(self, vname) :
-	"""
-	method to retrieve a list of WOL names
-	:type wolname: string
-	:param wolname: the WOL name or ISY Id
-	:rtype: list
+        """
+        method to retrieve a list of WOL names
+        :type wolname: string
+        :param wolname: the WOL name or ISY Id
+        :rtype: list
         :return: List of WOL names and IDs or None
-	"""
-	return self.name2wol.keys()
+        """
+        return self.name2wol.keys()
 
 
     def wol_iter():
-	""" Iterate though Wol Ids values
+        """ Iterate though Wol Ids values
 
-	    args:  
-		None
+            args:  
+                None
 
-	    returns :
-		Return an iterator over the "Wake on Lan" Ids
-	"""
+            returns :
+                Return an iterator over the "Wake on Lan" Ids
+        """
         try:
             self.self.wolinfo
         except AttributeError:
             self.load_wol()
-	k = self.wolinfo.keys()
-	for p in k :
-	    yield p
+        k = self.wolinfo.keys()
+        for p in k :
+            yield p
 
     ##
     ## ISY Programs Code
@@ -1201,13 +1212,13 @@ class Isy(IsyUtil):
     def load_prog(self):
         """ Load Program status and Info
 
-	    args : none
+            args : none
 
-	    internal function call
+            internal function call
 
-	"""
+        """
         if self.debug & 0x01 :
-            print "load_prog called"
+            print("load_prog called")
         prog_tree = self._getXMLetree("/rest/programs?subfolders=true", 1)
         self._progdict = dict ()
         self.name2prog = dict ()
@@ -1219,12 +1230,12 @@ class Isy(IsyUtil):
                 pdict[pe.tag] = pe.text
             if "id" in pdict :
                 self._progdict[str(pdict["id"])] = pdict
-		n = pdict["name"].upper()
-		if n in self.name2prog :
-		    print "Dup name : \"" + n + "\" ", pdict["id"]
-		    print "name2prog ", self.name2prog[n]
-		else :
-		    self.name2prog[n] = pdict["id"]
+                n = pdict["name"].upper()
+                if n in self.name2prog :
+                    print("Dup name : \"" + n + "\" ", pdict["id"])
+                    print("name2prog ", self.name2prog[n])
+                else :
+                    self.name2prog[n] = pdict["id"]
         #self._printdict(self._progdict)
         #self._printdict(self.name2prog)
 
@@ -1233,88 +1244,88 @@ class Isy(IsyUtil):
     def get_prog(self, pname) :
         """ get prog class obj """
         if self.debug & 0x01 :
-	    print "get_prog :" + pname
+            print("get_prog :" + pname)
         try:
             self._progdict
         except AttributeError:
             self.load_prog()
 #       except:
-#           print "Unexpected error:", sys.exc_info()[0]
+#           print("Unexpected error:", sys.exc_info()[0])
 #           return None
         finally:
             progid = self._prog_get_id(pname)
-	    # print "\tprogid : " + progid
+            # print("\tprogid : " + progid)
             if progid in self._progdict :
                 if not progid in self.progCdict :
-		    # print "not progid in self.progCdict:"
-		    # self._printdict(self._progdict[progid])
+                    # print("not progid in self.progCdict:")
+                    # self._printdict(self._progdict[progid])
                     self.progCdict[progid] = IsyProgram(self, self._progdict[progid])
-		#self._printdict(self._progdict)
-		# print "return : ",
-		#self._printdict(self.progCdict[progid])
+                #self._printdict(self._progdict)
+                # print("return : ",)
+                #self._printdict(self.progCdict[progid])
                 return self.progCdict[progid]
             else :
-		if self.debug & 0x01 :
-		    print "Isy get_prog no prog : \"%s\"" % progid
+                if self.debug & 0x01 :
+                    print("Isy get_prog no prog : \"%s\"" % progid)
                 raise LookupError("no prog : " + str(progid) )
 
     def _prog_get_id(self, pname):
         """ Lookup prog value by name or ID
-	returns ISY Id  or None
-	"""
-	if isinstance(pname, IsyProgram) :
-	     return pname["id"]
-	else :
-	    p = str(pname)
+        returns ISY Id  or None
+        """
+        if isinstance(pname, IsyProgram) :
+             return pname["id"]
+        else :
+            p = str(pname)
         if string.upper(p) in self._progdict :
-            # print "_get_prog_id : " + p + " progdict " + string.upper(p)
+            # print("_get_prog_id : " + p + " progdict " + string.upper(p))
             return string.upper(p)
         if p in self.name2prog :
-            # print "_prog_get_id : " + p + " name2prog " + self.name2prog[p]
+            # print("_prog_get_id : " + p + " name2prog " + self.name2prog[p])
             return self.name2prog[p]
 
-        # print "_prog_get_id : " + n + " None"
+        # print("_prog_get_id : " + n + " None")
         return None
 
 
     def prog_iter(self):
-	""" Iterate though program objects
+        """ Iterate though program objects
 
-	    args:  
-		None
+            args:  
+                None
 
-	    returns :
-		Return an iterator over Program Objects types
-	"""
+            returns :
+                Return an iterator over Program Objects types
+        """
         try:
             self._progdict
         except AttributeError:
             self.load_prog()
 #       except:
-#           print "Unexpected error:", sys.exc_info()[0]
+#           print("Unexpected error:", sys.exc_info()[0])
 
-	k = self._progdict.keys()
-	for v in k :
-	    yield self.get_prog(v)
+        k = self._progdict.keys()
+        for v in k :
+            yield self.get_prog(v)
 
     def prog_comm(self, paddr, cmd) :
-	valid_comm = ['run', 'runThen', 'runElse', 'stop',
-			'enable', 'disable',
-			'enableRunAtStartup', 'disableRunAtStartup']
+        valid_comm = ['run', 'runThen', 'runElse', 'stop',
+                        'enable', 'disable',
+                        'enableRunAtStartup', 'disableRunAtStartup']
         prog_id = self._get_prog_id(paddr)
 
-        #print "self.controls :", self.controls
-        #print "self.name2control :", self.name2control
+        #print("self.controls :", self.controls)
+        #print("self.name2control :", self.name2control)
 
         if not prog_id :
             raise IsyInvalidCmdError("prog_comm: unknown node : " +
-		str(paddr) )
+                str(paddr) )
 
         if not cmd in valid_comm :
             raise IsyInvalidCmdError("prog_comm: unknown command : " +
-		str(cmd) )
+                str(cmd) )
 
-	self._prog_comm(prog_id, cmd)
+        self._prog_comm(prog_id, cmd)
 
     def _prog_comm(self, prog_id, cmd) :
         """ send command to a program without name to ID overhead """
@@ -1322,13 +1333,13 @@ class Isy(IsyUtil):
         xurl = "/rest/programs/" + prog_id + cmd 
 
         if self.debug & 0x02 :
-            print "xurl = " + xurl
+            print("xurl = " + xurl)
 
         resp = self._getXMLetree(xurl)
         self._printXML(resp)
         if resp.attrib["succeeded"] != 'true' :
             raise IsyResponseError("ISY command error : prog_id=" +
-		str(prog_id) + " cmd=" + str(cmd))
+                str(prog_id) + " cmd=" + str(cmd))
 
 
     # redundant
@@ -1336,7 +1347,7 @@ class Isy(IsyUtil):
         """ update a node's property from ISY device """
         xurl = "/rest/nodes/" + self._nodedict[naddr]["address"]
         if self.debug & 0x01 :
-            print "_updatenode pre _getXML"
+            print("_updatenode pre _getXML")
         _nodestat = self._getXMLetree(xurl)
         # del self._nodedict[naddr]["property"]["ST"]
         for prop in _nodestat.iter('property'):
@@ -1350,45 +1361,45 @@ class Isy(IsyUtil):
     ## Logs
     ##
     def load_log_type(self):
-	pass
+        pass
 
     def load_log_id(self):
-	pass
+        pass
 
     def log_reset(self, errorlog = 0 ):
-	""" clear log lines in ISY """ 
-	self.log_query(errorlog, 1)
+        """ clear log lines in ISY """ 
+        self.log_query(errorlog, 1)
 
     def log_iter(self, error = 0 ):
-	""" iterate though log lines 
+        """ iterate though log lines 
 
-	    args:  
-		error : return error logs or now
+            args:  
+                error : return error logs or now
 
-	    returns :
-		Return an iterator log enteries 
-	"""
-	for l in self.log_query(error) :
-	    yield l
+            returns :
+                Return an iterator log enteries 
+        """
+        for l in self.log_query(error) :
+            yield l
 
     def log_query(self, errorlog = 0, resetlog = 0 ):
-	""" get log from ISY """
-	xurl = self.baseurl + "/rest/log"
-	if errorlog :
-	    xurl += "/error"
-	if resetlog :
-	    xurl += "?reset=true"
+        """ get log from ISY """
+        xurl = self.baseurl + "/rest/log"
+        if errorlog :
+            xurl += "/error"
+        if resetlog :
+            xurl += "?reset=true"
         if self.debug & 0x02 :
-	    print "xurl = " + xurl
-	req = URL.Request(xurl)
+            print("xurl = " + xurl)
+        req = URL.Request(xurl)
         res = self._opener.open(req)
         data = res.read()
         res.close()
         return data.splitlines()
 
     def log_format_line(self, line) :
-	""" format a ISY log line into a more human readable form """
-	pass
+        """ format a ISY log line into a more human readable form """
+        pass
 
 
     ##
@@ -1434,7 +1445,7 @@ class Isy(IsyUtil):
         if not re.match("[A-P]\d{,2}", unit) :
             raise IsyValueError("bad x10 unit name : " + unit)
 
-        print "X10 sent : " + str(unit) + " : " + str(xcmd)
+        print("X10 sent : " + str(unit) + " : " + str(xcmd))
         xurl = "/rest/X10/" + str(unit) + "/" + str(xcmd)
         resp = self._getXMLetree(xurl)
         #self._printXML(resp)
@@ -1447,10 +1458,10 @@ class Isy(IsyUtil):
     ## support funtions
     ##
     def _printinfolist(self, uobj, ulabel="_printinfo"):
-        print "\n\n" + ulabel + " : "
+        print("\n\n" + ulabel + " : ")
         for attr in dir(uobj) :
-            print "   obj.%s = %s" % (attr, getattr(uobj, attr))
-        print "\n\n"
+            print("   obj.%s = %s" % (attr, getattr(uobj, attr)))
+        print("\n\n")
 
 
     ##
@@ -1467,38 +1478,38 @@ class Isy(IsyUtil):
             return self.get_node(nodeaddr)
 
     def __setitem__(self, nodeaddr, val):
-        # print "__setitem__ : ", nodeaddr, " : ", val
-	self.node_set_prop(nodeaddr, val, "ST")
+        # print("__setitem__ : ", nodeaddr, " : ", val)
+        self.node_set_prop(nodeaddr, val, "ST")
 
     def __delitem__(self, nodeaddr):
         raise IsyProperyError("__delitem__ : can't delete nodes :  " + str(prop) )
 
     def __iter__(self):
-	""" iterate though Node Obj
+        """ iterate though Node Obj
 
-	    see : node_iter()
+            see : node_iter()
 
-	"""
-	return self.node_iter()
+        """
+        return self.node_iter()
 
 #    def __repr__(self):
 #        return "<Isy %s at 0x%x>" % (self.addr, id(self))
 
 #    def debugerror(self) :
-#	print "debugerror"
+#       print("debugerror")
 #        raise IsyProperyError("debugerror : test IsyProperyError  ")
 
     def _printdict(self, dic):
-	""" Pretty Print dictionary """
-	print "===START==="
-	pprint.pprint(dic)
-	print "===END==="
+        """ Pretty Print dictionary """
+        print("===START===")
+        pprint.pprint(dic)
+        print("===END===")
 
     def _writedict(self, d, filen):
-	""" Pretty Print dict to file  """
-	fi = open(filen, 'w')
-	pprint(d)
-	fi.close()
+        """ Pretty Print dict to file  """
+        fi = open(filen, 'w')
+        pprint(d)
+        fi.close()
 
 
 #
@@ -1507,7 +1518,7 @@ class Isy(IsyUtil):
 #
 if __name__ == "__main__":
     import __main__
-    print __main__.__file__
+    print(__main__.__file__)
 
     print("syntax ok")
     exit(0)

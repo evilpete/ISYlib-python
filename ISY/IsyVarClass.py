@@ -1,7 +1,7 @@
 
 
-from IsyExceptionClass import *
-from IsyUtilClass import IsySubClass
+from .IsyExceptionClass import *
+from .IsyUtilClass import IsySubClass
 
 __all__ = ['IsyVar']
 
@@ -92,24 +92,24 @@ class IsyVar(IsySubClass):
             allows Object status to be set as the value of the obj
 
         """
-        print "__set", val
+        print("__set", val)
         self.isy._set_var_value(self._mydict['id'], val)
 
 
     def __int__(self) :
-        print "var __int__"
+        print("var __int__")
         return int(self._mydict["val"])
 
     def __str__(self) :
         return str(self._mydict["val"])
 
-    def __nonzero__(self) :
+    def __bool__(self) :
         return int( self._mydict["val"]) != 0
 
     def __lt__(self, other):
         if isinstance(other, str) :
             return self._get_prop("val") > other
-        if isinstance(other, (long, int, float)) :
+        if isinstance(other, (int, float)) :
             return int(self._get_prop("val")) > other
         if type(self) != type(other) :
             return False
@@ -118,7 +118,7 @@ class IsyVar(IsySubClass):
     def __gt__(self, other):
         if isinstance(other, str) :
             return self._get_prop("val") < other
-        if isinstance(other, (long, int, float)) :
+        if isinstance(other, (int, float)) :
             return int(self._get_prop("val")) <  other
         if type(self) != type(other) :
             return False
@@ -128,7 +128,7 @@ class IsyVar(IsySubClass):
     def __eq__(self, other):
         if isinstance(other, str) :
             return self._get_prop("val") == other
-        if isinstance(other, (long, int, float)) :
+        if isinstance(other, (int, float)) :
             return int(self._get_prop("val")) == other
         if type(self) != type(other) :
             return False
@@ -145,6 +145,6 @@ class IsyVar(IsySubClass):
 #
 if __name__ == "__main__":
     import __main__
-    print __main__.__file__
+    print(__main__.__file__)
     print("syntax ok")
     exit(0)

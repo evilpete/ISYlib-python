@@ -1,3 +1,6 @@
+import sys
+if sys.hexversion < 0x20703f0 :
+    sys.stderr.write("You need python 2.7 or later to run this script\n")
 
 """API for the Universal Device's ISY 
 
@@ -100,13 +103,14 @@ __all__ = ['Isy', 'IsyUtil', 'IsyUtilClass', 'IsyClass',  'IsyNode', 'IsyVar',
 
 
 
+
 #
 # Do nothing
 # (syntax check)
 #
 if __name__ == "__main__":
     import __main__
-    print __main__.__file__
+    print(__main__.__file___)
     print("syntax ok")
     exit(0)
 
