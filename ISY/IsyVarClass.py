@@ -1,7 +1,7 @@
 
 
-from .IsyExceptionClass import *
-from .IsyUtilClass import IsySubClass
+from ISY.IsyExceptionClass import *
+from ISY.IsyUtilClass import IsySubClass
 
 __all__ = ['IsyVar']
 
