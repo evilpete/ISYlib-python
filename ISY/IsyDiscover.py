@@ -12,10 +12,8 @@ import xml.etree.ElementTree as ET
 # import base64
 if sys.hexversion < 0x3000000 :
     import urllib2 as URL
-    # HTTPPasswordMgrWithDefaultRealm = URL.HTTPPasswordMgrWithDefaultRealm
 else :
-    import urllib as URL
-    #from urllib.request import HTTPPasswordMgrWithDefaultRealm
+    import urllib.request as URL
 
 import re
 from pprint import pprint
@@ -99,7 +97,7 @@ def isy_discover(**kwargs):
                 "ST:urn:udi-com:device:X_Insteon_Lighting_Device:1\r\n\r\n"
 
             #print "sending : ", probe
-            sock.sendto(probe, (multicast_group, multicast_port))
+            sock.sendto(probe.encode('utf-8'), (multicast_group, multicast_port))
 
 
         while  len(ddata.upnp_urls) < ddata.count :
@@ -108,6 +106,10 @@ def isy_discover(**kwargs):
                 print("while IN")
 
             data, address = sock.recvfrom(1024)
+
+            #.decode('UTF-8')
+            if sys.hexversion >= 0x3000000 :
+                data = str( data,encoding='utf8')
 
             if ddata.debug :
                 print('received %s bytes from %s' % (len(data), address))
@@ -147,8 +149,8 @@ def isy_discover(**kwargs):
         signal.signal(signal.SIGALRM, old_handler)
     except UpnpLimitExpired:
         pass
-    except :
-        print("Unexpected error:", sys.exc_info()[0])
+    # except :
+        # print("Unexpected error:", sys.exc_info()[0])
     finally :
         signal.alarm(0)
         signal.signal(signal.SIGALRM, old_handler)
@@ -163,7 +165,8 @@ def isy_discover(**kwargs):
     for s in ddata.upnp_urls :
         req = URL.Request(s)
         resp = URL.urlopen(req)
-        pagedata = resp.read()
+
+        pagedata = resp.read().decode('utf-8')
         resp.close()
 
         # does this even work ??
