@@ -1,2 +1,2 @@
-problem in ISY - <type 'exceptions.NameError'>: name '_IsyNodeBase' is not defined
+problem in ISY - <type 'exceptions.ImportError'>: cannot import name Isy
 
