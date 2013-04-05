@@ -45,14 +45,15 @@ def main():
 	newtime = int(col[3]) - time_const - time_offset
 	ti = time.localtime(newtime)
 	col[3] = time.strftime("%b %d %H:%M:%S", ti)
+	col[4] = int(col[4])
 	if col[4] < len(LOG_USERID) : col[4] = LOG_USERID[col[4]]
 	if col[5] in LOG_TYPES : col[5] = LOG_TYPES[col[5]]
 
 	print fmt.format( *col )
 
-	if llimit == 0 :
-	    break
-	llimit = llimit - 1
+	#if llimit == 0 :
+	#    break
+	#llimit = llimit - 1
 
 
 def parseargs():
