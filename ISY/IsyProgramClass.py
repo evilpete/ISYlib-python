@@ -1,5 +1,5 @@
-from ISY.IsyUtilClass import *
-from ISY.IsyClass import *
+from ISY.IsyUtilClass import IsyUtil, IsySubClass
+from ISY.IsyClass import  *
 #fromm ISY.IsyNodeClass import *
 # fromm ISY.IsyVarClass import *
  

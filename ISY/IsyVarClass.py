@@ -59,7 +59,7 @@ class IsyVar(IsySubClass):
         """ sets var init value
         this can also be set via the property : init
         """
-        self.isy._set_var_value(self._mydict['id'], new_value, "init")
+        self.isy._var_set_value(self._mydict['id'], new_value, "init")
 
     init = property(get_var_init, set_var_init)
     """ init property
@@ -75,7 +75,7 @@ class IsyVar(IsySubClass):
         """ sets var value
         this can also be set via the property : value
         """
-        self.isy._set_var_value(self._mydict['id'], new_value)
+        self.isy._var_set_value(self._mydict['id'], new_value)
     value = property(get_var_value, set_var_value)
 
 #    def get_var_id(self):
@@ -85,15 +85,6 @@ class IsyVar(IsySubClass):
 #    def get_var_name(self):
 #       return self._get_prop("name")
 #    name = property(get_var_name)
-
-    def __set__(self,  val):
-        """ Internal method
-
-            allows Object status to be set as the value of the obj
-
-        """
-        print("__set", val)
-        self.isy._set_var_value(self._mydict['id'], val)
 
 
     def __int__(self) :
@@ -136,6 +127,123 @@ class IsyVar(IsySubClass):
 
     def __ne__(self, other):
         return not self.__eq__(other)
+
+
+    # NotImplemented
+    def __cast(self, other):
+        if isinstance(other, self.__class__): return other.val
+	if isinstance(other, str) and other.isdigit() : return int( other )
+        else: return other
+
+    def bit_length(self): return bit_length(self.val)
+
+    #
+    # Type conversion
+    def __str__(self): return str(self.val)
+    def __long__(self): return long(self.val)
+    def __float__(self): return float(self.val)
+    def __int__(self):
+	return int(self.val)
+
+    def __abs__(self): return abs(self.val)
+
+    # 
+    def __lt__(self, other): return self.val <  self.__cast(other)
+    def __le__(self, other): return self.val <= self.__cast(other)
+    def __eq__(self, other): return self.val == self.__cast(other)
+    def __ne__(self, other): return self.val != self.__cast(other)
+    def __gt__(self, other): return self.val >  self.__cast(other)
+    def __ge__(self, other): return self.val >= self.__cast(other)
+
+    def __cmp__(self, other):
+        return cmp(self.val, self.__cast(other))
+
+
+    def __add__(self, other):
+	print "__add__"
+        if isinstance(other, myvar):
+            return (self.val + other.val)
+        elif isinstance(other, type(self.val)):
+            return (self.val + other)
+        else:
+            return (self.val + other)
+
+    __radd__ = __add__
+
+    def __iadd__(self, other):
+	print "__iadd__"
+        if isinstance(other, myvar): self.val += other.val
+        else: self.val += int(other)
+        return self
+
+    def __sub__(self, other):
+        if isinstance(other, myvar):
+            return (self.val - other.val)
+        elif isinstance(other, type(self.val)):
+            return (self.val - int(other))
+
+    def __isub__(self, other):
+        if isinstance(other, myvar): self.val -= other.val
+        else: self.val -= int(other)
+        return self
+
+    # Mult &  div
+    #
+    def __mul__(self, n): return (self.val*n)
+    __rmul__ = __mul__
+
+    def __imul__(self, n):
+	self.val *= n
+        return self
+
+    def __div__(self, n): return (self.val / n)
+
+    def __floordiv__(self, other): return self.val // self.__cast(other)
+    def __ifloordiv__(self, n):
+	self.val //= n
+        return self
+
+    def __itruediv__(self, n):
+	self.val /= int(n)
+	return self
+
+    def __imod__(self, n):
+	self.val %= n
+        return self
+
+    def __ipow__(self, n):
+	self.val **= n
+        return self
+
+    # logic opts
+    def __and__(self, n): return self.val & self.__cast(n)
+    def __iand__(self, n): 
+	self.val &= n
+	return self
+    def __or__(self, other): return self.val | self.__cast(other)
+    __ror__ = __or__
+    def __ior__(self, other):
+	self.val |= self.__cast(other)
+	return self
+    def __ixor__(self, other):
+	self.val ^= self.__cast(other)
+	return self
+    def __xor__(self, other): return self.val ^ self.__cast(other)
+
+    def __invert__(self): return ~ self.val 
+
+    def __irshift__(self, other):
+	self.val >>= self.__cast(other)
+	return self
+    def __ilshift__(self, other):
+	self.val >>= self.__cast(other)
+	return self
+
+
+    def __bool__(self): return (self.val != 0)
+
+    def __format__(self, spec): return int(self.val).__format__(spec)
+
 
 
 

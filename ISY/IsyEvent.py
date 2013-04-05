@@ -36,7 +36,7 @@ class ISYEvent(object) :
 
         self.debug = kwargs.get("debug", 0)
         self.connect_list = []
-        self.shut_down = 0
+        self._shut_down = 0
 
         self.process_func = kwargs.get("process_func", ISYEvent.print_event)
         self.process_func_arg = kwargs.get("process_func_arg", None)
@@ -60,6 +60,9 @@ class ISYEvent(object) :
             self.process_func_arg = arg
 
 
+
+    def _stop_event_loop(self) :
+	self._shut_down = 1
 
     def subscribe(self, addr):
         """ subscribe to Isy device event stream
@@ -226,7 +229,7 @@ class ISYEvent(object) :
         for s in self.connect_list:
             s.connect()
 
-        while not self.shut_down  :
+        while not self._shut_down  :
             try:
                 r, w, e = select.select(self.connect_list, [], [], poll_interval)
                 for rl in r :
@@ -250,6 +253,9 @@ class ISYEvent(object) :
                 #print repr(traceback.format_stack())
             finally:
                 pass
+        if self._shut_down :
+	    self.disconnect()
+
 
     def reconnect(self) :
         for isy_conn in self.connect_list:
@@ -270,7 +276,7 @@ class ISYEvent(object) :
         for isystream in self.connect_list:
             isystream.connect()
 
-        while not self.shut_down  :
+        while not self._shut_down  :
             try:
                 r, w, e = select.select(self.connect_list, [], [], poll_interval)
                 for rs in r :

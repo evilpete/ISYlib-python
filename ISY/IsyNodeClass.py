@@ -45,9 +45,88 @@ from ISY.IsyExceptionClass import *
 
 __all__ = ['IsyNode', 'IsyNodeFolder', 'IsyScene']
 
+
+
+
+
+class _IsyNodeBase(IsySubClass):
+
+    def on(self, *args) :
+        """ Send On command to a node
+
+            args: 
+                take optional value for on level
+
+        """
+        self.isy._node_comm(self._mydict["address"], "DON", *args)
+        #if "property" in self._mydict :
+        #    self._mydict["property"]["time"] = 0
+        # self.update()
+
+    def off(self) :
+        """ Send Off command to a node
+
+            args: None
+
+        """
+        self.isy._node_comm(self._mydict["address"], "DOF")
+        if "property" in self._mydict :
+            self._mydict["property"]["time"] = 0
+            if "ST" in  self._mydict["property"] :
+                self._mydict["property"]["ST"]["value"] = 0
+                self._mydict["property"]["ST"]["formatted"] = "off"
+
+    def beep(self) :
+        self.isy._node_comm(self._mydict["address"], "BEEP")
+
+
+    def member_iter(self):
+        return self.members_list()
+
+    def member_list(self):
+        if 'members' in self._mydict :
+            # print("mydict['members'] : ", type(self._mydict['members']) )
+            if type(self._mydict['members']) == 'dict' :
+                return self._mydict['members'].keys()
+            # if type(self._mydict['members']) == 'list' :
+            return self._mydict['members'][:]
+        return [ ]
+
+    def is_member(self, obj) :
+        if "members" in self._mydict :
+            if isinstance(obj, str)  :
+                return obj in self._mydict["members"]
+            elif isinstance(obj, IsyBaseClass)  :
+                return obj._get_prop("address") in self._mydict["members"]
+        return False
+
+    # check if scene _contains_ node
+    def __contains__(self, other):
+            return self.is_member(other)
+
+    # check if obj _contains_  attib
+#    def __contains__(self, other):
+#       if isinstance(other, str)  :
+#           return other in self._getlist
+#       else :
+#           return False
+
+
+
+#
+# convers a node Id  to a int
+# eg: "9 4A 5F 2" => 00001001010010100101111100000010 => 155868930
+#
+def node_id_to_int(h) :
+    a = h.split(' ')
+    return  ( int(a[0], 16) << 24 ) | ( int(a[1], 16) << 16 ) | \
+		    ( int(a[2], 16) << 8 ) | int(a[3], 16)
+
+
+
 # def rate
 # def onlevel
-class IsyNode(IsySubClass):
+class IsyNode(_IsyNodeBase):
     """ Node Class for ISY
 
         Attributes :
@@ -98,6 +177,8 @@ class IsyNode(IsySubClass):
             #update only nodes
             if "node-flag" in self._mydict :
                 self.update()
+
+	self._hash = node_id_to_int(self._mydict["address"])
 
         if self.debug & 0x01 :
             print("Init Node : \"" + self._mydict["address"] + \
@@ -184,18 +265,11 @@ class IsyNode(IsySubClass):
     # obj mathod for getting/setting a Node's value
     # sets how fast a light fades on.
     def get_rr(self):
-        """ Get RampRate property of Node
-
-            args: Nonertype: str
-
-            return: RampRate value
-        """
+        """ Get/Set RampRate property of Node """
         return self._get_prop("RR")
 
     def set_rr(self, new_value):
-        """
-        set_rr : Get/Set RampRate property of Node
-        """
+        """ Get/Set RampRate property of Node """
         return self._set_prop("RR", new_value)
 
     ramprate = property(get_rr, set_rr)
@@ -205,10 +279,11 @@ class IsyNode(IsySubClass):
     # where in most cases light is how bright the light is
     # when turned on
     def get_ol(self):
-        """ property On Level Value of Node """
+        """ Get/Set On Level property of Node """
         return self._get_prop("OL")
 
     def set_ol(self, new_value):
+        """ Get/Set On Level property of Node """
         return self._set_prop("OL", new_value)
     onlevel = property(get_ol, set_ol)
 
@@ -222,12 +297,11 @@ class IsyNode(IsySubClass):
     # obj mathod for getting/setting a Node's value
     # where in most cases light is how bright the light is
     def get_status(self):
-        """ property status value of Node """
+        """ Get/Set Status property of Node """
         return self._get_prop("ST")
-
     def set_status(self, new_value):
+        """ Get/Set Status property of Node """
         return self._set_prop("ST", new_value)
-
     status = property(get_status, set_status)
 
 
@@ -277,6 +351,10 @@ class IsyNode(IsySubClass):
         #        " :: ", int(self._mydict["property"]["ST"]["value"])
         return(int(self._mydict["property"]["ST"]["value"]) > 0)
 
+    # use the node address as the hash value
+    def __hash__(self) :
+	return( self._hash )
+
 
 #    def __str__(self):
 #       print "__str__ call"
@@ -286,7 +364,7 @@ class IsyNode(IsySubClass):
         # print "__float__ call"
         return float(int(self._mydict["property"]["ST"]["value"]) / float(255))
 
-class IsyScene(IsySubClass):
+class IsyScene(_IsyNodeBase):
     """ Node Folder Class for ISY
 
         writeonly attributes :
@@ -323,7 +401,7 @@ class IsyScene(IsySubClass):
     def _getmembers(self) :
         """ List members of a scene or group """
         if "members" in self._mydict :
-            return list(self._mydict["members"].keys())
+            return self._mydict["members"].keys()
         else :
             return None
     members = property(_getmembers)
@@ -335,7 +413,7 @@ class IsyScene(IsySubClass):
         if "members" in self._mydict :
             if isinstance(obj, str)  :
                 return obj in self._mydict["members"]
-            elif isinstance(obj, IsySubClass)  :
+            elif isinstance(obj, _IsyNodeBase)  :
                 return obj._get_prop("address") in self._mydict["members"]
         return False
 
@@ -356,7 +434,7 @@ class IsyScene(IsySubClass):
 
 
 
-class IsyNodeFolder(IsySubClass):
+class IsyNodeFolder(_IsyNodeBase):
     """ Node Folder Class for ISY
 
         readonly attributes :
@@ -366,15 +444,14 @@ class IsyNodeFolder(IsySubClass):
     """
     _getlist = ['address', 'name', 'flag']
     _setlist = []
-    _propalias = {'id', 'address', 'addr', 'address', "folder-flag", "flag"}
+    _propalias = {'id': 'address', 'addr': 'address', "folder-flag": "flag"}
 
     def _gettype(self):
         return "folder"
     type = property(_gettype)
 
     def __iter__(self):
-        #return self.member_iter()
-        pass
+        return self.member_iter()
 
     def __contains__(self, other):
         pass

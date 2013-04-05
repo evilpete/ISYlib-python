@@ -29,7 +29,7 @@ else :
     from urllib.request import HTTPPasswordMgrWithDefaultRealm
 
 from ISY.IsyUtilClass import IsyUtil, IsySubClass
-from ISY.IsyNodeClass import IsyNode, IsyScene, IsyNodeFolder
+from ISY.IsyNodeClass import IsyNode, IsyScene, IsyNodeFolder, _IsyNodeBase
 from ISY.IsyProgramClass import *
 from ISY.IsyVarClass import IsyVar
 from ISY.IsyExceptionClass import *
@@ -46,6 +46,17 @@ from ISY.IsyEvent import ISYEvent
 # 0x80 =
 #
 
+# EventUpdate Mask:
+# 0x00 = update all
+# 0x01 = Ignore Node events
+# 0x02 = Ignore Var events
+# 0x04 = Ignore Program events
+# 0x08 = 
+# 0x10 = Ignore Climate events
+# 0x20 =
+# 0x40 =
+# 0x80 =
+#
 __all__ = ['Isy']
 
 
@@ -62,7 +73,22 @@ __all__ = ['Isy']
 
 
 class Isy(IsyUtil):
-    """ Obj class the represents the ISY device """
+    """ Obj class the represents the ISY device
+
+	Keyword Args :
+	    addr :	IP address of ISY
+	    userl/userp : User Login / Password
+
+	    debug :	Debug flags (default 0)
+	    cachetime :	cache experation time [NOT USED] (default 0)
+	    faststart : ( ignored if eventupdate is used )
+		    0=preload cache as startup
+		    1=load cache on demand
+	    eventupdates: run a sub-thread and stream  events updates from ISY
+
+
+
+    """
     if sys.hexversion < 0x3000000 :
         _password_mgr = URL.HTTPPasswordMgrWithDefaultRealm()
         _handler = URL.HTTPBasicAuthHandler(_password_mgr)
@@ -81,6 +107,7 @@ class Isy(IsyUtil):
         self.faststart = kwargs.get("faststart", 1)
         self.eventupdates = kwargs.get("eventupdates", 0)
         self.addr = kwargs.get("addr", os.getenv('ISY_ADDR', None))
+	self.isy_event = None
 
         if self.addr == None :
             from ISY.IsyDiscover import isy_discover
@@ -154,11 +181,13 @@ class Isy(IsyUtil):
 
         """
         # print("_read_event")
-        skip = ["_0", "_2", "_4", "_5", "_6", "_7", "_8",
+        skip_default = ["_0", "_2", "_4", "_5", "_6", "_7", "_8",
                 "_9", "_10", "_11", "_12", "_13", "_14",
                 "_15", "_16", "_17", "_18", "_19", "_20",
                 "DON", "DOF",
                 ]
+
+	skip = skip_default
 
         
         ar = arg[1]
@@ -172,6 +201,7 @@ class Isy(IsyUtil):
 
         if evnt_dat["control"] in ["ST", "RR", "OL"] :
             if evnt_dat["node"] in self._nodedict :
+		# ADD LOCK ON NODE DATA
                 # print("===evnt_dat :", evnt_dat)
                 # print("===a :", ar)
                 #print(self._nodedict[evnt_dat["node"]])
@@ -206,10 +236,14 @@ class Isy(IsyUtil):
                 vid = var_eventInfo['var-type'] + ":" + var_eventInfo['var-id']
                 # check if the event var exists in out world
                 if vid in self._vardict :
+		    # ADD LOCK ON VAR DATA
                     # copy var properties from event
-                    for prop in ['init', 'val', 'ts'] :
-                        if prop in var_eventInfo :
-                            self._vardict[vid][prop] = var_eventInfo[prop]
+
+		    self._vardict[vid].update(var_eventInfo)
+
+                    #for prop in ['init', 'val', 'ts'] :
+                    #    if prop in var_eventInfo :
+                    #        self._vardict[vid][prop] = var_eventInfo[prop]
                 else :
                     warning.warn("Event for Unknown Var : {0}".format(vid), \
                             RuntimeWarning)
@@ -357,7 +391,7 @@ class Isy(IsyUtil):
         self._gen_folder_list(nodeinfo)
         self._gen_nodegroups(nodeinfo)
         # self._printdict(self._nodedict)
-        print("load_nodes self.node2addr : ", len(self.node2addr))
+        # print("load_nodes self.node2addr : ", len(self.node2addr))
         self._gen_member_list()
 
     def _gen_member_list(self) :
@@ -517,8 +551,6 @@ class Isy(IsyUtil):
                 warning.warn("Error : no address in node", RuntimeWarning)
         #print("\n>>>>\t", self._nodedict, "\n<<<<<\n")
 
-# if hasattr(instance, 'tags') and isinstance(instance.tags, dict):
-#     for tag in instance.tags:
 
 
     #
@@ -846,6 +878,32 @@ class Isy(IsyUtil):
 
         # self._printdict(self._vardict)
 
+##    def set_var_value(self, vname, val, init=0):
+#        if self.debug & 0x01 :
+#            print("set_var :" + vname)
+#
+#        varid = self._var_get_id(vname)
+#        if varid in self._vardict :
+#            self._set_var_value(varid, val, init)
+#        else :
+#            raise LookupError("var_set_value: unknown var : " + str(var) )
+#
+#
+#    def _set_var_value(self, varid, val, init=0):
+#        vid = varid.split(':')
+#        if init :
+#            xurl = "/rest/vars/init/" + a[0] + "/" + a[1] + "/" + val
+#        else :
+#            xurl = "/rest/vars/set/" + a[0] + "/" + a[1] + "/" + val
+#
+#        if self.debug & 0x02 :
+#            print("xurl = " + xurl)
+#
+#        resp = self._getXMLetree(xurl)
+#        self._printXML(resp)
+#        if resp.attrib["succeeded"] != 'true' :
+#            raise IsyResponseError("ISY command error : varid=" +
+#                str(varid) + " cmd=" + str(cmd_id))
 
     def var_set_value(self, var, val, prop="val") :
         """ Set var value by name or ID
@@ -1028,32 +1086,6 @@ class Isy(IsyUtil):
             else :
                 yield self.get_var(v)
 
-    def set_var_value(self, vname, val, init=0):
-        if self.debug & 0x01 :
-            print("set_var :" + vname)
-
-        varid = self._var_get_id(vname)
-        if varid in self._vardict :
-            self._set_var_value(varid, val, init)
-        else :
-            raise LookupError("var_set_value: unknown var : " + str(var) )
-
-
-    def _set_var_value(self, varid, val, init=0):
-        vid = varid.split(':')
-        if init :
-            xurl = "/rest/vars/init/" + a[0] + "/" + a[1] + "/" + val
-        else :
-            xurl = "/rest/vars/set/" + a[0] + "/" + a[1] + "/" + val
-
-        if self.debug & 0x02 :
-            print("xurl = " + xurl)
-
-        resp = self._getXMLetree(xurl)
-        self._printXML(resp)
-        if resp.attrib["succeeded"] != 'true' :
-            raise IsyResponseError("ISY command error : varid=" +
-                str(varid) + " cmd=" + str(cmd_id))
 
 
     ##
@@ -1471,13 +1503,15 @@ class Isy(IsyUtil):
     # Design question :
     # should __get/setitem__  return a node obj or a node's current value ?
     def __getitem__(self, nodeaddr):
-        """ access a node as dictionary entery """
+        """ access node obj line a dictionary entery """
         if nodeaddr in self.nodeCdict :
             return self.nodeCdict[str(nodeaddr).upper()]
         else :
             return self.get_node(nodeaddr)
 
     def __setitem__(self, nodeaddr, val):
+        """ This allows you to set the status of a Node by
+	addressing it as dictionary entery """
         # print("__setitem__ : ", nodeaddr, " : ", val)
         self.node_set_prop(nodeaddr, val, "ST")
 
@@ -1485,12 +1519,15 @@ class Isy(IsyUtil):
         raise IsyProperyError("__delitem__ : can't delete nodes :  " + str(prop) )
 
     def __iter__(self):
-        """ iterate though Node Obj
-
-            see : node_iter()
-
-        """
+        """ iterate though Node Obj (see: node_iter() ) """
         return self.node_iter()
+
+    def __del__(self):
+        #if isinstance(self.isy_event, ISYEvent) :
+	#    #ISYEvent._stop_event_loop()
+	if hasattr(self.isy_event, "_shut_down") :
+	    isy_event._shut_down = 1
+
 
 #    def __repr__(self):
 #        return "<Isy %s at 0x%x>" % (self.addr, id(self))
@@ -1511,6 +1548,13 @@ class Isy(IsyUtil):
         pprint(d)
         fi.close()
 
+
+def log_time_offset() :
+    lc_time = time.localtime()
+    gm_time = time.gmtime()
+    return ((lc_time[3] ) - (gm_time[3] - gm_time[8])) * 60 * 60
+    # index 3 represent the hours
+    # index 8 represent isdst (daylight saving time boolean (0/1))
 
 #
 # Do nothing

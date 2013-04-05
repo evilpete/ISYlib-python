@@ -11,7 +11,8 @@ else :
 # import re
 from pprint import pprint
 
-__all__ = ['IsyUtil', 'IsySubClass' ]
+#__all__ = ['IsyUtil', 'IsySubClass' ]
+__all__ = []
 
 #
 # Simple Base class for ISY Class
@@ -161,33 +162,6 @@ class IsySubClass(IsyUtil):
         """
         pass
 
-    def on(self, *args) :
-        """ Send On command to a node
-
-            args: 
-                take optional value for on level
-
-        """
-        self.isy._node_comm(self._mydict["address"], "DON", *args)
-        #if "property" in self._mydict :
-        #    self._mydict["property"]["time"] = 0
-        # self.update()
-
-    def off(self) :
-        """ Send Off command to a node
-
-            args: None
-
-        """
-        self.isy._node_comm(self._mydict["address"], "DOF")
-        if "property" in self._mydict :
-            self._mydict["property"]["time"] = 0
-            if "ST" in  self._mydict["property"] :
-                self._mydict["property"]["ST"]["value"] = 0
-                self._mydict["property"]["ST"]["formatted"] = "off"
-
-    def beep(self) :
-        self.isy._node_comm(self._mydict["address"], "BEEP")
 
     def _getaddr(self):
         """  Address or ID of Node (readonly) """
@@ -218,20 +192,6 @@ class IsySubClass(IsyUtil):
     def __delitem__(self, prop):
         raise IsyProperyError("__delitem__ : can't delete propery :  " + str(prop) )
 
-    def __get__(self, instance, owner):
-        """ Internal method 
-
-            allows Object status to be access as the value of the obj
-
-        """
-        return self._get_prop("value")
-#    def __set__(self,  val):
-#       """ Internal method 
-#
-#           allows Object status to be set as the value of the obj
-#
-#       """
-#       self._set_prop("value", val)
 
     def __iter__(self):
         """ Internal method 
@@ -246,18 +206,6 @@ class IsySubClass(IsyUtil):
             else :
                 yield (p , None)
 
-    def member_iter(self):
-        return self.members_list()
-
-    def member_list(self):
-    
-        if 'members' in self._mydict :
-            # print("mydict['members'] : ", type(self._mydict['members']) )
-            if type(self._mydict['members']) == 'dict' :
-                return self._mydict['members'].keys()
-            # if type(self._mydict['members']) == 'list' :
-            return self._mydict['members'][:]
-        return [ ]
 
     def __repr__(self):
         return "<%s %s @ %s at 0x%x>" % ( self.__class__.__name__,
@@ -284,24 +232,6 @@ class IsySubClass(IsyUtil):
             print("attr =", attr)
             raise(AttributeError, attr)
 
-    def is_member(self, obj) :
-        if "members" in self._mydict :
-            if isinstance(obj, str)  :
-                return obj in self._mydict["members"]
-            elif isinstance(obj, IsySubClass)  :
-                return obj._get_prop("address") in self._mydict["members"]
-        return False
-
-    # check if scene _contains_ node
-    def __contains__(self, other):
-            return self.is_member(other)
-
-    # check if obj _contains_  attib
-#    def __contains__(self, other):
-#       if isinstance(other, str)  :
-#           return other in self._getlist
-#       else :
-#           return False
 
     # This allows for 
     def __eq__(self, other):
