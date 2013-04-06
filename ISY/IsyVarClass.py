@@ -87,11 +87,6 @@ class IsyVar(IsySubClass):
 #    name = property(get_var_name)
 
 
-    def __int__(self) : return int(self._mydict["val"])
-
-    def __str__(self) : return str(self._mydict["val"])
-
-    def __bool__(self) : return int( self._mydict["val"]) != 0
 
     # NotImplemented
     def __cast(self, other):
@@ -106,49 +101,50 @@ class IsyVar(IsySubClass):
     def __str__(self): return str(self._mydict["val"])
     def __long__(self): return long(self._mydict["val"])
     def __float__(self): return float(self._mydict["val"])
-    def __int__(self):
-	return int(self._mydict["val"])
+    def __int__(self): return int(self._mydict["val"])
+    def __bool__(self) : return int( self._mydict["val"]) != 0
 
     def __abs__(self): return abs(self._mydict["val"])
 
     # 
-    def __lt__(self, other): return self._mydict["val"] <  self.__cast(other)
-    def __le__(self, other): return self._mydict["val"] <= self.__cast(other)
-    def __eq__(self, other): return self._mydict["val"] == self.__cast(other)
-    def __ne__(self, other): return self._mydict["val"] != self.__cast(other)
-    def __gt__(self, other): return self._mydict["val"] >  self.__cast(other)
-    def __ge__(self, other): return self._mydict["val"] >= self.__cast(other)
+    def __lt__(self, n): return self._mydict["val"] <  self.__cast(n)
+    def __le__(self, n): return self._mydict["val"] <= self.__cast(n)
+    def __eq__(self, n): return self._mydict["val"] == self.__cast(n)
+    def __ne__(self, n): return self._mydict["val"] != self.__cast(n)
+    def __gt__(self, n): return self._mydict["val"] >  self.__cast(n)
+    def __ge__(self, n): return self._mydict["val"] >= self.__cast(n)
 
-    def __cmp__(self, other):
-        return cmp(self._mydict["val"], self.__cast(other))
+    def __cmp__(self, n): return cmp(self._mydict["val"], self.__cast(n))
 
 
-    def __add__(self, other):
+    def __add__(self, n):
 	print "__add__"
-        if isinstance(other, self.__class__):
-            return (self._mydict["val"] + other._mydict["val"])
-        elif isinstance(other, type(self._mydict["val"])):
-            return (self._mydict["val"] + other)
+        if isinstance(n, self.__class__):
+            return (self._mydict["val"] + n._mydict["val"])
+        elif isinstance(n, type(self._mydict["val"])):
+            return (self._mydict["val"] + n)
         else:
-            return (self._mydict["val"] + other)
+            return (self._mydict["val"] + n)
 
     __radd__ = __add__
 
-    def __iadd__(self, other):
+    def __iadd__(self, n):
 	print "__iadd__"
-        if isinstance(other, self.__class__): self._mydict["val"] += other._mydict["val"]
-        else: self._mydict["val"] += int(other)
+        if isinstance(n, self.__class__): self._mydict["val"] += n._mydict["val"]
+        else: self._mydict["val"] += int(n)
+	self.isy._var_set_value(self._mydict['id'], self._mydict["val"])
         return self
 
-    def __sub__(self, other):
-        if isinstance(other, self.__class__):
-            return (self._mydict["val"] - other._mydict["val"])
-        elif isinstance(other, type(self._mydict["val"])):
-            return (self._mydict["val"] - int(other))
+    def __sub__(self, n):
+        if isinstance(n, self.__class__):
+            return (self._mydict["val"] - n._mydict["val"])
+        elif isinstance(n, type(self._mydict["val"])):
+            return (self._mydict["val"] - int(n))
 
-    def __isub__(self, other):
-        if isinstance(other, self.__class__): self._mydict["val"] -= other._mydict["val"]
-        else: self._mydict["val"] -= int(other)
+    def __isub__(self, n):
+        if isinstance(n, self.__class__): self._mydict["val"] -= n._mydict["val"]
+        else: self._mydict["val"] -= int(n)
+	self.isy._var_set_value(self._mydict['id'], self._mydict["val"])
         return self
 
     # Mult &  div
@@ -158,53 +154,69 @@ class IsyVar(IsySubClass):
 
     def __imul__(self, n):
 	self._mydict["val"] *= n
+	self.isy._var_set_value(self._mydict['id'], self._mydict["val"])
         return self
 
-    def __div__(self, n): return (self._mydict["val"] / n)
+    def __floordiv__(self, n): return self._mydict["val"] // self.__cast(n)
 
-    def __floordiv__(self, other): return self._mydict["val"] // self.__cast(other)
     def __ifloordiv__(self, n):
 	self._mydict["val"] //= n
+	self.isy._var_set_value(self._mydict['id'], self._mydict["val"])
         return self
 
+    def __truediv__(self, n): return (self._mydict["val"] / self.__cast(n))
+
     def __itruediv__(self, n):
-	self._mydict["val"] /= int(n)
+	self._mydict["val"] /= self.__cast(n)
+	self.isy._var_set_value(self._mydict['id'], self._mydict["val"])
 	return self
 
     def __imod__(self, n):
-	self._mydict["val"] %= n
+	self._mydict["val"] %= self.__cast(n) 
+	self.isy._var_set_value(self._mydict['id'], self._mydict["val"])
         return self
 
     def __ipow__(self, n):
-	self._mydict["val"] **= n
+	self._mydict["val"] **= self.__cast(n) 
+	self.isy._var_set_value(self._mydict['id'], self._mydict["val"])
         return self
 
     # logic opts
     def __and__(self, n): return self._mydict["val"] & self.__cast(n)
+
     def __iand__(self, n): 
-	self._mydict["val"] &= n
+	self._mydict["val"] &= self.__cast(n) 
+	self.isy._var_set_value(self._mydict['id'], self._mydict["val"])
 	return self
-    def __or__(self, other): return self._mydict["val"] | self.__cast(other)
+
+    def __or__(self, n): return self._mydict["val"] | self.__cast(n)
     __ror__ = __or__
-    def __ior__(self, other):
-	self._mydict["val"] |= self.__cast(other)
+
+    def __ior__(self, n):
+	self._mydict["val"] |= self.__cast(n)
+	self.isy._var_set_value(self._mydict['id'], self._mydict["val"])
 	return self
-    def __ixor__(self, other):
-	self._mydict["val"] ^= self.__cast(other)
+
+    def __ixor__(self, n):
+	self._mydict["val"] ^= self.__cast(n)
+	self.isy._var_set_value(self._mydict['id'], self._mydict["val"])
 	return self
-    def __xor__(self, other): return self._mydict["val"] ^ self.__cast(other)
+
+    def __xor__(self, n): return self._mydict["val"] ^ self.__cast(n)
 
     def __invert__(self): return ~ self._mydict["val"] 
 
-    def __irshift__(self, other):
-	self._mydict["val"] >>= self.__cast(other)
+    def __irshift__(self, n):
+	self._mydict["val"] >>= self.__cast(n)
+	self.isy._var_set_value(self._mydict['id'], self._mydict["val"])
 	return self
-    def __ilshift__(self, other):
-	self._mydict["val"] >>= self.__cast(other)
+
+    def __ilshift__(self, n):
+	self._mydict["val"] >>= self.__cast(n)
+	self.isy._var_set_value(self._mydict['id'], self._mydict["val"])
 	return self
 
 
-    def __bool__(self): return (self._mydict["val"] != 0)
 
     def __format__(self, spec): return int(self._mydict["val"]).__format__(spec)
 
