@@ -1,0 +1,86 @@
+
+	Using the Isy Class
+	======================
+
+
+
+Args
+----
+
+Obj class the represents the ISY device
+ 
+    Keyword Args :
+	addr :      IP address of ISY
+	userl/userp : User Login / Password
+ 
+	debug :     Debug flags (default 0)
+	cachetime : cache experation time [NOT USED] (default 0)
+	faststart : ( ignored if eventupdate is used )
+		0=preload cache as startup
+		1=load cache on demand
+	eventupdates: run a sub-thread and stream  events updates from ISY
+		    same effect as calling  Isy().start_event_thread()
+ 
+
+Update Threads
+-------------
+
+
+The Isy Class Obj can maintain near realtime updates by subscribing to
+a event stream from the ISY device,  This data is processed via a subthread 
+
+this can be stated automaticly by setting the keyword option  :
+
+    eventupdates=1
+
+or with the command  :
+
+    start_event_thread()
+
+this thread process can be halted with the command :
+
+    start_event_thread()
+
+
+
+Examples
+-------
+
+--
+
+
+Turn on the "Garage Light"
+(without using the  IsyNode class obj
+
+    import ISY
+    myisy = ISY.Isy()
+ 
+    myisy.node_comm("Garage Light", "DON") 
+
+
+--
+
+Most Isy classes can be instantiated by calling the mothod
+get_<class_name>, ( eg : get_node(<nodename>), get_var(<varname>)
+(see Using_IsyNode_Class.txt and Using_IsyVar_Class.txt for more info)
+
+Node's object by indexing a Isy obj my the node name or address      
+  
+      import ISY
+      myisy = ISY.Isy()
+      myisy["Garage Light"].off()
+	       
+--
+
+Get the value if ISY var named 'some other var' 
+without instantiating a IsyVar class obj
+ 
+    import ISY
+    myisy = ISY.Isy( ) 
+ 
+    some_other_var = myisy.var_get_value('some other var')
+
+
+--
+
+
