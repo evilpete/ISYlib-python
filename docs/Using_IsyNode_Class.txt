@@ -1,0 +1,78 @@
+
+	Using the IsyNode Class
+	======================
+
+
+
+Get and print the status for the node called "Garage Light"  
+
+    import ISY
+    myisy = ISY.Isy()
+ 
+    garage_light = myisy.get_node("Garage Light")
+
+    print "Node {:} is {:}".format(garage_light.name, garage_light.formatted)
+
+
+--
+
+Get an object that represents the node called "Garage Light"
+and turn it off if it is on
+
+    import ISY
+    myisy = ISY.Isy()
+ 
+    garage_light = myisy.get_node("Garage Light")
+    if garage_light :
+	garage_light.off()
+
+
+    import ISY
+    myisy = ISY.Isy( ) 
+
+    garage_light = myisy.get_node("Garage Light")
+    some_other_var.value = 10
+
+--
+
+Alternately you can obtain a  Node's object by indexing
+a Isy obj my the node name or address 
+
+    import ISY
+    myisy = ISY.Isy()
+    myisy["Garage Light"].off()
+
+--
+
+Turn on the "Garage Light"
+without instantiating a IsyNode class obj
+
+    import ISY
+    myisy = ISY.Isy()
+ 
+    myisy.node_comm("Garage Light", "DON") 
+
+--
+
+List all Node names and their attributes 
+
+
+    import ISY
+
+    myisy = ISY.Isy( )
+
+    pfmt = "{:<20} {:<12}\t{:<12}"
+    print(pfmt.format("Node Name", "Address", "Status"))
+    print(pfmt.format("---------", "-------", "------"))
+    for nod in myisy :
+       if nod.type == "scene" :
+	   print(pfmt.format(nod.name, nod.address, "-"))
+       else :
+	   print(pfmt.format(nod.name, nod.address, nod.formatted))
+       # print(" members : ", len(nod.members_list()))
+
+
+--
+
+
+

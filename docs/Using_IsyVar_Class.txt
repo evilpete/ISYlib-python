@@ -1,0 +1,81 @@
+
+	Using the IsyVar Class
+	======================
+
+Set the value if ISY var named 'some other var' to 10
+
+    import ISY
+    myisy = ISY.Isy( ) 
+
+    some_other_var = myisy.get_var("some other var")
+    some_other_var.value = 10
+
+--
+
+Get the value if ISY var named 'some other var' 
+without instantiating a IsyVar class obj
+
+    import ISY
+    myisy = ISY.Isy( ) 
+
+    some_other_var = myisy.var_get_value('some other var')
+
+--
+
+Set the value if ISY var named 'some other var' to 10
+without instantiating a IsyVar class obj
+
+    import ISY
+    myisy = ISY.Isy( ) 
+
+    myisy.var_set_value('some other var', 10)
+
+--
+
+get and compair the value of two vars
+
+    import ISY
+    myisy = ISY.Isy( ) 
+
+    some_var = myisy.get_var("some var")
+    some_other_var = myisy.get_var("some other var")
+
+    if some_var > some_other_var :
+	print "some var is more then some other var" 
+
+--
+
+list all var name and their attributes 
+
+    import ISY
+    myisy = ISY.Isy( ) 
+
+    fmt = "{:<4} : {:<19}{:<5}\t{:<5}\t{:}"
+    print fmt.format( "ID", "NAME", "VAL", "INIT", "DATE" )
+    for var in myisy.var_iter() :
+	print fmt.format( var.id, var.name, var.value, var.init, var.ts )
+
+--
+
+Here is a program that get the ISY var named 'somevar',
+reports if it's value is over 100
+
+    import ISY
+    myisy = ISY.Isy( ) 
+
+    # 
+    # Get the Isy varable called "somevar"
+    # if is exists and is over 100, divid it by 2
+    try:
+	some_var = myisy.get_var("somevar")
+    except LookupError :
+	print "Isy Var 'somevar' does not exist"
+    else :
+	# if the value of 'somevar' is over 100
+	# divide the value in half
+	if  some_var > 100 :
+	    print "The ISY var 'somevar' is over 30"
+	    some_var /= 2
+
+
+
