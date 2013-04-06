@@ -165,11 +165,13 @@ class IsyVar(IsySubClass):
         return self
 
     def __truediv__(self, n): return (self._mydict["val"] / self.__cast(n))
+    __div__ = __truediv__
 
     def __itruediv__(self, n):
 	self._mydict["val"] /= self.__cast(n)
 	self.isy._var_set_value(self._mydict['id'], self._mydict["val"])
 	return self
+    __idiv__ = __itruediv__
 
     def __imod__(self, n):
 	self._mydict["val"] %= self.__cast(n) 
@@ -218,10 +220,10 @@ class IsyVar(IsySubClass):
 
 
 
-    def __format__(self, spec): return int(self._mydict["val"]).__format__(spec)
+    #def __format__(self, spec): return int(self._mydict["val"]).__format__(spec)
 
-
-
+    def __repr__(self):
+        return "<%s %s at 0x%x>" % (self.__class__.__name__, self.addr, id(self))
 
 #
 # Do nothing
