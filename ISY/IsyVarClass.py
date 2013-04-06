@@ -87,162 +87,126 @@ class IsyVar(IsySubClass):
 #    name = property(get_var_name)
 
 
-    def __int__(self) :
-        print("var __int__")
-        return int(self._mydict["val"])
+    def __int__(self) : return int(self._mydict["val"])
 
-    def __str__(self) :
-        return str(self._mydict["val"])
+    def __str__(self) : return str(self._mydict["val"])
 
-    def __bool__(self) :
-        return int( self._mydict["val"]) != 0
-
-    def __lt__(self, other):
-        if isinstance(other, str) :
-            return self._get_prop("val") > other
-        if isinstance(other, (int, float)) :
-            return int(self._get_prop("val")) > other
-        if type(self) != type(other) :
-            return False
-        return int(self._mydict["val"]) > int(other._mydict["val"])
-
-    def __gt__(self, other):
-        if isinstance(other, str) :
-            return self._get_prop("val") < other
-        if isinstance(other, (int, float)) :
-            return int(self._get_prop("val")) <  other
-        if type(self) != type(other) :
-            return False
-        return int(self._mydict["val"]) < int(other._mydict["val"])
-
-    # This allows for
-    def __eq__(self, other):
-        if isinstance(other, str) :
-            return self._get_prop("val") == other
-        if isinstance(other, (int, float)) :
-            return int(self._get_prop("val")) == other
-        if type(self) != type(other) :
-            return False
-        return int(self._mydict["val"]) == int(other._mydict["val"])
-
-    def __ne__(self, other):
-        return not self.__eq__(other)
-
+    def __bool__(self) : return int( self._mydict["val"]) != 0
 
     # NotImplemented
     def __cast(self, other):
-        if isinstance(other, self.__class__): return other.val
+        if isinstance(other, self.__class__): return other._mydict["val"]
 	if isinstance(other, str) and other.isdigit() : return int( other )
         else: return other
 
-    def bit_length(self): return bit_length(self.val)
+    def bit_length(self): return bit_length(self._mydict["val"])
 
     #
     # Type conversion
-    def __str__(self): return str(self.val)
-    def __long__(self): return long(self.val)
-    def __float__(self): return float(self.val)
+    def __str__(self): return str(self._mydict["val"])
+    def __long__(self): return long(self._mydict["val"])
+    def __float__(self): return float(self._mydict["val"])
     def __int__(self):
-	return int(self.val)
+	return int(self._mydict["val"])
 
-    def __abs__(self): return abs(self.val)
+    def __abs__(self): return abs(self._mydict["val"])
 
     # 
-    def __lt__(self, other): return self.val <  self.__cast(other)
-    def __le__(self, other): return self.val <= self.__cast(other)
-    def __eq__(self, other): return self.val == self.__cast(other)
-    def __ne__(self, other): return self.val != self.__cast(other)
-    def __gt__(self, other): return self.val >  self.__cast(other)
-    def __ge__(self, other): return self.val >= self.__cast(other)
+    def __lt__(self, other): return self._mydict["val"] <  self.__cast(other)
+    def __le__(self, other): return self._mydict["val"] <= self.__cast(other)
+    def __eq__(self, other): return self._mydict["val"] == self.__cast(other)
+    def __ne__(self, other): return self._mydict["val"] != self.__cast(other)
+    def __gt__(self, other): return self._mydict["val"] >  self.__cast(other)
+    def __ge__(self, other): return self._mydict["val"] >= self.__cast(other)
 
     def __cmp__(self, other):
-        return cmp(self.val, self.__cast(other))
+        return cmp(self._mydict["val"], self.__cast(other))
 
 
     def __add__(self, other):
 	print "__add__"
-        if isinstance(other, myvar):
-            return (self.val + other.val)
-        elif isinstance(other, type(self.val)):
-            return (self.val + other)
+        if isinstance(other, self.__class__):
+            return (self._mydict["val"] + other._mydict["val"])
+        elif isinstance(other, type(self._mydict["val"])):
+            return (self._mydict["val"] + other)
         else:
-            return (self.val + other)
+            return (self._mydict["val"] + other)
 
     __radd__ = __add__
 
     def __iadd__(self, other):
 	print "__iadd__"
-        if isinstance(other, myvar): self.val += other.val
-        else: self.val += int(other)
+        if isinstance(other, self.__class__): self._mydict["val"] += other._mydict["val"]
+        else: self._mydict["val"] += int(other)
         return self
 
     def __sub__(self, other):
-        if isinstance(other, myvar):
-            return (self.val - other.val)
-        elif isinstance(other, type(self.val)):
-            return (self.val - int(other))
+        if isinstance(other, self.__class__):
+            return (self._mydict["val"] - other._mydict["val"])
+        elif isinstance(other, type(self._mydict["val"])):
+            return (self._mydict["val"] - int(other))
 
     def __isub__(self, other):
-        if isinstance(other, myvar): self.val -= other.val
-        else: self.val -= int(other)
+        if isinstance(other, self.__class__): self._mydict["val"] -= other._mydict["val"]
+        else: self._mydict["val"] -= int(other)
         return self
 
     # Mult &  div
     #
-    def __mul__(self, n): return (self.val*n)
+    def __mul__(self, n): return (self._mydict["val"]*n)
     __rmul__ = __mul__
 
     def __imul__(self, n):
-	self.val *= n
+	self._mydict["val"] *= n
         return self
 
-    def __div__(self, n): return (self.val / n)
+    def __div__(self, n): return (self._mydict["val"] / n)
 
-    def __floordiv__(self, other): return self.val // self.__cast(other)
+    def __floordiv__(self, other): return self._mydict["val"] // self.__cast(other)
     def __ifloordiv__(self, n):
-	self.val //= n
+	self._mydict["val"] //= n
         return self
 
     def __itruediv__(self, n):
-	self.val /= int(n)
+	self._mydict["val"] /= int(n)
 	return self
 
     def __imod__(self, n):
-	self.val %= n
+	self._mydict["val"] %= n
         return self
 
     def __ipow__(self, n):
-	self.val **= n
+	self._mydict["val"] **= n
         return self
 
     # logic opts
-    def __and__(self, n): return self.val & self.__cast(n)
+    def __and__(self, n): return self._mydict["val"] & self.__cast(n)
     def __iand__(self, n): 
-	self.val &= n
+	self._mydict["val"] &= n
 	return self
-    def __or__(self, other): return self.val | self.__cast(other)
+    def __or__(self, other): return self._mydict["val"] | self.__cast(other)
     __ror__ = __or__
     def __ior__(self, other):
-	self.val |= self.__cast(other)
+	self._mydict["val"] |= self.__cast(other)
 	return self
     def __ixor__(self, other):
-	self.val ^= self.__cast(other)
+	self._mydict["val"] ^= self.__cast(other)
 	return self
-    def __xor__(self, other): return self.val ^ self.__cast(other)
+    def __xor__(self, other): return self._mydict["val"] ^ self.__cast(other)
 
-    def __invert__(self): return ~ self.val 
+    def __invert__(self): return ~ self._mydict["val"] 
 
     def __irshift__(self, other):
-	self.val >>= self.__cast(other)
+	self._mydict["val"] >>= self.__cast(other)
 	return self
     def __ilshift__(self, other):
-	self.val >>= self.__cast(other)
+	self._mydict["val"] >>= self.__cast(other)
 	return self
 
 
-    def __bool__(self): return (self.val != 0)
+    def __bool__(self): return (self._mydict["val"] != 0)
 
-    def __format__(self, spec): return int(self.val).__format__(spec)
+    def __format__(self, spec): return int(self._mydict["val"]).__format__(spec)
 
 
 

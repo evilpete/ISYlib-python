@@ -19,7 +19,8 @@ import sys
 import string
 import pprint
 import time
-import warnings
+from warnings import warn
+
 
 if sys.hexversion < 0x3000000 :
     import urllib2 as URL
@@ -85,6 +86,7 @@ class Isy(IsyUtil):
 		    0=preload cache as startup
 		    1=load cache on demand
 	    eventupdates: run a sub-thread and stream  events updates from ISY
+			same effect as calling  Isy().start_event_thread()
 
 
 
@@ -107,7 +109,7 @@ class Isy(IsyUtil):
         self.faststart = kwargs.get("faststart", 1)
         self.eventupdates = kwargs.get("eventupdates", 0)
         self.addr = kwargs.get("addr", os.getenv('ISY_ADDR', None))
-	self.isy_event = None
+	self._isy_event = None
 
         if self.addr == None :
             from ISY.IsyDiscover import isy_discover
@@ -149,29 +151,48 @@ class Isy(IsyUtil):
         self.folderCdict = dict ()
 
         if self.eventupdates :
-            self._start_event_thread()
+            self.start_event_thread()
 
-    def _start_event_thread(self):
-        """  starts event stream updare thread
+    #
+    # Event Subscription Code
+    # Allows for treaded realtime node status updating
+    #
+    def start_event_thread(self, mask=0):
+        """  starts event stream update thread
 
-            internal function call
 
         """
         from threading import Thread
 
-        print("start preload")
-        self._preload()
-        print("start complete")
+	# if thread already runing we should update mask
+	if hasattr(self, 'event_thread') and isinstance(self.event_thread, Thread) :
+	    if self.event_thread.is_alive() :
+		print "Thread already running ?"
+		return
 
-        self.isy_event = ISYEvent()
-        self.isy_event.subscribe(self.addr)
-        self.isy_event.set_process_func(self._read_event, self)
+	#st = time.time()
+        #print("start preload")
+
+        self._preload(reload=0)
+
+	#sp = time.time()
+        #print("start complete")
+	#print "load in ", ( sp - st )
+
+        self._isy_event = ISYEvent()
+        self._isy_event.subscribe(self.addr)
+        self._isy_event.set_process_func(self._read_event, self)
         
-        self.event_thread = Thread(target=self.isy_event.events_loop, name="event_looper" )
+        self.event_thread = Thread(target=self._isy_event.events_loop, name="event_looper" )
         self.event_thread.daemon = True
         self.event_thread.start()
 
         print(self.event_thread)
+
+    def stop_event_tread(self) :
+	""" Stop update thread """
+	if hasattr(self._isy_event, "_shut_down") :
+	    self._isy_event._shut_down = 1
 
     # @staticmethod
     def _read_event(self, evnt_dat, *arg) :
@@ -217,12 +238,11 @@ class Isy(IsyUtil):
                         = self._format_val( evnt_dat["action"] )
 
                 if ( self.debug & 0x10 ) :
-                    print("_read_event :", evnt_dat["node"], evnt_dat["control"], evnt_dat["action"])
-                    print(">>>", self._nodedict[evnt_dat["node"]]["property"])
+		    print("_read_event :", evnt_dat["node"], evnt_dat["control"], evnt_dat["action"])
+		    print(">>>", self._nodedict[evnt_dat["node"]]["property"])
             else :
-                warning.warn("Event for Unknown node : {0}".format(evnt_dat["node"]), \
+                warn("Event for Unknown node : {0}".format(evnt_dat["node"]), \
                         RuntimeWarning)
-
 
         elif evnt_dat["control"] == "_3" : # Node Change/Updated Event
                 print("Node Change/Updated Event :  {0}".format(evnt_dat["node"]))
@@ -245,8 +265,7 @@ class Isy(IsyUtil):
                     #    if prop in var_eventInfo :
                     #        self._vardict[vid][prop] = var_eventInfo[prop]
                 else :
-                    warning.warn("Event for Unknown Var : {0}".format(vid), \
-                            RuntimeWarning)
+                    warn("Event for Unknown Var : {0}".format(vid), RuntimeWarning)
 
         else:
             print("evnt_dat :", evnt_dat)
@@ -268,15 +287,31 @@ class Isy(IsyUtil):
                 return str ( (int(v)*100) // 255)
 
 
-    def _preload(self):
-        self.load_conf()
-        self.load_nodes()
+    #
+    #  Util Funtions
+    #
+    def _preload(self, mask=0, reload=0):
+	if reload or  not hasattr(self, "controls") :
+	    self.load_conf()
+
+	if reload or not hasattr(self, "_nodedict") :
+	    self.load_nodes()
+
         # self._gen_member_list()
-        # self.load_clim()
-        self.load_vars()
-        self.load_prog()
-        #self.load_wol()
-        self.load_node_types()
+	# if reload or  not hasattr(self, "climateinfo") :
+	    # self.load_clim()
+
+	if reload or  not hasattr(self, "_vardict") :
+	    self.load_vars()
+
+	if reload or  not hasattr(self, "_progdict") :
+	    self.load_prog()
+
+	# if reload or  not hasattr(self, "wolinfo") :
+	    #self.load_wol()
+
+	if reload or  not hasattr(self, "nodeCategory") :
+	    self.load_node_types()
 
     def _savedict(self) :
 
@@ -288,7 +323,7 @@ class Isy(IsyUtil):
 
         self._writedict(self._nodegroups, "nodegroups.txt")
 
-        self._writedict(self.folderlist, "folderlist.txt")
+        self._writedict(self._folderlist, "folderlist.txt")
 
         self._writedict(self._vardict, "vardict.txt")
 
@@ -381,9 +416,17 @@ class Isy(IsyUtil):
             internal function call
 
         """
-        self._nodedict = dict ()
+	if not hasattr(self, '_nodedict') or not isinstance(self._nodedict, dict):
+	     self._nodedict = dict ()
+
+	if not hasattr(self, '_nodegroups') or not isinstance(self._nodegroups, dict):
+	    self._nodegroups  = dict ()
+
+	if not hasattr(self, 'folderlist') or not isinstance(self._folderlist, dict):
+	    self._folderlist  = dict ()
+
         # self.nodeCdict = dict ()
-        self.node2addr = dict ()
+	# self.node2addr = dict ()
         if self.debug & 0x01 :
             print("load_nodes pre _getXML")
         nodeinfo = self._getXMLetree("/rest/nodes")
@@ -407,9 +450,9 @@ class Isy(IsyUtil):
         else :
 
             # Folders can only belong to Folders
-            for faddr in self.folderlist :
+            for faddr in self._folderlist :
                 # make code easier to read
-                foldr = self.folderlist[faddr]
+                foldr = self._folderlist[faddr]
                 # add members list if needed
                 if 'members' not in foldr :
                     foldr['members'] = list()
@@ -417,21 +460,25 @@ class Isy(IsyUtil):
                 if 'parent' in foldr :
                     # this should always be true
                     if foldr['parent-type'] == '3' and \
-                            foldr['parent'] in self.folderlist :
-                        if 'members' not in self.folderlist[foldr['parent']] :
-                            self.folderlist[foldr['parent']]['members'] = list()
-                        self.folderlist[foldr['parent']]['members'].append( foldr['address'])  
+                            foldr['parent'] in self._folderlist :
+                        if 'members' not in self._folderlist[foldr['parent']] :
+                            self._folderlist[foldr['parent']]['members'] = list()
+                        self._folderlist[foldr['parent']]['members'].append( foldr['address'])  
                     else:
                         print("warn bad parenting foldr =", foldr)
+			warn("Bad Parent : Folder  (0)  (1) : (2)".format( \
+				foldr["name"], faddr, foldr['parent']), RuntimeWarning)
 
             # Scenes can only belong to Folders
             for sa in self._nodegroups :
                 s = self._nodegroups[sa]
                 if "parent" in s :
-                    if s['parent-type'] == '3' and  s['parent'] in self.folderlist :
-                        self.folderlist[s['parent']]['members'].append( s['address'])
+                    if s['parent-type'] == '3' and  s['parent'] in self._folderlist :
+                        self._folderlist[s['parent']]['members'].append( s['address'])
                     else:
                         print("warn bad parenting s = ", s)
+			warn("Bad Parent : Scene  (0)  (1) : (2)".format( \
+				s["name"], sa, s['parent']), RuntimeWarning)
 
             # A Node can belong only to ONE and only ONE Folder or another Node
             for naddr in self._nodedict :
@@ -445,8 +492,8 @@ class Isy(IsyUtil):
                 if 'parent' in n :
                     if 'pnode' not in n or n['parent'] != n['pnode'] :
                         if n['parent-type'] == 3 :
-                            if n['parent'] in self.folderlist :
-                                self.folderlist[n['parent']]['members'].append( n['address'])
+                            if n['parent'] in self._folderlist :
+                                self._folderlist[n['parent']]['members'].append( n['address'])
                         elif  n['parent-type'] == 1 :
                             if n['parent'] in self._nodegroups :
                                 self._nodegroups[n['parent']]['members'].add( n['address'])
@@ -459,10 +506,21 @@ class Isy(IsyUtil):
 
     def _gen_folder_list(self, nodeinfo) :
         """ generate folder dictionary for load_node """
-        self.folderlist = dict ()
+        # self._folderlist = dict ()
         self.folder2addr = dict ()
         for fold in nodeinfo.iter('folder'):
-            fprop = dict ()
+
+	    xelm = fold.find('address')
+	    if hasattr(xelm, 'text') :
+		if xelm.text in self._nodegroups :
+		    fprop = self._folderlist[xelm.text]
+		else :
+		    fprop = self._folderlist[xelm.text] = dict()
+	    else :
+		warn("Error : no address in folder", RuntimeWarning)
+		continue
+
+
             for k, v in fold.items() :
                 fprop[fold.tag + "-" + k] = v
             for child in list(fold):
@@ -470,17 +528,28 @@ class Isy(IsyUtil):
                 if child.attrib :
                     for k, v in child.items() :
                         fprop[child.tag + "-" + k] =  v
-            self.folderlist[fprop["address"]] = fprop
+            # self._folderlist[fprop["address"]] = fprop
             self.folder2addr[fprop["name"]] = fprop["address"]
-        #self._printdict(self.folderlist)
+        #self._printdict(self._folderlist)
         #self._printdict(self.folder2addr)
 
     def _gen_nodegroups(self, nodeinfo) :
         """ generate scene / group dictionary for load_node """
-        self._nodegroups = dict ()
+        # self._nodegroups = dict ()
         self.groups2addr = dict ()
         for grp in nodeinfo.iter('group'):
-            gprop = dict ()
+
+	    xelm = grp.find('address')
+	    if hasattr(xelm, 'text') :
+		if xelm.text in self._nodegroups :
+		    gprop = self._nodegroups[xelm.text]
+		else :
+		    gprop = self._nodegroups[xelm.text] = dict()
+	    else :
+		warn("Error : no address in scene", RuntimeWarning)
+		continue
+
+
             for k, v in grp.items() :
                 gprop[grp.tag + "-" + k] = v
             for child in list(grp) :
@@ -500,22 +569,35 @@ class Isy(IsyUtil):
                             gprop[child.tag + "-" + k] =  v
 
             if "address" in gprop :
-                self._nodegroups[gprop["address"]] = gprop
+                # self._nodegroups[gprop["address"]] = gprop
                 if "name" in gprop :
                     if gprop["name"] in self.groups2addr :
-                        print("Dup group name", gprop["name"], str(gprop["address"]))
+			warn("Duplicate group name (0) : (1) (2)".format(gprop["name"], \
+				str(gprop["address"]), self.groups2addr[gprop["name"]]), RuntimeWarning)
                     else :
                         self.groups2addr[gprop["name"]] = str(gprop["address"])
             else :
                 # should raise an exception ?
                 self._printinfo(grp, "Error : no address in group :")
 
+
     def _gen_nodedict(self, nodeinfo) :
         """ generate node dictionary for load_node """
-        self._nodedict = dict ()
+	self.node2addr = dict()
         for inode in nodeinfo.iter('node'):
             # self._printinfo(inode, "\n\n inode")
-            idict = dict ()
+
+	    xelm = inode.find('address')
+	    if hasattr(xelm, 'text') :
+		if xelm.text in self._nodedict :
+		    idict = self._nodedict[xelm.text]
+		else :
+		    idict = self._nodedict[xelm.text] = dict()
+	    else :
+		warn("Error : no address in node", RuntimeWarning)
+		continue
+
+
             for k, v in inode.items() :
                 idict[inode.tag + "-" + k] = v
             for child in list(inode) :
@@ -527,28 +609,31 @@ class Isy(IsyUtil):
                         idict[child.tag + "-" + k] = v
                 # special case where ST, OL, and RR
                 elif child.tag == "property" :
+		    if child.tag not in idict :
+			idict[child.tag] = dict ()
                     nprop = dict ()
                     for k, v in child.items() :
                         # print("child.items", k, v)
                         nprop[k] = v
                     if "id" in nprop :
-                        idict[child.tag] = dict ()
                         idict[child.tag][nprop["id"]] = nprop
                 else :
                     idict[child.tag] = child.text
 
             if "address" in idict :
-                self._nodedict[idict["address"]] = idict
+                # self._nodedict[idict["address"]] = idict
                 if "name" in idict :
                     if idict["name"] in self.node2addr :
-                        warning.warn("Duplicate Node Name", RuntimeWarning)
+			warn_mess = "Duplicate Node name (0) : (1) (2)".format(idict["name"], \
+				idict["address"], self.node2addr[idict["name"]])
+			warn(warn_mess, RuntimeWarning)
                     else :
                         self.node2addr[idict["name"]] = idict["address"]
 
             else :
                 # should raise an exception
                 # self._printinfo(inode, "Error : no address in node :")
-                warning.warn("Error : no address in node", RuntimeWarning)
+                warn("Error : no address in node", RuntimeWarning)
         #print("\n>>>>\t", self._nodedict, "\n<<<<<\n")
 
 
@@ -627,14 +712,10 @@ class Isy(IsyUtil):
     def _get_node_id(self, nid):
         """ node/scene name to node/scene ID """
 
-        try:
-            self._nodedict
-        except AttributeError:
-            self.load_nodes()
-#       except:
-#           print("Unexpected error:", sys.exc_info()[0])
-#           return None
-
+	try:
+	    self._nodedict
+	except AttributeError:
+	    self.load_nodes()
 
         if isinstance(nid, IsySubClass) :
              return nid["addr"]
@@ -773,7 +854,8 @@ class Isy(IsyUtil):
         if self.debug & 0x01 :
             print("load_node_types called")
         typeinfo = self._getXMLetree("/WEB/cat.xml")
-        self.nodeCategory = dict ()
+	if not hasattr(self, 'nodeCategory') or not isinstance(self.nodeCategory, dict):
+	    self.nodeCategory = dict ()
         for ncat in typeinfo.iter('nodeCategory'):
             if not ncat.attrib["id"] in self.nodeCategory :
                 self.nodeCategory[ncat.attrib["id"]] = dict ()
@@ -851,7 +933,8 @@ class Isy(IsyUtil):
             internal function call
 
         """
-        self._vardict = dict ()
+	if not hasattr(self, '_vardict') or not isinstance(self._vardict, dict):
+	    self._vardict = dict ()
         self.name2var = dict ()
         for t in [ '1', '2' ] :
             vinfo = self._getXMLetree("/rest/vars/get/" + t)
@@ -871,8 +954,8 @@ class Isy(IsyUtil):
                 self._vardict[vid]["id"] = vid
                 self._vardict[vid]["type"] = t
                 if v.attrib['name'] in self.name2var :
-                    print("warning Dum var name :", v.attrib['name'], \
-                            vid, self.name2var[v.attrib['name']])
+		    warn("Duplicate Var name (0) : (1) (2)".format(v.attrib['name'],
+				vid, self.name2var[v.attrib['name']]), RuntimeWarning)
                 else :
                     self.name2var[v.attrib['name']] = vid
 
@@ -1252,7 +1335,8 @@ class Isy(IsyUtil):
         if self.debug & 0x01 :
             print("load_prog called")
         prog_tree = self._getXMLetree("/rest/programs?subfolders=true", 1)
-        self._progdict = dict ()
+	if not hasattr(self, '_progdict') or not isinstance(self._progdict, dict):
+	    self._progdict = dict ()
         self.name2prog = dict ()
         for pg in prog_tree.iter("program") :
             pdict = dict ()
@@ -1523,10 +1607,10 @@ class Isy(IsyUtil):
         return self.node_iter()
 
     def __del__(self):
-        #if isinstance(self.isy_event, ISYEvent) :
+        #if isinstance(self._isy_event, ISYEvent) :
 	#    #ISYEvent._stop_event_loop()
-	if hasattr(self.isy_event, "_shut_down") :
-	    isy_event._shut_down = 1
+	if hasattr(self._isy_event, "_shut_down") :
+	    self._isy_event._shut_down = 1
 
 
 #    def __repr__(self):

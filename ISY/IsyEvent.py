@@ -37,6 +37,8 @@ class ISYEvent(object) :
         self.debug = kwargs.get("debug", 0)
         self.connect_list = []
         self._shut_down = 0
+	self.connected = False
+	self.isy = kwargs.get("isy", None) 
 
         self.process_func = kwargs.get("process_func", ISYEvent.print_event)
         self.process_func_arg = kwargs.get("process_func_arg", None)
@@ -61,7 +63,21 @@ class ISYEvent(object) :
 
 
 
+    def _finish(self)  :
+	print "Finishing... ", self.__class__.__name__
+        for s in self.connect_list:
+	    s.disconnect()
+
+	del self.connect_list[:]
+	if self.isy :
+	    self.isy._isy_event = None
+	print "Finished... ", self.__class__.__name__
+
+#    def __del__(self):
+#	print "\n\n\n>>>>>>>>>__del__ ", self.__class__.__name__, "<<<<<<<<<<<<<\n\n\n"
+
     def _stop_event_loop(self) :
+	print self.__class__.__name__
 	self._shut_down = 1
 
     def subscribe(self, addr):
@@ -75,9 +91,17 @@ class ISYEvent(object) :
         if self.debug & 0x01 :
             print("subscribe ", addr)
         if addr in self.connect_list :
-            warning.warn("Duplicate addr", RuntimeWarning)
+            warning.warn("Duplicate addr : {0}.format(addr)", RuntimeWarning)
             return
-        self.connect_list.append(ISYEventConnection(addr, self))
+
+	new_conn = ISYEventConnection(addr, self)
+
+	# see if the other connections are connected
+	# if so connect to avoid an error in select()
+	if self.connected :
+	    new_conn.connect()
+
+        self.connect_list.append(new_conn)
 
     def unsubscribe(self, addr):
         """ unsubscribe to Isy device event stream
@@ -92,8 +116,9 @@ class ISYEvent(object) :
             warning.warn("address {0}/{1} not subscribed".format(addr, remote_ip),
                 RuntimeWarning)
             return
-        isyconn = self.connect_lists[self.connect_list.index(addr)]
+        isyconn = self.connect_list[self.connect_list.index(addr)]
         isyconn.disconnect()
+	self.connect_list.remove(isyconn)
         del(isyconn)
 
     def _process_event(self, conn_obj) :
@@ -226,10 +251,13 @@ class ISYEvent(object) :
 
         """
 
+	self.connected = True
         for s in self.connect_list:
             s.connect()
 
         while not self._shut_down  :
+	    if len(self.connect_list) == 0 :
+		break
             try:
                 r, w, e = select.select(self.connect_list, [], [], poll_interval)
                 for rl in r :
@@ -253,11 +281,13 @@ class ISYEvent(object) :
                 #print repr(traceback.format_stack())
             finally:
                 pass
+
         if self._shut_down :
-	    self.disconnect()
+	    self._finish()
 
 
     def reconnect(self) :
+	self.connected = True
         for isy_conn in self.connect_list:
             isy_conn.reconnect()
 
@@ -273,8 +303,10 @@ class ISYEvent(object) :
         if self.debug & 0x01 :
             print("events_loop ", self.__class__.__name__)
 
+	self.connected = True
         for isystream in self.connect_list:
             isystream.connect()
+
 
         while not self._shut_down  :
             try:
@@ -298,6 +330,9 @@ class ISYEvent(object) :
             finally:
                 pass
 
+        if self._shut_down :
+	    self._finish()
+
 class ISYEventConnection(object):
 
     def __init__(self, addr, isyevent) :
@@ -315,8 +350,9 @@ class ISYEventConnection(object):
     def __str__(self):
         return self.isyaddr
 
-#    def __del__(self):
-#       pass
+    def __del__(self):
+	self.disconnect()
+	#print "\n\n\n>>>>>>>>>__del__ ", self.__class__.__name__, "<<<<<<<<<<<<<\n\n\n"
 
     def __eq__(self, other):
         if isinstance(other, str) :
