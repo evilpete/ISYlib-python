@@ -26,10 +26,10 @@ def list_vars_bash(myisy, csh=0):
 	print fmt.format( var.name, var.value )
 
 def list_vars(myisy) :
-    fmt = "%-4s : %-19s%-5s\t%-5s\t%s"
-    print fmt % ( "ID", "NAME", "VAL", "INIT", "DATE" )
+    fmt = "{:<4} : {:<19}{:<5}\t{:<5}\t{:}"
+    print fmt.format( "ID", "NAME", "VAL", "INIT", "DATE" )
     for var in myisy.var_iter() :
-        print fmt % ( var.id, var.name, var.value, var.init, var.ts )
+        print fmt.format( var.id, var.name, var.value, var.init, var.ts )
 
 def usage(code, msg=''):
     print >> sys.stderr, __doc__ % globals()
