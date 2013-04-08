@@ -1,0 +1,93 @@
+
+##
+## WOL (Wake on LAN) funtions
+##
+def load_wol(self) :
+    """ Load Wake On LAN IDs 
+
+	args : none
+
+	internal function call
+
+    """
+    if self.debug & 0x01 :
+	print("load_wol called")
+    wol_tree = self._getXMLetree("/rest/networking/wol")
+    self.wolinfo = dict ()
+    self.name2wol = dict ()
+    for wl in wol_tree.iter("NetRule") :
+	wdict = dict ()
+	for k, v in wl.items() :
+	    wdict[k] = v
+	for we in list(wl):
+	    wdict[we.tag] = we.text
+	if "id" in wdict :
+	    self.wolinfo[str(wdict["id"])] = wdict
+	    self.name2wol[wdict["name"].upper()] = wdict["id"]
+    # self._printdict(self.wolinfo)
+    # self._printdict(self.name2wol)
+
+def wol(self, wid) :
+    """
+	Send Wake On LAN to registared wol ID
+    """
+
+    wol_id = self._get_wol_id(wid)
+
+    wol_id = str(wid).upper()
+
+    if wol_id == None :
+	raise IsyValueError("bad wol ID : " + wid)
+
+    xurl = "/rest/networking/wol/" + wol_id
+
+    if self.debug & 0x02 :
+	print("wol : xurl = " + xurl)
+    resp = self._getXMLetree(xurl)
+    self._printXML(resp)
+    if resp.attrib["succeeded"] != 'true' :
+	raise IsyResponseError("ISY command error : cmd=wol wol_id=" \
+	    + str(wol_id))
+
+
+def _get_wol_id(self, name) :
+    """ wol name to wol ID """
+    name = str(name).upper()
+    if name in self.wolinfo :
+	return name
+
+    if name in self.name2wol :
+	return self.name2wol[name]
+
+    return None
+
+
+def wol_names(self, vname) :
+    """
+    method to retrieve a list of WOL names
+    :type wolname: string
+    :param wolname: the WOL name or ISY Id
+    :rtype: list
+    :return: List of WOL names and IDs or None
+    """
+    return self.name2wol.keys()
+
+
+def wol_iter():
+    """ Iterate though Wol Ids values
+
+	args:  
+	    None
+
+	returns :
+	    Return an iterator over the "Wake on Lan" Ids
+    """
+    try:
+	self.self.wolinfo
+    except AttributeError:
+	self.load_wol()
+    k = self.wolinfo.keys()
+    for p in k :
+	yield p
+
+
