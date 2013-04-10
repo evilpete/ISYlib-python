@@ -1,6 +1,7 @@
 __all__ = [ 'IsyError', 'IsyCommandError', 'IsyNodeError',
 	'IsyResponseError', 'IsyPropertyError', 'IsyValueError',
-	'IsyPropertyValueError', 'IsyInvalidCmdError' ]
+	'IsyPropertyValueError', 'IsyInvalidCmdError',
+	'IsyCommunicationError']
 
 
 #
@@ -42,6 +43,10 @@ SubClasses :
         mistake, since Exception has __getitem__ defined."""
         raise AttributeError("__getitem__")
 
+
+class IsyCommunicationError(IsyError):
+    """Failed Server connection of responce ."""
+    pass
 
 class IsyCommandError(IsyError):
     """General exception for command errors."""

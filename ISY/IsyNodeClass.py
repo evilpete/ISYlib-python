@@ -51,14 +51,18 @@ __all__ = ['IsyNode', 'IsyNodeFolder', 'IsyScene']
 
 class _IsyNodeBase(IsySubClass):
 
-    def on(self, *args) :
+    def on(self, val=255) :
         """ Send On command to a node
 
             args: 
                 take optional value for on level
 
         """
-        self.isy._node_comm(self._mydict["address"], "DON", *args)
+	if not str(val).isdigit :       
+	    TypeError("On Command : Bad Value : node=%s val=%s" %
+		    self._mydict["address"], str(val))
+
+        self.isy._node_comm(self._mydict["address"], "DON", val)
         #if "property" in self._mydict :
         #    self._mydict["property"]["time"] = 0
         # self.update()
@@ -152,7 +156,7 @@ class IsyNode(_IsyNodeBase):
             'ELK_ID',
             'name', 'pnode', 'flag',
             'OL', 'RR', 'ST', 'type']
-    _setlist = ['ST', 'RR', 'OL', 'status', 'ramprate', 'onlevel']
+    _setlist = ['RR', 'OL', 'status', 'ramprate', 'onlevel']
     _propalias = {'status': 'ST', 'value': 'ST', 'val': 'ST',
             'id': 'address', 'addr': 'address',
             'ramprate': 'RR', 'onlevel': 'OL',
@@ -188,7 +192,8 @@ class IsyNode(_IsyNodeBase):
 
     # Special case from BaseClass due to ST/RR/OL props
     def _get_prop(self, prop):
-        # print "----get_status call"
+
+        # print "IN get_prop ", prop
 
         if prop == "formatted" :
             prop = "ST"
@@ -229,6 +234,7 @@ class IsyNode(_IsyNodeBase):
 
     def _set_prop(self, prop, new_value):
         """  generic property set """
+        # print "IN set_prop ", prop, new_value
         if self.debug & 0x04 :
             print("_set_prop ", prop, " : ", new_value)
 
@@ -236,22 +242,26 @@ class IsyNode(_IsyNodeBase):
             prop = self._propalias[prop]
 
         if not prop in self._setlist :
-            raise IsyPropertyError("_set_prop : " \
-		"Invalid property Attribute " + prop)
+	    if prop == "ST" :
+		self.on(new_value)
+		return
+	    else :
+		raise IsyPropertyError("_set_prop : " \
+		    "Invalid property Attribute " + prop)
 
-        if prop in ['ST', 'OL', 'RR'] :
+        if prop in ['OL', 'RR'] :
             if not str(new_value).isdigit :
                 TypeError("Set Property : Bad Value : node=%s prop=%s val=%s" %
                             self._mydict["address"], prop, str(new_value))
 
-            self.isy._node_set_prop(self._mydict["address"], prop, str(new_value))
+
+	    self.isy._node_set_prop(self._mydict["address"], prop, str(new_value))
 
             self._mydict["property"]["time"] = 0
 
-
             if prop in self._mydict["property"] :
-                if isinstance(new_value, (int, float))  :
-                    self._mydict["property"][prop]["value"] = new_value
+                # if isinstance(new_value, (int, float))  : # already checked with isdigit
+		self._mydict["property"][prop]["value"] = new_value
 
         # we need to tie this to some action
         elif prop in self._mydict :
@@ -301,7 +311,7 @@ class IsyNode(_IsyNodeBase):
         return self._get_prop("ST")
     def set_status(self, new_value):
         """ Get/Set Status property of Node """
-        return self._set_prop("ST", new_value)
+        return self.on(new_value)
     status = property(get_status, set_status)
 
 
@@ -349,7 +359,7 @@ class IsyNode(_IsyNodeBase):
     def __bool__(self) :
         #print "__nonzero__ call", self._mydict["property"]["ST"]["value"], \
         #        " :: ", int(self._mydict["property"]["ST"]["value"])
-        return(int(self._mydict["property"]["ST"]["value"]) > 0)
+        return(bool(self._mydict["property"]["ST"]["value"]) > 0)
 
     # use the node address as the hash value
     def __hash__(self) :

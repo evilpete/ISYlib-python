@@ -1,4 +1,4 @@
-from ISY.IsyUtilClass import IsyUtil, IsySubClass
+from ISY.IsyUtilClass import IsyUtil, IsySubClass, val2bool
 from ISY.IsyClass import  *
 #fromm ISY.IsyNodeClass import *
 # fromm ISY.IsyVarClass import *
@@ -43,9 +43,22 @@ class IsyProgram(IsySubClass):
             'addr': 'id', 'address': 'id' }
 
 
-#    def get_prog_enabled(self):
-#       return self._get_prop("enabled")
-#    enabled = property(get_prog_enabled)
+    def get_prog_enable(self):
+        en = self._get_prop("enabled")
+	return bool( en == "true" )
+    def set_prog_enable(self, en):
+
+	rval = val2bool(en)
+
+	print "set_prog_enable ", rval
+
+#        if rval :
+#	   self.isy.prog_comm(self._mydict[id], "enable")
+#        else :
+#	   self.isy.prog_comm(self._mydict[id], "disable")
+
+        return rval
+    enabled = property(get_prog_enable, set_prog_enable)
 
 #    def get_prog_folder(self):
 #       return self._get_prop("folder")

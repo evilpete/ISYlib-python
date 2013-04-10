@@ -79,3 +79,49 @@ reports if it's value is over 100
 
 
 
+#    def get_var_ts(self):
+#    def get_var_type(self):
+    def get_var_init(self):
+    def set_var_init(self, new_value):
+    def get_var_value(self):
+    def set_var_value(self, new_value):
+#    def get_var_id(self):
+#    def get_var_name(self):
+    def __cast(self, other):
+    def bit_length(self): return bit_length(self._mydict["val"])
+    def __str__(self): return str(self._mydict["val"])
+    def __long__(self): return long(self._mydict["val"])
+    def __float__(self): return float(self._mydict["val"])
+    def __int__(self): return int(self._mydict["val"])
+    def __bool__(self) : return int( self._mydict["val"]) != 0
+    def __abs__(self): return abs(self._mydict["val"])
+    def __lt__(self, n): return self._mydict["val"] <  self.__cast(n)
+    def __le__(self, n): return self._mydict["val"] <= self.__cast(n)
+    def __eq__(self, n): return self._mydict["val"] == self.__cast(n)
+    def __ne__(self, n): return self._mydict["val"] != self.__cast(n)
+    def __gt__(self, n): return self._mydict["val"] >  self.__cast(n)
+    def __ge__(self, n): return self._mydict["val"] >= self.__cast(n)
+    def __cmp__(self, n): return cmp(self._mydict["val"], self.__cast(n))
+    def __add__(self, n):
+    def __iadd__(self, n):
+    def __sub__(self, n):
+    def __isub__(self, n):
+    def __mul__(self, n): return (self._mydict["val"]*n)
+    def __imul__(self, n):
+    def __floordiv__(self, n): return self._mydict["val"] // self.__cast(n)
+    def __ifloordiv__(self, n):
+    def __truediv__(self, n): return (self._mydict["val"] / self.__cast(n))
+    def __itruediv__(self, n):
+    def __imod__(self, n):
+    def __ipow__(self, n):
+    def __neg__(self): return - self._mydict["val"]
+    def __and__(self, n): return self._mydict["val"] & self.__cast(n)
+    def __iand__(self, n): 
+    def __or__(self, n): return self._mydict["val"] | self.__cast(n)
+    def __ior__(self, n):
+    def __ixor__(self, n):
+    def __xor__(self, n): return self._mydict["val"] ^ self.__cast(n)
+    def __invert__(self): return ~ self._mydict["val"] 
+    def __irshift__(self, n):
+    def __ilshift__(self, n):
+    def __repr__(self):

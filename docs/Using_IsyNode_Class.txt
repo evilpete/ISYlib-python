@@ -3,6 +3,8 @@
 	======================
 
 
+Examples
+--------
 
 Get and print the status for the node called "Garage Light"  
 
@@ -26,13 +28,6 @@ and turn it off if it is on
     if garage_light :
 	garage_light.off()
 
-
-    import ISY
-    myisy = ISY.Isy( ) 
-
-    garage_light = myisy.get_node("Garage Light")
-    some_other_var.value = 10
-
 --
 
 Alternately you can obtain a  Node's object by indexing
@@ -41,6 +36,39 @@ a Isy obj my the node name or address
     import ISY
     myisy = ISY.Isy()
     myisy["Garage Light"].off()
+
+Note this works by instantiating a IsyNode class obj then calling 
+the IsyNode class mothod off() and discarding referance to the instance.
+(Note that the Isy Class caches created instances, so this not realy a loss)
+
+In this case using the Isy class obj method node_comm() is more 
+efficient since the IsyNode mothod on() & off() simply call node_comm() 
+
+--
+
+Turn Node on to 50% ( assuming Node a dimable light )
+
+    import ISY
+    myisy = ISY.Isy()
+
+    garage_light = myisy.get_node("Garage Light")
+
+    garage_light.on( 255 * .5 )
+
+Note that devices are set with values from 0 - 255
+    thus setting a light to the value of 50 will actually set it to 20%
+
+Note: the following are equivalent
+
+    garage_light.on( 255 * .5 )
+    myisy.node_comm("Garage Light", "DON", 128)
+
+The following are "redirected" to the on command
+
+    garage_light.status = 128
+    garage_light.set_status(128)
+
+since the status property is readonly
 
 --
 
@@ -54,8 +82,7 @@ without instantiating a IsyNode class obj
 
 --
 
-List all Node names and their attributes 
-
+List all Node names and some of their attributes 
 
     import ISY
 
@@ -75,4 +102,44 @@ List all Node names and their attributes
 --
 
 
+Members
+--------
 
+
+    def on(self, *args) :
+    def off(self) :
+    def beep(self) :
+    def member_iter(self):
+    def member_list(self):
+    def is_member(self, obj) :
+    def __contains__(self, other):
+#    def __contains__(self, other):
+    def __init__(self, isy, ndict) :
+    def _get_prop(self, prop):
+    def _set_prop(self, prop, new_value):
+    def get_rr(self):
+    def set_rr(self, new_value):
+    def get_ol(self):
+    def set_ol(self, new_value):
+#    def get_fm(self):
+    def get_status(self):
+    def set_status(self, new_value):
+#    def on(self) :
+#    def off(self) :
+#    def beep(self) :
+    def update(self) :
+    def __bool__(self) :
+    def __hash__(self) :
+#    def __str__(self):
+    def __float__(self):
+    def set_status(self, new_value):
+    def _gettype(self):
+    def _getmembers(self) :
+    def member_list(self) :
+    def is_member(self, obj) :
+    def member_iter(self, flag=0):
+    def __iter__(self):
+    def __contains__(self, other):
+    def _gettype(self):
+    def __iter__(self):
+    def __contains__(self, other):

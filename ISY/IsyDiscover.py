@@ -28,7 +28,7 @@ class UpnpLimitExpired(Exception):
 
 
 def isy_discover(**kwargs):
-    """ Get a Node object for given node or scene name or ID
+    """ discover a device's IP
 
         named args:
             node : node name of id

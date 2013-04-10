@@ -6,7 +6,6 @@
  
 """
 
-from ISY.IsyExceptionClass import *
 
 #from xml.dom.minidom import parse, parseString
 # from StringIO import StringIO
@@ -21,50 +20,20 @@ import pprint
 import time
 from warnings import warn
 
-"""
-/rest/batch
-    Returns the Batch mode:
-    <batch><status>[0|1]</status></batch>
-
-/rest/batch/on
-    Turns on Batch mode. Does not write changes to device. Only internal
-    configuration files are updated
-
-/rest/batch/Off
-    Turns off Batch mode. Writes all pending changes to devices and no longer
-    buffers changes
-"""
-
-"""
-/rest/batteryPoweredWrites
-    Returns the status of Battery Powered device operations
-    <batteryPoweredWrites> <status>[0|1]</status> </batteryPoweredWrites>
-
-/rest/batteryPoweredWrites/on
-    Writes all pending changes to battery powered devices when Batch mode is off
-
-/rest/batteryPoweredWrites/off
-    Does not write changes to battery powered devices when batch is off
-
-"""
 
 
-# /rest/time
-#	Returns system time
-
-#/rest/network
-#    Returns network configuration
 
 
 
 if sys.hexversion < 0x3000000 :
     import urllib2 as URL
+    from urllib2 import URLError, HTTPError
     # HTTPPasswordMgrWithDefaultRealm = URL.HTTPPasswordMgrWithDefaultRealm
 else :
     import urllib as URL
     from urllib.request import HTTPPasswordMgrWithDefaultRealm
 
-from ISY.IsyUtilClass import IsyUtil, IsySubClass
+from ISY.IsyUtilClass import IsyUtil, IsySubClass, et2d
 # from ISY.IsyNodeClass import IsyNode, IsyScene, IsyNodeFolder, _IsyNodeBase
 from ISY.IsyProgramClass import *
 #from ISY.IsyVarClass import IsyVar
@@ -157,6 +126,7 @@ class Isy(IsyUtil):
         self.eventupdates = kwargs.get("eventupdates", 0)
         self.addr = kwargs.get("addr", os.getenv('ISY_ADDR', None))
 	self._isy_event = None
+	self.error_str = ""
 
         if self.addr == None :
             from ISY.IsyDiscover import isy_discover
@@ -188,8 +158,15 @@ class Isy(IsyUtil):
         if self.debug & 0x02:
             print("baseurl: " + self.baseurl + " : " + userl + " : " + userp)
 
+	try:
+	    self.load_conf()
+	except URLError as e:
+	    print("Unexpected error:", sys.exc_info()[0])
+	    print 'Problem connecting with ISY device'
+	    raise IsyCommunicationError(e)
+
         if not self.faststart :
-            self.load_conf()
+            self.load_nodes()
 
         # There for id's to Node/Var/Prog objects
         self.nodeCdict = dict ()
@@ -397,6 +374,7 @@ class Isy(IsyUtil):
             print("load_conf pre _getXMLetree")
         self.configinfo = self._getXMLetree("/rest/config")
         # Isy._printXML(self.configinfo)
+	# IsyCommunicationError
 
         self.name2control = dict ( )
         self.controls = dict ( )
@@ -490,7 +468,10 @@ class Isy(IsyUtil):
             for pe in list(pg):
                 pdict[pe.tag] = pe.text
             if "id" in pdict :
-                self._progdict[str(pdict["id"])] = pdict
+		if str(pdict["id"]) in self._progdict :
+		    self._progdict[str(pdict["id"])].update(pdict)
+		else :
+		    self._progdict[str(pdict["id"])] = pdict
                 n = pdict["name"].upper()
                 if n in self.name2prog :
                     print("Dup name : \"" + n + "\" ", pdict["id"])
@@ -539,7 +520,7 @@ class Isy(IsyUtil):
         else :
             p = str(pname)
         if string.upper(p) in self._progdict :
-            # print("_get_prog_id : " + p + " progdict " + string.upper(p))
+            # print("_prog_get_id : " + p + " progdict " + string.upper(p))
             return string.upper(p)
         if p in self.name2prog :
             # print("_prog_get_id : " + p + " name2prog " + self.name2prog[p])
@@ -552,11 +533,7 @@ class Isy(IsyUtil):
     def prog_iter(self):
         """ Iterate though program objects
 
-            args:  
-                None
-
-            returns :
-                Return an iterator over Program Objects types
+	    Returns an iterator over Program Objects types
         """
         try:
             self._progdict
@@ -573,7 +550,7 @@ class Isy(IsyUtil):
         valid_comm = ['run', 'runThen', 'runElse', 'stop',
                         'enable', 'disable',
                         'enableRunAtStartup', 'disableRunAtStartup']
-        prog_id = self._get_prog_id(paddr)
+        prog_id = self._prog_get_id(paddr)
 
         #print("self.controls :", self.controls)
         #print("self.name2control :", self.name2control)
@@ -591,7 +568,7 @@ class Isy(IsyUtil):
     def _prog_comm(self, prog_id, cmd) :
         """ send command to a program without name to ID overhead """
         # /rest/programs/<pgm-id>/<pgm-cmd>
-        xurl = "/rest/programs/" + prog_id + cmd 
+        xurl = "/rest/programs/" + prog_id + "/" + cmd 
 
         if self.debug & 0x02 :
             print("xurl = " + xurl)
@@ -714,6 +691,74 @@ class Isy(IsyUtil):
         if resp.attrib["succeeded"] != 'true' :
             raise IsyResponseError("X10 command error : unit=" + str(unit) + " cmd=" + str(cmd))
 
+# /rest/time
+#	Returns system time
+#
+#/rest/network
+#    Returns network configuration
+# /rest/sys
+#	returns system configuration
+#
+# /rest/subscriptions
+# Returns the state of subscriptions
+
+    def subscriptions( self) :
+	xurl = "/rest/subscriptions"
+	resp = self._getXMLetree(xurl)
+	self._printXML(resp)
+	return et2d(resp)
+
+    def network( self) :
+	xurl = "/rest/network"
+	resp = self._getXMLetree(xurl)
+	self._printXML(resp)
+	return et2d(resp)
+
+    def sys( self) :
+	xurl = "/rest/sys"
+	resp = self._getXMLetree(xurl)
+	self._printXML(resp)
+	return et2d(resp)
+
+    def time( self) :
+	xurl = "/rest/time"
+	resp = self._getXMLetree(xurl)
+	self._printXML(resp)
+	return et2d(resp)
+
+    def batch( self, on=-1) :
+	xurl = "/rest/batteryPoweredWrites/"
+
+	if on == 0 :
+	    xurl += "/off"
+	elif on == 1 :
+	    xurl += "/on"
+
+	print "get --"
+	resp = self._getXMLetree(xurl)
+	if resp == None :
+	    print 'The server couldn\'t fulfill the request.'
+	    raise IsyResponseError(e)
+	else :
+	    self._printXML(resp)
+	    return resp
+
+	   
+
+    #/rest/batterypoweredwrites
+    def batterypoweredwrites( self, on=-1) :
+	xurl = "/rest/batteryPoweredWrites/"
+
+	if on == 0 :
+	    xurl += "/off"
+	elif on == 1 :
+	    xurl += "/on"
+
+	print "get --"
+	resp = self._getXMLetree(xurl)
+	if resp != None :
+	    self._printXML(resp)
+	    return et2d(resp)
 
     ##
     ## support funtions

@@ -42,6 +42,19 @@ this thread process can be halted with the command :
     start_event_thread()
 
 
+Methods
+-------
+
+* get/set var val
+
+* get/set node properties
+
+* get program properties, run programs
+
+* get log info
+
+* get event stream info
+
 
 Examples
 -------
@@ -84,3 +97,72 @@ without instantiating a IsyVar class obj
 --
 
 
+
+WOL (Wake On Lan)
+-----------------
+    def load_wol(self) :
+    def wol(self, wid) :
+    def wol_names(self, vname) :
+    def wol_iter():
+
+
+Climate Info
+-------------
+
+    def load_clim(self) :
+    def clim_get_val(self, prop):
+    def clim_query(self):
+    def clim_iter(self):
+
+Device Log
+-------------
+
+    def load_log_type(self):
+    def load_log_id(self):
+    def log_reset(self, errorlog = 0 ):
+    def log_iter(self, error = 0 ):
+    def log_query(self, errorlog = 0, resetlog = 0 ):
+    def log_format_line(self, line) :
+
+======
+
+    def start_event_thread(self, mask=0):
+    def stop_event_tread(self) :
+
+    def load_conf(self) :
+    def load_nodes(self) :
+    def load_node_types(self) :
+    def load_vars(self) :
+    def load_prog(self):
+
+
+
+    def node_names(self) :
+    def scene_names(self) :
+    def node_addrs(self) :
+    def scene_addrs(self) :
+
+    def get_node(self, node_id) :
+
+    def node_set_prop(self, naddr, prop, val) :
+    def node_comm(self, naddr, cmd, *args) :
+    def node_get_type(self, typid) :
+    def node_iter(self, nodetype=""):
+##    def set_var_value(self, vname, val, init=0):
+    def var_set_value(self, var, val, prop="val") :
+    def var_get_value(self, var, prop="val") :
+#    def var_names(self) :
+    def var_addrs(self)  :
+    def get_var(self, vname) :
+    def var_get_type(self, var) :
+    def var_iter(self, vartype=0):
+
+
+
+    def get_prog(self, pname) :
+    def prog_iter(self):
+    def prog_comm(self, paddr, cmd) :
+
+
+    def x10_comm(self, unit, cmd) :
+#    def debugerror(self) :

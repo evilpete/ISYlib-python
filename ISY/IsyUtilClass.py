@@ -1,11 +1,13 @@
 # from xml.dom.minidom import parse, parseString
 #from StringIO import StringIO
 import xml.etree.ElementTree as ET
+from xml.etree.ElementTree import  iselement
 from ISY.IsyExceptionClass import *
 # import base64
 import sys
 if sys.hexversion < 0x3000000 :
     import urllib2 as URL
+    from urllib2 import URLError, HTTPError
 else :
     import urllib as URL
 # import re
@@ -13,6 +15,56 @@ from pprint import pprint
 
 #__all__ = ['IsyUtil', 'IsySubClass' ]
 __all__ = []
+
+
+
+def val2bool(en) :
+    if isinstance(en, (long, int, float)) : 
+	print "as bool"
+	rval = bool(en)
+    else :
+	print "grok str"
+	rval = (str(en).lower() in ("yes", "y", "true", "t", "1"))
+    return(rval)
+
+
+
+def et2d(et) :
+    """ Etree to Dict
+
+	converts an ETree to a Dict Tree
+	lists are created for duplicate tag
+
+	arg: a ETree obj
+	returns: a dict obj
+
+    """
+    d = dict()
+    if not isinstance(et, ET.Element) :
+	return d
+    children = list(et)
+    if et.attrib :
+	for k, v in list(et.items()) :
+	    d[et.tag + "-" + k] =  v
+    if children :
+	for child in children :
+	    if child.tag in d :
+		if type(d[child.tag]) != list :
+		    t = d[child.tag]
+		    d[child.tag] = [t]
+	    if list(child) :
+		if child.tag in d :
+		    d[child.tag].append(et2d(child))
+		else :
+		    d[child.tag] = et2d(child)
+	    else :
+		if child.tag in d :
+		    d[child.tag].append(child.text)
+		else :
+		    d[child.tag] = child.text
+    return d
+
+
 
 #
 # Simple Base class for ISY Class
@@ -39,14 +91,21 @@ class IsyUtil(object):
         # print("_getXMLetree : URL.Request")
         req = URL.Request(xurl)
         # print("_getXMLetree : self._opener.open ")
-        res = self._opener.open(req)
-        data = res.read()
-        # print("res.getcode() ", res.getcode(), len(data))
-        res.close()
-        if len(data) :
-            return ET.fromstring(data)
-        else :
-            return None
+	# HTTPError
+	try :
+	    res = self._opener.open(req, None, 10)
+	    data = res.read()
+	    # print("res.getcode() ", res.getcode(), len(data))
+	    res.close()
+	except URL.HTTPError, e:       
+	    self.error_str = str("Reponse Code : {0}" ).format(e.code)
+	    return None
+	else :
+	    if len(self.error_str) : self.error_str = ""
+	    if len(data) :
+		return ET.fromstring(data)
+	    else :
+		return None
 
     def _printdict(self, d):
         """ Pretty Print dictionary """
@@ -128,6 +187,7 @@ class IsySubClass(IsyUtil):
 
     def _get_prop(self, prop):
         """ Internal funtion call """
+	# print("U _get_prop =", prop)
         if prop in self._propalias :    
             prop = self._propalias[prop]
 
@@ -225,6 +285,7 @@ class IsySubClass(IsyUtil):
 #        return ( str.__cmp__(self.myval, other.myval) )
 
     def __getattr__(self, attr):
+	# print("U attr =", attr)
         attr_v = self._get_prop(attr)
         if attr_v :
             return attr_v
@@ -244,8 +305,9 @@ class IsySubClass(IsyUtil):
             return(False)
             # NotImplemented 
         if hasattr(other._mydict, "id") :
-            return(self._get_prop("id") == other._get_prop("id"))
-        return(False)
+	    return(self._get_prop("id") == other._get_prop("id"))
+	return(False)
+
 
 
 #

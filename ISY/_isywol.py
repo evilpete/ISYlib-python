@@ -1,3 +1,4 @@
+from ISY.IsyExceptionClass import IsyResponseError
 
 ##
 ## WOL (Wake on LAN) funtions
@@ -13,6 +14,11 @@ def load_wol(self) :
     if self.debug & 0x01 :
 	print("load_wol called")
     wol_tree = self._getXMLetree("/rest/networking/wol")
+    if wol_tree == None :
+	if ( len(self.error_str) ) :
+	    raise IsyResponseError (self.error_str)
+	else:
+	    raise IsyResponseError ("/rest/networking/wol")
     self.wolinfo = dict ()
     self.name2wol = dict ()
     for wl in wol_tree.iter("NetRule") :
@@ -52,6 +58,10 @@ def wol(self, wid) :
 
 def _get_wol_id(self, name) :
     """ wol name to wol ID """
+    try:
+	self.self.wolinfo
+    except AttributeError:
+	self.load_wol()
     name = str(name).upper()
     if name in self.wolinfo :
 	return name
@@ -62,26 +72,20 @@ def _get_wol_id(self, name) :
     return None
 
 
-def wol_names(self, vname) :
+def wol_names(self) :
     """
     method to retrieve a list of WOL names
-    :type wolname: string
-    :param wolname: the WOL name or ISY Id
-    :rtype: list
-    :return: List of WOL names and IDs or None
+    returns List of WOL names and IDs or None
     """
+    try:
+	self.self.wolinfo
+    except AttributeError:
+	self.load_wol()
     return self.name2wol.keys()
 
 
 def wol_iter():
-    """ Iterate though Wol Ids values
-
-	args:  
-	    None
-
-	returns :
-	    Return an iterator over the "Wake on Lan" Ids
-    """
+    """ Iterate though Wol Ids values """
     try:
 	self.self.wolinfo
     except AttributeError:

@@ -102,7 +102,7 @@ class IsyVar(IsySubClass):
     def __long__(self): return long(self._mydict["val"])
     def __float__(self): return float(self._mydict["val"])
     def __int__(self): return int(self._mydict["val"])
-    def __bool__(self) : return int( self._mydict["val"]) != 0
+    def __bool__(self) : return bool( self._mydict["val"]) != 0
 
     def __abs__(self): return abs(self._mydict["val"])
 
@@ -129,7 +129,6 @@ class IsyVar(IsySubClass):
     __radd__ = __add__
 
     def __iadd__(self, n):
-	print "__iadd__"
         if isinstance(n, self.__class__): self._mydict["val"] += n._mydict["val"]
         else: self._mydict["val"] += int(n)
 	self.isy._var_set_value(self._mydict['id'], self._mydict["val"])
@@ -182,6 +181,8 @@ class IsyVar(IsySubClass):
 	self._mydict["val"] **= self.__cast(n) 
 	self.isy._var_set_value(self._mydict['id'], self._mydict["val"])
         return self
+
+    def __neg__(self): return - self._mydict["val"]
 
     # logic opts
     def __and__(self, n): return self._mydict["val"] & self.__cast(n)

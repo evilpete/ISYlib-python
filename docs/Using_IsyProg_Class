@@ -1,0 +1,56 @@
+
+		Using the IsyVar Class
+		======================
+
+
+Run the "then" code block of the program named "Xmas Lights off"
+
+    import ISY
+    myisy = ISY.Isy( )
+
+    pg = myisy.get_prog("Xmas Lights off")
+
+    pg.send_command("runThen")
+
+    print "Program ", pg.name, "state is", pg.status
+
+--
+
+Do the same thing without instantiating a IsyProgram class obj
+
+
+    import ISY
+    myisy = ISY.Isy( )
+
+    myisy.prog_comm("Xmas Lights off", "runThen")
+    st = myisy.prog_get_prop("Xmas Lights off", "status")
+
+    print ""Program Xmas Lights off state is", st
+
+
+
+--
+
+List all Programs and print their name and status
+
+    pfmt = "{:<5}{:<12} {:<5}{:<5}{:<5}"
+    print(pfmt.format("Id", "Node Name", "Stat", "Run", "Enabled"))
+    print(pfmt.format("-" * 4, "-" * 10, "-" * 4, "-" * 4,"-" * 4))
+    for p in myisy.prog_iter():
+       if p.folder == "false" :
+	  print(pfmt.format(p.id, p.name, p.status, p.running, p.enabled))
+	   
+
+
+
+
+
+			    
+
+Methods
+------
+def load_prog(self):
+def get_prog(self, pname) :
+def prog_iter(self):
+def prog_comm(self, paddr, cmd) :
+

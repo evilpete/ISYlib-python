@@ -361,6 +361,18 @@ def _get_node_id(self, nid):
 #
 def node_get_prop(self, naddr, prop) :
     #<isQueryAble>true</isQueryAble>
+    if self.debug & 0x01 :
+	print("node_set_prop")
+
+    node_id = self._get_node_id(naddr)
+
+    prop_id = _get_control_id(prop);
+
+    if not node_id :
+	raise LookupError("node_get_prop: unknown node : " + str(naddr) )
+
+    if not prop_id :
+	raise TypeError("node_get_prop: unknown prop : " + str(cmd) )
     pass
 
 # Set property for a node
@@ -378,11 +390,11 @@ def node_set_prop(self, naddr, prop, val) :
 	raise LookupError("node_set_prop: unknown node : " + str(naddr) )
 
     if not prop_id :
-	raise TypeError("node_comm: unknown prop : " + str(cmd) )
+	raise TypeError("node_set_prop: unknown prop : " + str(cmd) )
 
     if "readOnly" in self.controls[prop_id] and \
 		self.controls["prop_id"]["readOnly"] == "true" :
-	IsyPropertyError("readOnly property " + prop_id)
+	raise IsyPropertyError("readOnly property " + prop_id)
 
 	# <isNumeric>true</isNumeric>
 
