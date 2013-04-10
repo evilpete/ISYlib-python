@@ -110,7 +110,8 @@ __all__ = ['Isy', 'IsyUtil', 'IsyUtilClass', 'IsyClass',  'IsyNode', 'IsyVar',
 #
 if __name__ == "__main__":
     import __main__
-    print(__main__.__file___)
+    #print(__main__.__file___)
+    print("ISY.__init__")
     print("syntax ok")
     exit(0)
 

@@ -20,10 +20,10 @@ __all__ = []
 
 def val2bool(en) :
     if isinstance(en, (long, int, float)) : 
-	print "as bool"
+	#print "as bool"
 	rval = bool(en)
     else :
-	print "grok str"
+	#print "grok str"
 	rval = (str(en).lower() in ("yes", "y", "true", "t", "1"))
     return(rval)
 
@@ -161,9 +161,10 @@ class IsySubClass(IsyUtil):
 
     """
 
-    _getlist = [ "name", "id", "value", "address", "type" ]
+    _getlist = [ "name", "id", "value", "address", "type", "enabled" ]
     _setlist = [ ]
     _propalias = { }
+    _boollist = [ "enabled" ]
 
     def __init__(self, isy, objdict) :
         """ INIT """
@@ -193,7 +194,10 @@ class IsySubClass(IsyUtil):
 
         if prop in self._getlist : 
             if prop in self._mydict :
-                return(self._mydict[prop])
+		if prop in self._boollist :
+		    return(val2bool(self._mydict[prop]))
+		else :
+		    return(self._mydict[prop])
         return(None)
 
 #    def _set_prop(self, prop, val):
@@ -287,10 +291,10 @@ class IsySubClass(IsyUtil):
     def __getattr__(self, attr):
 	# print("U attr =", attr)
         attr_v = self._get_prop(attr)
-        if attr_v :
+        if attr_v != None :
             return attr_v
         else :
-            print("attr =", attr)
+            print("attr =", attr, self.address)
             raise(AttributeError, attr)
 
 

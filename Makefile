@@ -12,8 +12,9 @@ all:
 
 t: style
 
-FILES= ISY/IsyClass.py ISY/IsyExceptionClass.py ISY/IsyNodeClass.py ISY/IsyProgramClass.py ISY/IsyUtilClass.py ISY/IsyVarClass.py ISY/__init__.py ISY/IsyDiscover.py ISY/IsyEventData.py ISY/IsyEvent.py
-BINFILES= bin/isy_find.py bin/isy_list.py bin/isy_list.pyc bin/isy_log.py bin/isy_showevents.py
+FILES= ISY/IsyClass.py ISY/IsyExceptionClass.py ISY/IsyNodeClass.py ISY/IsyProgramClass.py ISY/IsyUtilClass.py ISY/IsyVarClass.py ISY/__init__.py ISY/IsyDiscover.py ISY/IsyEventData.py ISY/IsyEvent.py ISY/_isyclimate.py ISY/_isynode.py ISY/_isyvar.py ISY/_isywol.py
+
+BINFILES= bin/isy_find.py bin/isy_list.py  bin/isy_log.py bin/isy_showevents.py bin/isy_var.py
 
 README.txt:  ${FILES}
 	pydoc ISY > README.txt
@@ -24,6 +25,7 @@ syntax:
 	    python $$targ ; \
 	done 
 	for targ in ${BINFILES} ; do \
+	    echo $$targ ; \
 	    python -m py_compile $$targ ; \
 	done 
 

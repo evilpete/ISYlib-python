@@ -4,7 +4,7 @@ from distutils.core import setup
 
 setup(
     name='ISYlib',
-    version='0.1.20130331',
+    version='0.1.3',
     author='Peter Shipley',
     author_email='Peter.Shipley@gmail.com',
     packages=['ISY'],
@@ -14,5 +14,4 @@ setup(
     license='LICENSE.txt',
     description='Python API for the ISY home automation controller.',
     long_description=open('README.txt').read(),
-    install_requires=[],
 )

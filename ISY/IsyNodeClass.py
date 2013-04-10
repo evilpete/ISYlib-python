@@ -36,7 +36,7 @@ IsyNodeFolders are just for organizing
 
 
 """
-from ISY.IsyUtilClass import IsyUtil, IsySubClass
+from ISY.IsyUtilClass import IsyUtil, IsySubClass, val2bool
 from ISY.IsyExceptionClass import *
 # from IsyClass import *
 # from IsyNodeClass import *
@@ -161,6 +161,7 @@ class IsyNode(_IsyNodeBase):
             'id': 'address', 'addr': 'address',
             'ramprate': 'RR', 'onlevel': 'OL',
             "node-flag": "flag"}
+    #_boollist = [ "enabled" ]
 
     def __init__(self, isy, ndict) :
         if isinstance(ndict, dict):
@@ -228,7 +229,10 @@ class IsyNode(_IsyNodeBase):
         else :
 
             if prop in self._mydict :
-                return self._mydict[prop]
+		if prop in self._boollist :
+		    return(val2bool(self._mydict[prop])) 
+		else :
+		    return self._mydict[prop]
             else :
                 return None
 

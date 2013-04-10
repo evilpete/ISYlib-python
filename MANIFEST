@@ -21,3 +21,7 @@ bin/isy_list.py
 bin/isy_log.py
 bin/isy_showevents.py
 bin/isy_var.py
+docs/Using_IsyNode_Class.txt
+docs/Using_IsyProg_Class
+docs/Using_IsyVar_Class.txt
+docs/Using_Isy_Class.txt

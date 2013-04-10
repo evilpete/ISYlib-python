@@ -96,9 +96,9 @@ class Isy(IsyUtil):
 
     """
 
-    from ._isywol import load_wol, wol, _get_wol_id, wol_names, wol_iter
-    from ._isyclimate import load_clim, clim_get_val, clim_query, clim_iter
-    from ._isyvar  import load_vars, var_set_value, _var_set_value, var_get_value, var_addrs, get_var, _var_get_id, var_get_type, var_iter
+    from _isywol import load_wol, wol, _get_wol_id, wol_names, wol_iter
+    from _isyclimate import load_clim, clim_get_val, clim_query, clim_iter
+    from _isyvar  import load_vars, var_set_value, _var_set_value, var_get_value, var_addrs, get_var, _var_get_id, var_get_type, var_iter
 
     from _isynode import load_nodes, _gen_member_list, _gen_folder_list, _gen_nodegroups, _gen_nodedict, node_names, scene_names, node_addrs, scene_addrs, get_node, _get_node_id, node_get_prop, node_set_prop, _node_send, _node_set_prop, node_comm, _node_comm, _updatenode, load_node_types, node_get_type, node_iter
 
