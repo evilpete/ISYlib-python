@@ -15,7 +15,7 @@ import re
 import os
 from pprint import pprint
 import sys
-import string
+#import string
 import pprint
 import time
 from warnings import warn
@@ -37,7 +37,7 @@ from ISY.IsyUtilClass import IsyUtil, IsySubClass, et2d
 # from ISY.IsyNodeClass import IsyNode, IsyScene, IsyNodeFolder, _IsyNodeBase
 from ISY.IsyProgramClass import *
 #from ISY.IsyVarClass import IsyVar
-from ISY.IsyExceptionClass import *
+from ISY.IsyExceptionClass import  *
 from ISY.IsyEvent import ISYEvent
 
 # Debug Flags:
@@ -99,9 +99,8 @@ class Isy(IsyUtil):
     from _isywol import load_wol, wol, _get_wol_id, wol_names, wol_iter
     from _isyclimate import load_clim, clim_get_val, clim_query, clim_iter
     from _isyvar  import load_vars, var_set_value, _var_set_value, var_get_value, var_addrs, get_var, _var_get_id, var_get_type, var_iter
-
-    from _isynode import load_nodes, _gen_member_list, _gen_folder_list, _gen_nodegroups, _gen_nodedict, node_names, scene_names, node_addrs, scene_addrs, get_node, _get_node_id, node_get_prop, node_set_prop, _node_send, _node_set_prop, node_comm, _node_comm, _updatenode, load_node_types, node_get_type, node_iter
-
+    from _isyprog import load_prog, get_prog, _prog_get_id, prog_iter, prog_comm, _prog_comm
+    from _isynode import load_nodes, _gen_member_list, _gen_folder_list, _gen_nodegroups, _gen_nodedict, node_names, scene_names, node_addrs, scene_addrs, get_node, _get_node_id, node_get_prop, node_set_prop, _node_send, node_comm, _updatenode, load_node_types, node_get_type, node_iter, _updatenode
 
 
 ##    set_var_value, _set_var_value, var_names
@@ -211,6 +210,7 @@ class Isy(IsyUtil):
         self.event_thread.daemon = True
         self.event_thread.start()
 
+        self.eventupdates = True
         print(self.event_thread)
 
     def stop_event_tread(self) :
@@ -233,11 +233,6 @@ class Isy(IsyUtil):
                 ]
 
 	skip = skip_default
-
-        
-        ar = arg[1]
-
-        # print "ar", type( arg)
 
         assert isinstance(evnt_dat, dict), "_read_event Arg must me dict"
 
@@ -269,8 +264,8 @@ class Isy(IsyUtil):
                         RuntimeWarning)
 
         elif evnt_dat["control"] == "_3" : # Node Change/Updated Event
-                print("Node Change/Updated Event :  {0}".format(evnt_dat["node"]))
-                print("evnt_dat : ", evnt_dat)
+	    print("Node Change/Updated Event :  {0}".format(evnt_dat["node"]))
+	    print("evnt_dat : ", evnt_dat)
 
         # handle VAR value change
         elif evnt_dat["control"] == "_1" :
@@ -436,7 +431,7 @@ class Isy(IsyUtil):
         except AttributeError:
             self.load_conf()
 
-        c = comm.upper()
+        c = comm.strip().upper()
         if c in self.controls :
             return c
         if c in self.name2control :
@@ -444,157 +439,6 @@ class Isy(IsyUtil):
         return None
 
 
-    ##
-    ## ISY Programs Code
-    ##
-    def load_prog(self):
-        """ Load Program status and Info
-
-            args : none
-
-            internal function call
-
-        """
-        if self.debug & 0x01 :
-            print("load_prog called")
-        prog_tree = self._getXMLetree("/rest/programs?subfolders=true", 1)
-	if not hasattr(self, '_progdict') or not isinstance(self._progdict, dict):
-	    self._progdict = dict ()
-        self.name2prog = dict ()
-        for pg in prog_tree.iter("program") :
-            pdict = dict ()
-            for k, v in pg.items() :
-                pdict[k] = v
-            for pe in list(pg):
-                pdict[pe.tag] = pe.text
-            if "id" in pdict :
-		if str(pdict["id"]) in self._progdict :
-		    self._progdict[str(pdict["id"])].update(pdict)
-		else :
-		    self._progdict[str(pdict["id"])] = pdict
-                n = pdict["name"].upper()
-                if n in self.name2prog :
-                    print("Dup name : \"" + n + "\" ", pdict["id"])
-                    print("name2prog ", self.name2prog[n])
-                else :
-                    self.name2prog[n] = pdict["id"]
-        #self._printdict(self._progdict)
-        #self._printdict(self.name2prog)
-
-
-
-    def get_prog(self, pname) :
-        """ get prog class obj """
-        if self.debug & 0x01 :
-            print("get_prog :" + pname)
-        try:
-            self._progdict
-        except AttributeError:
-            self.load_prog()
-#       except:
-#           print("Unexpected error:", sys.exc_info()[0])
-#           return None
-        finally:
-            progid = self._prog_get_id(pname)
-            # print("\tprogid : " + progid)
-            if progid in self._progdict :
-                if not progid in self.progCdict :
-                    # print("not progid in self.progCdict:")
-                    # self._printdict(self._progdict[progid])
-                    self.progCdict[progid] = IsyProgram(self, self._progdict[progid])
-                #self._printdict(self._progdict)
-                # print("return : ",)
-                #self._printdict(self.progCdict[progid])
-                return self.progCdict[progid]
-            else :
-                if self.debug & 0x01 :
-                    print("Isy get_prog no prog : \"%s\"" % progid)
-                raise LookupError("no prog : " + str(progid) )
-
-    def _prog_get_id(self, pname):
-        """ Lookup prog value by name or ID
-        returns ISY Id  or None
-        """
-        if isinstance(pname, IsyProgram) :
-             return pname["id"]
-        else :
-            p = str(pname)
-        if string.upper(p) in self._progdict :
-            # print("_prog_get_id : " + p + " progdict " + string.upper(p))
-            return string.upper(p)
-        if p in self.name2prog :
-            # print("_prog_get_id : " + p + " name2prog " + self.name2prog[p])
-            return self.name2prog[p]
-
-        # print("_prog_get_id : " + n + " None")
-        return None
-
-
-    def prog_iter(self):
-        """ Iterate though program objects
-
-	    Returns an iterator over Program Objects types
-        """
-        try:
-            self._progdict
-        except AttributeError:
-            self.load_prog()
-#       except:
-#           print("Unexpected error:", sys.exc_info()[0])
-
-        k = self._progdict.keys()
-        for v in k :
-            yield self.get_prog(v)
-
-    def prog_comm(self, paddr, cmd) :
-        valid_comm = ['run', 'runThen', 'runElse', 'stop',
-                        'enable', 'disable',
-                        'enableRunAtStartup', 'disableRunAtStartup']
-        prog_id = self._prog_get_id(paddr)
-
-        #print("self.controls :", self.controls)
-        #print("self.name2control :", self.name2control)
-
-        if not prog_id :
-            raise IsyInvalidCmdError("prog_comm: unknown node : " +
-                str(paddr) )
-
-        if not cmd in valid_comm :
-            raise IsyInvalidCmdError("prog_comm: unknown command : " +
-                str(cmd) )
-
-        self._prog_comm(prog_id, cmd)
-
-    def _prog_comm(self, prog_id, cmd) :
-        """ send command to a program without name to ID overhead """
-        # /rest/programs/<pgm-id>/<pgm-cmd>
-        xurl = "/rest/programs/" + prog_id + "/" + cmd 
-
-        if self.debug & 0x02 :
-            print("xurl = " + xurl)
-
-        resp = self._getXMLetree(xurl)
-        self._printXML(resp)
-        if resp.attrib["succeeded"] != 'true' :
-            raise IsyResponseError("ISY command error : prog_id=" +
-                str(prog_id) + " cmd=" + str(cmd))
-
-
-    # redundant
-    def _updatenode(self, naddr) :
-        """ update a node's property from ISY device """
-        xurl = "/rest/nodes/" + self._nodedict[naddr]["address"]
-        if self.debug & 0x01 :
-            print("_updatenode pre _getXML")
-        _nodestat = self._getXMLetree(xurl)
-        # del self._nodedict[naddr]["property"]["ST"]
-        for prop in _nodestat.iter('property'):
-            tprop = dict ( )
-            for k, v in prop.items() :
-                tprop[k] = v
-            if "id" in tprop :
-                self._nodedict[naddr]["property"][tprop["id"]] = tprop
-        self._nodedict[naddr]["property"]["time"] = time.gmtime()
     ##
     ## Logs
     ##
@@ -663,7 +507,7 @@ class Isy(IsyUtil):
 
     def _get_x10_comm_id(self, comm) :
         """ X10 command name to id """
-        comm = str(comm).lower()
+        comm = str(comm).strip().lower()
         if comm.isdigit() :
             if int(comm) >= 1 and int(comm) <= 16 :
                 return comm
@@ -678,7 +522,7 @@ class Isy(IsyUtil):
     def x10_comm(self, unit, cmd) :
         """ direct send x10 command """
         xcmd = self._get_x10_comm_id(str(cmd))
-        unit = unit.upper()
+        unit = unit.strip().upper()
 
         if not re.match("[A-P]\d{,2}", unit) :
             raise IsyValueError("bad x10 unit name : " + unit)
@@ -738,7 +582,7 @@ class Isy(IsyUtil):
 	resp = self._getXMLetree(xurl)
 	if resp == None :
 	    print 'The server couldn\'t fulfill the request.'
-	    raise IsyResponseError(e)
+	    raise IsyResponseError("Batch")
 	else :
 	    self._printXML(resp)
 	    return resp
@@ -779,18 +623,21 @@ class Isy(IsyUtil):
     def __getitem__(self, nodeaddr):
         """ access node obj line a dictionary entery """
         if nodeaddr in self.nodeCdict :
-            return self.nodeCdict[str(nodeaddr).upper()]
+            return self.nodeCdict[str(nodeaddr)]
         else :
             return self.get_node(nodeaddr)
 
     def __setitem__(self, nodeaddr, val):
         """ This allows you to set the status of a Node by
 	addressing it as dictionary entery """
-        # print("__setitem__ : ", nodeaddr, " : ", val)
-        self.node_set_prop(nodeaddr, val, "ST")
+	val = int(val)
+	if val > 0  :
+	    self.node_comm(nodeaddr, "DON", val)
+	else :
+	    self.node_comm(nodeaddr, "DOF")
 
     def __delitem__(self, nodeaddr):
-        raise IsyProperyError("__delitem__ : can't delete nodes :  " + str(prop) )
+        raise IsyPropertyError("__delitem__ : can't delete nodes :  " + str(nodeaddr) )
 
     def __iter__(self):
         """ iterate though Node Obj (see: node_iter() ) """
@@ -808,7 +655,7 @@ class Isy(IsyUtil):
 
 #    def debugerror(self) :
 #       print("debugerror")
-#        raise IsyProperyError("debugerror : test IsyProperyError  ")
+#        raise IsyPropertyError("debugerror : test IsyPropertyError  ")
 
     def _printdict(self, dic):
         """ Pretty Print dictionary """

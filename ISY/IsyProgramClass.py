@@ -41,7 +41,7 @@ class IsyProgram(IsySubClass):
     _setlist = [ 'enabled' ]
     _propalias = { 'val':  'status', 'value': 'status',
             'addr': 'id', 'address': 'id' }
-
+    _boollist = [ "enabled", "folder", "status"]
 
     def get_prog_enable(self):
         en = self._get_prop("enabled")

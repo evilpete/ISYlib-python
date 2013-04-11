@@ -293,23 +293,24 @@ def get_node(self, node_id) :
 	print("get_node")
 
     nodeid = self._get_node_id(node_id)
+
+    if nodeid in self.nodeCdict :
+	return self.nodeCdict[nodeid]
+
     if nodeid in self._nodedict :
-	if not nodeid in self.nodeCdict :
-	    self.nodeCdict[nodeid] = IsyNode(self, self._nodedict[nodeid])
+	self.nodeCdict[nodeid] = IsyNode(self, self._nodedict[nodeid])
 	return self.nodeCdict[nodeid]
 
     elif nodeid in self._nodegroups:
-	if not nodeid in self.nodeCdict :
-	    self.nodeCdict[nodeid] = IsyScene(self, self._nodegroups[nodeid])
+	self.nodeCdict[nodeid] = IsyScene(self, self._nodegroups[nodeid])
 	return self.nodeCdict[nodeid]
 
     elif nodeid in self._nodegroups:
-	if not nodeid in self.nodeCdict :
-	    self.nodeCdict[nodeid] = IsyScene(self, self._nodegroups[nodeid])
+	self.nodeCdict[nodeid] = IsyScene(self, self._nodegroups[nodeid])
 	return self.nodeCdict[nodeid]
 
     else :
-	print("Isy get_node no node : \"%s\"" % nodeid)
+	print("Isy get_node no node : \"{!s:}\"".format(nodeid))
 	raise LookupError("no node such Node : " + str(nodeid) )
 
 
@@ -324,10 +325,11 @@ def _get_node_id(self, nid):
     if isinstance(nid, IsySubClass) :
 	 return nid["addr"]
     else :
-	n = str(nid)
-    if string.upper(n) in self._nodedict :
-	# print("_get_node_id : " + n + " nodedict " + string.upper(n))
-	return string.upper(n)
+	n = str(nid).strip()
+
+    if n in self._nodedict :
+	# print("_get_node_id : " + n + " nodedict " + n
+	return n
 
     if n in self.node2addr :
 	# print("_get_node_id : " + n + " node2addr " + self.node2addr[n])
@@ -356,23 +358,35 @@ def _get_node_id(self, nid):
 
 
 
+# [Needs fixing]
 #
 # Get property for a node
 #
 def node_get_prop(self, naddr, prop) :
     #<isQueryAble>true</isQueryAble>
     if self.debug & 0x01 :
-	print("node_set_prop")
+	print("node_get_prop")
 
     node_id = self._get_node_id(naddr)
-
-    prop_id = _get_control_id(prop);
-
     if not node_id :
 	raise LookupError("node_get_prop: unknown node : " + str(naddr) )
 
-    if not prop_id :
-	raise TypeError("node_get_prop: unknown prop : " + str(cmd) )
+    if prop_id :
+	prop = prop_id
+	if "isQueryAble" in self.controls[prop_id] and \
+		self.controls["prop_id"]["isQueryAble"] == "false" :
+	    raise IsyPropertyError("non Queryable property " + prop_id)
+
+    if prop_id in ['ST', 'OL', 'RR'] :
+	if prop in self._nodedict[node_id]["property"] :
+	    return self._nodedict[node_id]["property"]["value"]
+	else :
+	    raise IsyPropertyError("unknown property " + prop_id)
+	
+    if prop in self._nodedict[node_id] :
+	return self._nodedict[node_id][prop]
+    else :
+	raise IsyPropertyError("unknown property " + prop_id)
     pass
 
 # Set property for a node
@@ -383,52 +397,58 @@ def node_set_prop(self, naddr, prop, val) :
 	print("node_set_prop")
 
     node_id = self._get_node_id(naddr)
-
-    prop_id = _get_control_id(prop);
-
     if not node_id :
 	raise LookupError("node_set_prop: unknown node : " + str(naddr) )
 
-    if not prop_id :
-	raise TypeError("node_set_prop: unknown prop : " + str(cmd) )
-
-    if "readOnly" in self.controls[prop_id] and \
+    prop_id = _get_control_id(prop);
+    if prop_id :
+	# raise TypeError("node_set_prop: unknown prop : " + str(cmd) )
+	if "readOnly" in self.controls[prop_id] and \
 		self.controls["prop_id"]["readOnly"] == "true" :
-	raise IsyPropertyError("readOnly property " + prop_id)
+	    raise IsyPropertyError("readOnly property " + prop_id)
 
-	# <isNumeric>true</isNumeric>
+    prop = str(prop)
+
+    if "isNumeric" in self.controls[prop_id] and \
+	    self.controls["prop_id"]["readOnly"] == "true" and \
+	    not str(val).isdigit :
+	raise IsyPropertyError("Numeric property " + prop_id)
 
 #        if not prop in ['ST', 'OL', 'RR'] :
 #            raise TypeError("node_set_prop: unknown propery : " + str(prop) )
 
     # if val :
     #       pass
+    # self._node_set_prop(naddr, prop, val)
     self._node_send(naddr, "set", prop, val)
+    self._updatenode(naddr)
 
-def _node_send(self, naddr, action,  prop, val) :
+# to  replace _node_set_prop and _node_comm
+def _node_send(self, naddr, action,  prop, *args) :
     """ node_set_prop after argument validation """
-    #print("_node_set_prop : node=%s prop=%s val=%s" % str(naddr), prop, val)
-    print ("_node_set_prop : node=" + str(naddr) + " prop=" + prop +
-		" val=" + val )
-    xurl = "/rest/nodes/" + naddr + "/" + action + "/" + prop + "/" + val
+    #print("_node_send : node=%s prop=%s val=%s" % str(naddr), prop, val)
+    # print ("_node_send : node=" + str(naddr) + " prop=" + prop + " val=" + val )
+    xurl = "/rest/nodes/{!s:}/{!s:}/{!s:}/{!s:}".format(naddr, action, prop, "/".join(str(x) for x in args) )
+    if self.debug & 0x02 : print("xurl = " + xurl)
     resp = self._getXMLetree(xurl)
     self._printXML(resp)
     if resp.attrib["succeeded"] != 'true' :
-	raise IsyResponseError("Node Property Set error : node=%s prop=%s val=%s" %
+	raise IsyResponseError(
+		"Node Cmd/Property Set error : node=%s prop=%s val=%s" %
 		naddr, prop, val )
 
-def _node_set_prop(self, naddr, prop, val) :
-    """ node_set_prop without argument validation """
-    #print("_node_set_prop : node=%s prop=%s val=%s" % str(naddr), prop, val)
-    print ("_node_set_prop : node=" + str(naddr) + " prop=" + prop +
-		" val=" + val )
-    xurl = "/rest/nodes/" + naddr + "/set/" + prop + "/" + val
-    resp = self._getXMLetree(xurl)
-    self._printXML(resp)
-    if resp.attrib["succeeded"] != 'true' :
-	raise IsyResponseError("Node Property Set error : node=%s prop=%s val=%s" %
-		naddr, prop, val )
-
+#def _node_set_prop(self, naddr, prop, val) :
+#    """ node_set_prop without argument validation """
+#    #print("_node_set_prop : node=%s prop=%s val=%s" % str(naddr), prop, val)
+#    print ("_node_set_prop : node=" + str(naddr) + " prop=" + prop +
+#		" val=" + val )
+#    xurl = "/rest/nodes/" + naddr + "/set/" + prop + "/" + val
+#    resp = self._getXMLetree(xurl)
+#    self._printXML(resp)
+#    if resp.attrib["succeeded"] != 'true' :
+#	raise IsyResponseError("Node Property Set error : node=%s prop=%s val=%s" %
+#		naddr, prop, val )
+#
 
 #
 # Send command to Node/Scene
@@ -452,42 +472,28 @@ def node_comm(self, naddr, cmd, *args) :
 
     #self._node_comm(node_id, cmd_id, args)
     self._node_send(node_id, "cmd", cmd_id, args)
+    self._updatenode(naddr)
 
 #
 # Send command to Node without all the arg checking
 #
-def _node_comm(self, node_id, cmd_id, *args) :
-    """ send command to a node or scene without name to ID overhead """
-    if self.debug & 0x04 :
-	print("_node_comm", node_id, cmd_id)
-    # rest/nodes/<nodeid>/cmd/<command_name>/<param1>/<param2>/.../<param5>
-    xurl = ("/rest/nodes/" + node_id + "/cmd/" + cmd_id +
-	"/" + "/".join(str(x) for x in args) )
+#def _node_comm(self, node_id, cmd_id, *args) :
+#    """ send command to a node or scene without name to ID overhead """
+#    if self.debug & 0x04 :
+#	print("_node_comm", node_id, cmd_id)
+#    # rest/nodes/<nodeid>/cmd/<command_name>/<param1>/<param2>/.../<param5>
+#    xurl = ("/rest/nodes/" + node_id + "/cmd/" + cmd_id +
+#	"/" + "/".join(str(x) for x in args) )
+#
+#    if self.debug & 0x02 :
+#	    print("xurl = " + xurl)
+#    resp = self._getXMLetree(xurl)
+#    self._printXML(resp)
+#    if resp.attrib["succeeded"] != 'true' :
+#	raise IsyResponseError("ISY command error : node_id=" +
+#	    str(node_id) + " cmd=" + str(cmd_id))
+#
 
-    if self.debug & 0x02 :
-	    print("xurl = " + xurl)
-    resp = self._getXMLetree(xurl)
-    self._printXML(resp)
-    if resp.attrib["succeeded"] != 'true' :
-	raise IsyResponseError("ISY command error : node_id=" +
-	    str(node_id) + " cmd=" + str(cmd_id))
-
-
-# redundant
-def _updatenode(self, naddr) :
-    """ update a node's property from ISY device """
-    xurl = "/rest/nodes/" + self._nodedict[naddr]["address"]
-    if self.debug & (0x01 & 0x10) :
-	print("_updatenode pre _getXML")
-    _nodestat = self._getXMLetree(xurl)
-    # del self._nodedict[naddr]["property"]["ST"]
-    for prop in _nodestat.iter('property'):
-	tprop = dict ( )
-	for k, v in prop.items() :
-	    tprop[k] = v
-	if "id" in tprop :
-	    self._nodedict[naddr]["property"][tprop["id"]] = tprop
-    self._nodedict[naddr]["property"]["time"] = time.gmtime()
 
 
 
@@ -572,4 +578,49 @@ def node_iter(self, nodetype=""):
 	k.extend(self._nodegroups.keys())
     for n in k :
 	yield self.get_node(n)
+
+
+## redundant
+#def _updatenode(self, naddr) :
+#    """ update a node's property from ISY device """
+#    xurl = "/rest/nodes/" + self._nodedict[naddr]["address"]
+#    if self.debug & (0x01 & 0x10) :
+#	print("_updatenode pre _getXML")
+#    _nodestat = self._getXMLetree(xurl)
+#    # del self._nodedict[naddr]["property"]["ST"]
+#    for prop in _nodestat.iter('property'):
+#	tprop = dict ( )
+#	for k, v in prop.items() :
+#	    tprop[k] = v
+#	if "id" in tprop :
+#	    self._nodedict[naddr]["property"][tprop["id"]] = tprop
+#    self._nodedict[naddr]["property"]["time"] = time.gmtime()
+
+
+# redundant
+def _updatenode(self, naddr) :
+    """ update a node's property from ISY device """
+    xurl = "/rest/nodes/" + naddr
+    if self.debug & 0x01 :
+	print("_updatenode pre _getXML")
+    _nodestat = self._getXMLetree(xurl)
+    # del self._nodedict[naddr]["property"]["ST"]
+    for child in list(inode) :
+	if child.tag == "property" : next
+	if child.text :
+	    self._nodedict[naddr][child.tag] = child.text
+	if child.attrib :
+	    for k, v in list(child.items()) :
+		self._nodedict[naddr][child.tag + "-" + k] =  v
+
+        for prop in _nodestat.iter('property'):
+            tprop = dict ( )
+            for k, v in prop.items() :
+                tprop[k] = v
+            if "id" in tprop :
+                self._nodedict[naddr]["property"][tprop["id"]].update(tprop)
+
+        self._nodedict[naddr]["property"]["time"] = time.gmtime()
+
+
 

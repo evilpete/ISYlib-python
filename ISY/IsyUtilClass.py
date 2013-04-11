@@ -19,12 +19,11 @@ __all__ = []
 
 
 def val2bool(en) :
-    if isinstance(en, (long, int, float)) : 
-	#print "as bool"
+    if isinstance(en, str) :
+	rval = (str(en).strip().lower() in ("yes", "y", "true", "t", "1"))
+    else : # if isinstance(en, (long, int, float)) : 
+	# Punt
 	rval = bool(en)
-    else :
-	#print "grok str"
-	rval = (str(en).lower() in ("yes", "y", "true", "t", "1"))
     return(rval)
 
 
@@ -35,7 +34,14 @@ def et2d(et) :
 	converts an ETree to a Dict Tree
 	lists are created for duplicate tag
 
-	arg: a ETree obj
+	if there are multiple XML of the name name
+	an list array is used
+	attrib tags are converted to "tag_name" + "attrib_name"
+
+	if an invalid arg is passed a empty dict is retrurned
+
+
+	arg: ETree Element  obj
 	returns: a dict obj
 
     """
@@ -80,7 +86,7 @@ class IsyUtil(object):
         print("_printXML start")
         ET.dump(xml)
 
-    def _getXMLetree(self, xmlpath, noquote=0):
+    def _getXMLetree(self, xmlpath, noquote=0, timeout=10):
         """ take a URL path, download XLM and return parsed Etree """
         if ( noquote ) :
             xurl = self.baseurl + xmlpath
@@ -93,7 +99,7 @@ class IsyUtil(object):
         # print("_getXMLetree : self._opener.open ")
 	# HTTPError
 	try :
-	    res = self._opener.open(req, None, 10)
+	    res = self._opener.open(req, None, timeout)
 	    data = res.read()
 	    # print("res.getcode() ", res.getcode(), len(data))
 	    res.close()
