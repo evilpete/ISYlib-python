@@ -19,6 +19,7 @@ PACKAGE CONTENTS
     IsyVarClass
     _isyclimate
     _isynode
+    _isyprog
     _isyvar
     _isywol
 
@@ -195,6 +196,8 @@ CLASSES
      |      send command to a node or scene
      |  
      |  node_get_prop(self, naddr, prop)
+     |      # [Needs fixing]
+     |      #
      |      # Get property for a node
      |  
      |  node_get_type(self, typid)
