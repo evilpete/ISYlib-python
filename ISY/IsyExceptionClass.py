@@ -1,6 +1,8 @@
-__all__ = [ 'IsyError', 'IsyCommandError', 'IsyNodeError',
+from urllib2 import URLError
+
+__all__ = [ 'IsyError', 'IsyNodeError',
 	'IsyResponseError', 'IsyPropertyError', 'IsyValueError',
-	'IsyPropertyValueError', 'IsyInvalidCmdError',
+	'IsyInvalidCmdError',
 	'IsyCommunicationError']
 
 
@@ -44,40 +46,40 @@ SubClasses :
         raise AttributeError("__getitem__")
 
 
-class IsyCommunicationError(IsyError):
+class IsyCommunicationError(IsyError,URLError):
     """Failed Server connection of responce ."""
     pass
 
-class IsyCommandError(IsyError):
-    """General exception for command errors."""
-    pass
+# class IsyCommandError(IsyError):
+#     """General exception for command errors."""
+#     pass
 
 class IsyNodeError(IsyError):
     """General exception for Node errors."""
     pass
 
 class IsyResponseError(IsyError):
-    """General exception for Node errors."""
+    """General exception for Isy responce errors."""
     pass
 
-class IsyPropertyError(IsyError):
-    """General exception for Node errors."""
+class IsyPropertyError(IsyError,LookupError):
+    """General exception for property errors."""
     pass
 
-class IsyValueError(IsyError):
-    """General exception for Node errors."""
+class IsyValueError(IsyError,ValueError):
+    """General exception for arg value errors."""
     pass
 
 class IsyInvalidCmdError(IsyError):
     """General exception for command errors."""
     pass
 
-class IsyPropertyValueError(IsyError):
-    """General exception for Node errors."""
-    pass
+#class IsyPropertyValueError(IsyError):
+#    """General exception for Isy errors."""
+#    pass
 
-class IsyAttributeError(IsyError):
-    """General exception for Node errors."""
+class IsyAttributeError(IsyError,AttributeError):
+    """General exception for Isy errors."""
     pass
 
 #

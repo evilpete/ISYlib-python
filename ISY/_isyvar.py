@@ -1,5 +1,9 @@
 from ISY.IsyVarClass import IsyVar
+from ISY.IsyExceptionClass import IsyValueError, IsyResponseError
+
+IsyResponseError
 import string
+# import pprint
 
 ##
 ## variable funtions
@@ -81,13 +85,22 @@ def var_set_value(self, var, val, prop="val") :
 	    TypeError :  if property is not 'val or 'init'
 
     """
-    #if self.debug & 0x04 :
-    print("var_set_value ", val, " : ", prop)
+    if self.debug & 0x04 :
+	print("var_set_value ", val, " : ", prop)
     varid = self._var_get_id(var)
+
+    if isinstance(val, str) and  not val.isdigit() :
+	raise IsyValueError("var_set_value: value must be an int")
+    else :
+	val = int(val)
+
+    if val > 2147483647 or val < -2147483648 :
+	raise IsyValueError("var_set_value: value larger then a signed int")
+
     if not varid :
-	raise LookupError("var_set_value: unknown var : " + str(var) )
+	raise IsyPropertyError("var_set_value: unknown var : " + str(var) )
     if not prop in ['init', 'val'] :
-	raise TypeError("var_set_value: unknown propery : " + str(prop) )
+	raise IsyPropertyError("var_set_value: unknown propery : " + str(prop) )
     self._var_set_value(varid, val, prop)
 
 def _var_set_value(self, varid, val, prop="val") :
@@ -98,14 +111,17 @@ def _var_set_value(self, varid, val, prop="val") :
     if prop == "init" :
 	xurl = "/rest/vars/init/" + a[0] + "/" + a[1] + "/" + str(val)
     else :
-	xurl = "/rest//vars/set/" + a[0] + "/" + a[1] + "/" + str(val)
+	xurl = "/rest/vars/set/" + a[0] + "/" + a[1] + "/" + str(val)
+    if self.debug & 0x02 : print("xurl = " + xurl)
     resp = self._getXMLetree(xurl)
-    if resp.attrib["succeeded"] != 'true' :
-	raise IsyResponseError("Var Value Set error : var=%s prop=%s val=%s" %
-		varid, prop, str(val) )
-    self._printdict(self._vardict[varid])
-    self._vardict[varid][prop] = int(val)
-    self._printdict(self._vardict[varid])
+
+    # pprint.pprint(resp)
+    if resp == None or resp.attrib["succeeded"] != 'true' :
+	raise IsyResponseError("Var Value Set error : var={!s} prop={!s} val={!s}".format(varid, prop, val))
+    if not self.eventupdates and hasattr(self, '_vardict') :
+	# self._printdict(self._vardict[varid])
+	self._vardict[varid][prop] = int(val)
+	# self._printdict(self._vardict[varid])
     return
 
 def var_get_value(self, var, prop="val") :

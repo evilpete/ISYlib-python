@@ -76,7 +76,6 @@ Exception Classes :
 	IsyPropertyError
 	IsyValueError
 	IsyInvalidCmdError
-	IsyPropertyValueError
 	IsyAttributeError
 
     UpnpLimitExpired

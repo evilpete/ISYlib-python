@@ -421,7 +421,8 @@ def node_set_prop(self, naddr, prop, val) :
     #       pass
     # self._node_set_prop(naddr, prop, val)
     self._node_send(naddr, "set", prop, val)
-    self._updatenode(naddr)
+    if not self.eventupdates :
+	self._updatenode(naddr)
 
 # to  replace _node_set_prop and _node_comm
 def _node_send(self, naddr, action,  prop, *args) :
@@ -432,7 +433,7 @@ def _node_send(self, naddr, action,  prop, *args) :
     if self.debug & 0x02 : print("xurl = " + xurl)
     resp = self._getXMLetree(xurl)
     self._printXML(resp)
-    if resp.attrib["succeeded"] != 'true' :
+    if resp == None or resp.attrib["succeeded"] != 'true' :
 	raise IsyResponseError(
 		"Node Cmd/Property Set error : node=%s prop=%s val=%s" %
 		naddr, prop, val )
@@ -472,7 +473,8 @@ def node_comm(self, naddr, cmd, *args) :
 
     #self._node_comm(node_id, cmd_id, args)
     self._node_send(node_id, "cmd", cmd_id, args)
-    self._updatenode(naddr)
+    if not self.eventupdates :
+	self._updatenode(naddr)
 
 #
 # Send command to Node without all the arg checking

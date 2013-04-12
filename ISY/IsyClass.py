@@ -157,12 +157,13 @@ class Isy(IsyUtil):
         if self.debug & 0x02:
             print("baseurl: " + self.baseurl + " : " + userl + " : " + userp)
 
-	try:
-	    self.load_conf()
-	except URLError as e:
-	    print("Unexpected error:", sys.exc_info()[0])
-	    print 'Problem connecting with ISY device'
-	    raise IsyCommunicationError(e)
+	if self.faststart < 2 :
+	    try:
+		self.load_conf()
+	    except URLError as e:
+		print("Unexpected error:", sys.exc_info()[0])
+		print 'Problem connecting with ISY device'
+		raise IsyCommunicationError(e)
 
         if not self.faststart :
             self.load_nodes()
@@ -211,12 +212,13 @@ class Isy(IsyUtil):
         self.event_thread.start()
 
         self.eventupdates = True
-        print(self.event_thread)
+        # print(self.event_thread)
 
     def stop_event_tread(self) :
 	""" Stop update thread """
 	if hasattr(self._isy_event, "_shut_down") :
 	    self._isy_event._shut_down = 1
+        self.eventupdates = False
 
     # @staticmethod
     def _read_event(self, evnt_dat, *arg) :
