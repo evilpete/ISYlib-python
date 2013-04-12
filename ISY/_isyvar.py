@@ -1,7 +1,6 @@
 from ISY.IsyVarClass import IsyVar
-from ISY.IsyExceptionClass import IsyValueError, IsyResponseError
+from ISY.IsyExceptionClass import IsyValueError, IsyResponseError, IsyPropertyError
 
-IsyResponseError
 import string
 # import pprint
 
