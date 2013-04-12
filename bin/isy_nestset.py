@@ -4,7 +4,6 @@
     and set vars in a ISY home automation device 
 """
 
-
 import nest
 import sys
 import os
@@ -20,6 +19,13 @@ from ISY.IsyExceptionClass import IsyValueError, IsyResponseError, IsyPropertyEr
 
 uuser=os.getenv('NEST_USER', None)
 upass=os.getenv('NEST_PASS', None)
+
+temperature_vars = ( "away_temperature_high", "away_temperature_low",
+		    "current_temperature", "target_temperature",
+		    "target_temperature_high", "target_temperature_low",
+		    "temperature_lock_high_temp", "temperature_lock_low_temp",
+		    "upper_safety_temp", "lower_safety_temp" )
+
 
 #
 # Some of the following code was outright copy/pasted from pynest
@@ -57,26 +63,41 @@ def main() :
     myisy.load_vars()
 
     # for debug
-    targs = ( "1:38=current_temperature",
-		"nest_humidity=current_humidity",
-		"nest_away=away")
+#    args = ( "1:38=current_temperature",
+#		"nest_humidity=current_humidity",
+#		"nest_away=away")
 
     for var_arg in args :
 	(isy_var, src_var) = var_arg.split('=')
 
-	if src_var not in nest_values:
-	    print "Invalid nest var :", src_var
+	# check we got two value names
+	if (not isy_var) or (not src_var):
+	    warn("Invalid arg  : {0}".format(var_arg), RuntimeWarning)
 	    next
 
+	# check if net value name is valid
+	if src_var not in nest_values:
+	    warn("Invalid Nest Value : {0}".format(isy_var), RuntimeWarning)
+	    next
+
+	# convert temperature to F
+	# we can't convert in place since the value may be used twice
+	if src_var in temperature_vars and not opts.celsius:
+	    set_value = nest_values[src_var] *1.8 + 32.0
+	else :
+	    set_value = nest_values[src_var]
+
+
 	try :
-	    myisy.var_set_value(isy_var, int(nest_values[src_var]))
+	    # this will raise an error if there is a problem with name or set_value 
+	    myisy.var_set_value(isy_var, int(set_value))
 
 	except IsyPropertyError :
 	    warn("Invalid Isy Var : {0}".format(isy_var), RuntimeWarning)
 	    next
-	except IsyValueError :
+	except (IsyValueError , ValueError):
 	    print "invalid value :", nest_values[src_var]
-	    warn("Invalid value for ISY var: {0}".format(nest_values[src_var]),
+	    warn("Invalid value for ISY var: {0}".format(set_value),
 		    RuntimeWarning)
 	    next
 	except :
@@ -86,15 +107,19 @@ def main() :
 	    exit(0)
 	else :
 	    if opts.verbose :
-		print isy_var,"=", int(nest_values[src_var])
+		print isy_var,"=", int(set_value)
+
+    # end of main
+    return
 
 
 
-
-#    if "$timestamp" in shared :
-#	ti = shared["$timestamp"] // 1000
-#	sha_time = time.strftime("%m%d%H%M%S", time.localtime(ti)).lstrip('0')
-#	print "shared timestamp", shared["$timestamp"], time.ctime(ti), sha_time
+# convert time stamp into someting we can pass along
+#    if src_var == "$timestamp" :
+#	ti = nest_values["$timestamp"] // 1000
+#	set_value = time.strftime("%m%d%H%M%S", time.localtime(ti)).lstrip('0')
+#	print "shared timestamp", nest_values["$timestamp"],
+#              time.ctime(ti), set_value
 #
 
 
@@ -143,6 +168,8 @@ def help():
     print "    nest.py --user joe@user.com --password swordfish home_temp=current_temperature"
     print "    nest.py --user joe@user.com --password swordfish show"
 
+    # end of help
+    return
 
 if __name__=="__main__":
     main()
