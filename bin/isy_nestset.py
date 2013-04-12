@@ -2,6 +2,8 @@
 """
     a demo app that uses pynest to read values from the Nest
     and set vars in a ISY home automation device 
+
+    See also : https://github.com/smbaker/pynest
 """
 
 import nest
