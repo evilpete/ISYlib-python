@@ -96,7 +96,7 @@ class Isy(IsyUtil):
 
     """
 
-    from _isywol import load_wol, wol, _get_wol_id, wol_names, wol_iter
+    from _isywol import load_wol, wol, _wol_get_id, wol_names, wol_iter
     from _isyclimate import load_clim, clim_get_val, clim_query, clim_iter
     from _isyvar  import load_vars, var_set_value, _var_set_value, \
 		var_get_value, var_addrs, get_var, _var_get_id, \
@@ -105,7 +105,7 @@ class Isy(IsyUtil):
 		prog_iter, prog_comm, _prog_comm
     from _isynode import load_nodes, _gen_member_list, _gen_folder_list, \
 		_gen_nodegroups, _gen_nodedict, node_names, scene_names, \
-		node_addrs, scene_addrs, get_node, _get_node_id, node_get_prop, \
+		node_addrs, scene_addrs, get_node, _node_get_id, node_get_prop, \
 		node_set_prop, _node_send, node_comm, _updatenode, \
 		load_node_types, node_get_type, node_iter, _updatenode
     from _isynet_re import load_net_resources, net_resource_run, \
@@ -618,7 +618,7 @@ class Isy(IsyUtil):
 	    self._printXML(resp)
 	    return et2d(resp)
 
-    def electricity
+    def electricity():
 	""" 
 	Returns electricity module info and specifically Energy Monitor,
 	Open ADR and Flex Your Power status
