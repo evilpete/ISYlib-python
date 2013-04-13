@@ -30,8 +30,9 @@ def load_wol(self) :
 	if "id" in wdict :
 	    self.wolinfo[str(wdict["id"])] = wdict
 	    self.name2wol[wdict["name"].upper()] = wdict["id"]
-    # self._printdict(self.wolinfo)
-    # self._printdict(self.name2wol)
+    self._printdict(self.wolinfo)
+    #self._printdict(self.name2wol)
+    self._writedict(self.wolinfo, "wolinfo.txt")
 
 def wol(self, wid) :
     """
@@ -40,7 +41,7 @@ def wol(self, wid) :
 
     wol_id = self._wol_get_id(wid)
 
-    wol_id = str(wid).upper()
+    # wol_id = str(wid).upper()
 
     if wol_id == None :
 	raise IsyValueError("bad wol ID : " + wid)
@@ -59,7 +60,7 @@ def wol(self, wid) :
 def _wol_get_id(self, name) :
     """ wol name to wol ID """
     try:
-	self.self.wolinfo
+	self.wolinfo
     except AttributeError:
 	self.load_wol()
     name = str(name).upper()
@@ -78,7 +79,7 @@ def wol_names(self) :
     returns List of WOL names and IDs or None
     """
     try:
-	self.self.wolinfo
+	self.wolinfo
     except AttributeError:
 	self.load_wol()
     return self.name2wol.keys()
@@ -87,7 +88,7 @@ def wol_names(self) :
 def wol_iter():
     """ Iterate though Wol Ids values """
     try:
-	self.self.wolinfo
+	self.wolinfo
     except AttributeError:
 	self.load_wol()
     k = self.wolinfo.keys()
@@ -95,3 +96,12 @@ def wol_iter():
 	yield p
 
 
+# Do nothing
+# (syntax check)
+#
+if __name__ == "__main__":
+    import __main__
+    print(__main__.__file__)
+
+    print("syntax ok")
+    exit(0)
