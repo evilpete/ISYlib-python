@@ -8,7 +8,7 @@ def list_units() :
     fmt = "%-25s %-25s %s"
     print(fmt % ("Device Name", "Device Number", "URL Address" ))
     print(fmt % ("-" * 20, "-" * 20, "-" * 20 ))
-    r = isy_discover(timeout=5)
+    r = isy_discover(timeout=5, count=2)
     for key, unit in r.items() :
         print(fmt % ( unit['friendlyName'], unit['UDN'], unit['URLBase']  ))
 
