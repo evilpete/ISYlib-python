@@ -98,10 +98,18 @@ class Isy(IsyUtil):
 
     from _isywol import load_wol, wol, _get_wol_id, wol_names, wol_iter
     from _isyclimate import load_clim, clim_get_val, clim_query, clim_iter
-    from _isyvar  import load_vars, var_set_value, _var_set_value, var_get_value, var_addrs, get_var, _var_get_id, var_get_type, var_iter
-    from _isyprog import load_prog, get_prog, _prog_get_id, prog_iter, prog_comm, _prog_comm
-    from _isynode import load_nodes, _gen_member_list, _gen_folder_list, _gen_nodegroups, _gen_nodedict, node_names, scene_names, node_addrs, scene_addrs, get_node, _get_node_id, node_get_prop, node_set_prop, _node_send, node_comm, _updatenode, load_node_types, node_get_type, node_iter, _updatenode
-
+    from _isyvar  import load_vars, var_set_value, _var_set_value, \
+		var_get_value, var_addrs, get_var, _var_get_id, \
+		var_get_type, var_iter
+    from _isyprog import load_prog, get_prog, _prog_get_id, \
+		prog_iter, prog_comm, _prog_comm
+    from _isynode import load_nodes, _gen_member_list, _gen_folder_list, \
+		_gen_nodegroups, _gen_nodedict, node_names, scene_names, \
+		node_addrs, scene_addrs, get_node, _get_node_id, node_get_prop, \
+		node_set_prop, _node_send, node_comm, _updatenode, \
+		load_node_types, node_get_type, node_iter, _updatenode
+    from _isynet_re import load_net_resources, net_resource_run, \
+		net_resource_iter, net_resource_names, _net_resource_get_id
 
 ##    set_var_value, _set_var_value, var_names
 
@@ -531,6 +539,7 @@ class Isy(IsyUtil):
 
         print("X10 sent : " + str(unit) + " : " + str(xcmd))
         xurl = "/rest/X10/" + str(unit) + "/" + str(xcmd)
+        if self.debug & 0x02 : print("xurl = " + xurl)
         resp = self._getXMLetree(xurl)
         #self._printXML(resp)
         #self._printinfo(resp)
@@ -550,18 +559,21 @@ class Isy(IsyUtil):
 
     def subscriptions( self) :
 	xurl = "/rest/subscriptions"
+        if self.debug & 0x02 : print("xurl = " + xurl)
 	resp = self._getXMLetree(xurl)
 	self._printXML(resp)
 	return et2d(resp)
 
     def network( self) :
 	xurl = "/rest/network"
+        if self.debug & 0x02 : print("xurl = " + xurl)
 	resp = self._getXMLetree(xurl)
 	self._printXML(resp)
 	return et2d(resp)
 
     def sys( self) :
 	xurl = "/rest/sys"
+        if self.debug & 0x02 : print("xurl = " + xurl)
 	resp = self._getXMLetree(xurl)
 	self._printXML(resp)
 	return et2d(resp)
@@ -580,7 +592,7 @@ class Isy(IsyUtil):
 	elif on == 1 :
 	    xurl += "/on"
 
-	print "get --"
+        if self.debug & 0x02 : print("xurl = " + xurl)
 	resp = self._getXMLetree(xurl)
 	if resp == None :
 	    print 'The server couldn\'t fulfill the request.'
@@ -600,11 +612,26 @@ class Isy(IsyUtil):
 	elif on == 1 :
 	    xurl += "/on"
 
-	print "get --"
+        if self.debug & 0x02 : print("xurl = " + xurl)
 	resp = self._getXMLetree(xurl)
 	if resp != None :
 	    self._printXML(resp)
 	    return et2d(resp)
+
+    def electricity
+	""" 
+	Returns electricity module info and specifically Energy Monitor,
+	Open ADR and Flex Your Power status
+	Only applicable to 994 Z Series.
+	"""
+	xurl = "/rest/electricity"
+        if self.debug & 0x02 :
+            print("xurl = " + xurl)
+	resp = self._getXMLetree(xurl)
+	if resp != None :
+	    self._printXML(resp)
+	    return et2d(resp)
+
 
     ##
     ## support funtions
