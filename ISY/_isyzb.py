@@ -16,23 +16,31 @@ def zb_scannetwork():
 def zb_ntable():
     pass
 
-def get_node():
+def get_zbnode():
     pass
 
-def node_addrs():
+def zbnode_addrs():
     pass
 
-def node_names():
+def zbnode_names():
     pass
 
-def _node_get_id():
+def _zbnode_get_id():
     pass
 
-def node_comm():
+def zbnode_comm():
     pass
 
-def node_iter():
+def zbnode_iter():
     pass
 
 
+# Do nothing
+# (syntax check)
+#
+if __name__ == "__main__":
+    import __main__
+    print(__main__.__file__)
 
+    print("syntax ok")
+    exit(0)

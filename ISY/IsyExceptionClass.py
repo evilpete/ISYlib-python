@@ -58,7 +58,7 @@ class IsyNodeError(IsyError):
     """General exception for Node errors."""
     pass
 
-class IsyResponseError(IsyError):
+class IsyResponseError(IsyError,RuntimeError):
     """General exception for Isy responce errors."""
     pass
 

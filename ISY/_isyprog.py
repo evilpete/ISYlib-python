@@ -144,3 +144,12 @@ def _prog_comm(self, prog_id, cmd) :
 
 
 
+# Do nothing
+# (syntax check)
+#
+if __name__ == "__main__":
+    import __main__
+    print(__main__.__file__)
+
+    print("syntax ok")
+    exit(0)

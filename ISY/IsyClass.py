@@ -96,7 +96,6 @@ class Isy(IsyUtil):
 
     """
 
-    from _isywol import load_wol, wol, _wol_get_id, wol_names, wol_iter
     from _isyclimate import load_clim, clim_get_val, clim_query, clim_iter
     from _isyvar  import load_vars, var_set_value, _var_set_value, \
 		var_get_value, var_addrs, get_var, _var_get_id, \
@@ -108,8 +107,12 @@ class Isy(IsyUtil):
 		node_addrs, scene_addrs, get_node, _node_get_id, node_get_prop, \
 		node_set_prop, _node_send, node_comm, _updatenode, \
 		load_node_types, node_get_type, node_iter, _updatenode
-    from _isynet_re import load_net_resources, net_resource_run, \
-		net_resource_iter, net_resource_names, _net_resource_get_id
+    from _isynet_resources import _load_networking, load_net_resource, \
+		_net_resource_get_id, net_resource_run, \
+		net_resource_names, net_resource_iter, \
+		load_net_wol, net_wol, _net_wol_get_id, net_wol_names, net_wol_iter
+
+
 
 ##    set_var_value, _set_var_value, var_names
 
@@ -695,7 +698,7 @@ class Isy(IsyUtil):
     def _writedict(self, d, filen):
         """ Pretty Print dict to file  """
         fi = open(filen, 'w')
-        pprint(d)
+        pprint.pprint(d, fi)
         fi.close()
 
 

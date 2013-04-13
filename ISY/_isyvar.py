@@ -265,3 +265,12 @@ def var_iter(self, vartype=0):
 	    yield self.get_var(v)
 
 
+# Do nothing
+# (syntax check)
+#
+if __name__ == "__main__":
+    import __main__
+    print(__main__.__file__)
+
+    print("syntax ok")
+    exit(0)

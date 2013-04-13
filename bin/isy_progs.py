@@ -6,7 +6,7 @@ import ISY
 import pprint
  
   
-myisy= ISY.Isy(addr="10.1.1.36", debug=2)
+myisy= ISY.Isy(debug=2)
    
 myisy.load_prog()
 

@@ -12,9 +12,9 @@ all:
 
 t: style
 
-FILES= ISY/IsyClass.py ISY/IsyExceptionClass.py ISY/IsyNodeClass.py ISY/IsyProgramClass.py ISY/IsyUtilClass.py ISY/IsyVarClass.py ISY/__init__.py ISY/IsyDiscover.py ISY/IsyEventData.py ISY/IsyEvent.py ISY/_isyclimate.py ISY/_isynode.py ISY/_isyvar.py ISY/_isywol.py
+FILES= ISY/IsyClass.py ISY/IsyExceptionClass.py ISY/IsyNodeClass.py ISY/IsyProgramClass.py ISY/IsyUtilClass.py ISY/IsyVarClass.py ISY/__init__.py ISY/IsyDiscover.py ISY/IsyEventData.py ISY/IsyEvent.py ISY/_isyclimate.py ISY/_isynode.py ISY/_isyvar.py ISY/_isynet_resources.py
 
-BINFILES= bin/isy_find.py bin/isy_nodes.py bin/isy_log.py  bin/isy_progs.py bin/isy_showevents.py bin/isy_var.py bin/isy_nestset.py
+BINFILES= bin/isy_find.py bin/isy_nodes.py bin/isy_log.py  bin/isy_progs.py bin/isy_showevents.py bin/isy_var.py bin/isy_nestset.py bin/isy_net_wol.py
 
 README.txt:  ${FILES}
 	pydoc ISY > README.txt
