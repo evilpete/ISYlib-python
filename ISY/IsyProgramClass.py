@@ -44,6 +44,7 @@ class IsyProgram(IsySubClass):
     _boollist = [ "enabled", "folder", "status", "runAtStartup"]
 
     def get_prog_enable(self):
+	""" check if prog is enabled (bool) """
         en = self._get_prop("enabled")
 	return bool( en == "true" )
     def set_prog_enable(self, en):
@@ -58,6 +59,7 @@ class IsyProgram(IsySubClass):
     enabled = property(get_prog_enable, set_prog_enable)
 
     def get_prog_runatstart(self):
+	""" check property runAtStartup (bool) """
         en = self._get_prop("runAtStartup")
 	return bool( en == "true" )
     def set_prog_runatstart(self, en):
@@ -69,7 +71,7 @@ class IsyProgram(IsySubClass):
 	   self.isy.prog_comm(self._mydict[id], "disableRunAtStartup")
 	self._mydict["runAtStartup"] = rval
         return rval
-    enabled = property(get_prog_enable, set_prog_enable)
+    enabled = property(get_prog_runatstart, set_prog_runatstart)
 
 #    def get_prog_folder(self):
 #       return self._get_prop("folder")
