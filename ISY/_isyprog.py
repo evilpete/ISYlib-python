@@ -105,10 +105,14 @@ def prog_iter(self):
     for v in k :
 	yield self.get_prog(v)
 
+prog_valid_comm = ['run', 'runThen', 'runElse',
+		'stop', 'enable', 'disable',
+		'enableRunAtStartup', 'disableRunAtStartup']
+
+def prog_cmd_list(self) :
+    return prog_valid_comm[:]
+
 def prog_comm(self, paddr, cmd) :
-    valid_comm = ['run', 'runThen', 'runElse', 'stop',
-		    'enable', 'disable',
-		    'enableRunAtStartup', 'disableRunAtStartup']
     prog_id = self._prog_get_id(paddr)
 
     #print("self.controls :", self.controls)
@@ -118,7 +122,7 @@ def prog_comm(self, paddr, cmd) :
 	raise IsyInvalidCmdError("prog_comm: unknown node : " +
 	    str(paddr) )
 
-    if not cmd in valid_comm :
+    if not cmd in prog_valid_comm :
 	raise IsyInvalidCmdError("prog_comm: unknown command : " +
 	    str(cmd) )
 

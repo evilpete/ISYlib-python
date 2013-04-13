@@ -41,22 +41,33 @@ class IsyProgram(IsySubClass):
     _setlist = [ 'enabled' ]
     _propalias = { 'val':  'status', 'value': 'status',
             'addr': 'id', 'address': 'id' }
-    _boollist = [ "enabled", "folder", "status"]
+    _boollist = [ "enabled", "folder", "status", "runAtStartup"]
 
     def get_prog_enable(self):
         en = self._get_prop("enabled")
 	return bool( en == "true" )
     def set_prog_enable(self, en):
-
 	rval = val2bool(en)
+	#print "set_prog_enable ", rval
+        if rval :
+	   self.isy.prog_comm(self._mydict[id], "enable")
+        else :
+	   self.isy.prog_comm(self._mydict[id], "disable")
+	self._mydict["enabled"] = rval
+        return rval
+    enabled = property(get_prog_enable, set_prog_enable)
 
-	print "set_prog_enable ", rval
-
-#        if rval :
-#	   self.isy.prog_comm(self._mydict[id], "enable")
-#        else :
-#	   self.isy.prog_comm(self._mydict[id], "disable")
-
+    def get_prog_runatstart(self):
+        en = self._get_prop("runAtStartup")
+	return bool( en == "true" )
+    def set_prog_runatstart(self, en):
+	rval = val2bool(en)
+	#print "set_prog_enable ", rval
+        if rval :
+	   self.isy.prog_comm(self._mydict[id], "runAtStartup")
+        else :
+	   self.isy.prog_comm(self._mydict[id], "disableRunAtStartup")
+	self._mydict["runAtStartup"] = rval
         return rval
     enabled = property(get_prog_enable, set_prog_enable)
 
