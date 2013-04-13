@@ -38,7 +38,7 @@ def wol(self, wid) :
 	Send Wake On LAN to registared wol ID
     """
 
-    wol_id = self._get_wol_id(wid)
+    wol_id = self._wol_get_id(wid)
 
     wol_id = str(wid).upper()
 
@@ -56,7 +56,7 @@ def wol(self, wid) :
 	    + str(wol_id))
 
 
-def _get_wol_id(self, name) :
+def _wol_get_id(self, name) :
     """ wol name to wol ID """
     try:
 	self.self.wolinfo
