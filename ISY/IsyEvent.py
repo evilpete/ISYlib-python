@@ -446,7 +446,24 @@ class ISYEventConnection(object):
             + "Content-Type: text/xml; charset=\"utf-8\"\r\n" \
             + "\r\n\r\n"
 
-        post = post_head + post_body
+
+        req = URL.Request(xurl)
+        # print("_getXMLetree : self._opener.open ")
+	# HTTPError
+	try :
+	    res = self._opener.open(req, None, timeout)
+	    data = res.read()
+	    # print("res.getcode() ", res.getcode(), len(data))
+	    res.close()
+	except URL.HTTPError, e:       
+	    self.error_str = str("Reponse Code : {0}" ).format(e.code)
+	    return None
+	else :
+	    if len(self.error_str) : self.error_str = ""
+	    if len(data) :
+		return ET.fromstring(data)
+	    else :
+		return None
 
         if self.debug & 0x02:
             print(post)

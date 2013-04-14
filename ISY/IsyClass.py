@@ -39,6 +39,7 @@ from ISY.IsyProgramClass import *
 #from ISY.IsyVarClass import IsyVar
 from ISY.IsyExceptionClass import  *
 from ISY.IsyEvent import ISYEvent
+from ISY.IsySoap import IsySoap
 
 # Debug Flags:
 # 0x01 = report loads
@@ -121,15 +122,18 @@ class Isy(IsyUtil):
         _password_mgr = URL.HTTPPasswordMgrWithDefaultRealm()
         _handler = URL.HTTPBasicAuthHandler(_password_mgr)
         _opener = URL.build_opener(_handler)
+	# URL.HTTPHandler(debuglevel=1) 
     else:
         _password_mgr = URL.request.HTTPPasswordMgrWithDefaultRealm()
         _handler = URL.request.HTTPBasicAuthHandler(_password_mgr)
         _opener = URL.request.build_opener(_handler)
 
-    def __init__(self, userl="admin", userp="admin", **kwargs):
+    def __init__(self, **kwargs):
         #
         # Keyword args
         #
+	self.userl = kwargs.get("userl", "admin")
+	self.userp = kwargs.get("userp", "admin")
         self.debug = kwargs.get("debug", 0)
         self.cachetime = kwargs.get("cachetime", 0)
         self.faststart = kwargs.get("faststart", 1)
@@ -137,6 +141,7 @@ class Isy(IsyUtil):
         self.addr = kwargs.get("addr", os.getenv('ISY_ADDR', None))
 	self._isy_event = None
 	self.error_str = ""
+	self.soap_client = None
 
         if self.addr == None :
             from ISY.IsyDiscover import isy_discover
@@ -162,11 +167,11 @@ class Isy(IsyUtil):
         #
         # general setup logic
         #
-        Isy._handler.add_password(None, self.addr, userl, userp)
+        Isy._handler.add_password(None, self.addr, self.userl, self.userp)
         # self._opener = URL.build_opener(Isy._handler, URL.HTTPHandler(debuglevel=1))
         # self._opener = URL.build_opener(Isy._handler)
         if self.debug & 0x02:
-            print("baseurl: " + self.baseurl + " : " + userl + " : " + userp)
+            print("baseurl: " + self.baseurl + " : " + self.userl + " : " + self.userp)
 
 	if self.faststart < 2 :
 	    try:
@@ -175,6 +180,10 @@ class Isy(IsyUtil):
 		print("Unexpected error:", sys.exc_info()[0])
 		print 'Problem connecting with ISY device'
 		raise IsyCommunicationError(e)
+
+
+        if kwargs.get("usesoap", False) :
+	    self.soap_client = IsySoap(self)
 
         if not self.faststart :
             self.load_nodes()
@@ -451,6 +460,15 @@ class Isy(IsyUtil):
             return self.name2control[c]
         return None
 
+    ##
+    ## Soap
+    ##
+    def get_soap(self) :
+	if not self.soap_client :
+	    self.soap_client = IsySoap(self)
+
+	return self.soap_client
+
 
     ##
     ## Logs
@@ -560,28 +578,28 @@ class Isy(IsyUtil):
 # /rest/subscriptions
 # Returns the state of subscriptions
 
-    def subscriptions( self) :
+    def subscriptions(self) :
 	xurl = "/rest/subscriptions"
         if self.debug & 0x02 : print("xurl = " + xurl)
 	resp = self._getXMLetree(xurl)
 	self._printXML(resp)
 	return et2d(resp)
 
-    def network( self) :
+    def network(self) :
 	xurl = "/rest/network"
         if self.debug & 0x02 : print("xurl = " + xurl)
 	resp = self._getXMLetree(xurl)
 	self._printXML(resp)
 	return et2d(resp)
 
-    def sys( self) :
+    def sys(self) :
 	xurl = "/rest/sys"
         if self.debug & 0x02 : print("xurl = " + xurl)
 	resp = self._getXMLetree(xurl)
 	self._printXML(resp)
 	return et2d(resp)
 
-    def time( self) :
+    def time(self) :
 	xurl = "/rest/time"
 	resp = self._getXMLetree(xurl)
 	self._printXML(resp)
@@ -604,11 +622,9 @@ class Isy(IsyUtil):
 	    self._printXML(resp)
 	    return resp
 
-	   
-
     #/rest/batterypoweredwrites
-    def batterypoweredwrites( self, on=-1) :
-	xurl = "/rest/batteryPoweredWrites/"
+    def batterypoweredwrites(self, on=-1) :
+	xurl = "rest/batteryPoweredWrites/"
 
 	if on == 0 :
 	    xurl += "/off"
@@ -621,12 +637,13 @@ class Isy(IsyUtil):
 	    self._printXML(resp)
 	    return et2d(resp)
 
-    def electricity():
+    def electricity(self):
 	""" 
 	Returns electricity module info and specifically Energy Monitor,
 	Open ADR and Flex Your Power status
 	Only applicable to 994 Z Series.
 	"""
+
 	xurl = "/rest/electricity"
         if self.debug & 0x02 :
             print("xurl = " + xurl)

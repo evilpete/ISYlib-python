@@ -70,6 +70,11 @@ class IsyValueError(IsyError,ValueError):
     """General exception for arg value errors."""
     pass
 
+# IsyInvalidValueError ??
+class IsyInvalidArgError(IsyError):
+    """General exception for command errors."""
+    pass
+
 class IsyInvalidCmdError(IsyError):
     """General exception for command errors."""
     pass
