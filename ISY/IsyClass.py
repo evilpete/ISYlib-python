@@ -20,6 +20,9 @@ import pprint
 import time
 from warnings import warn
 
+import collections
+
+
 
 
 
@@ -142,6 +145,7 @@ class Isy(IsyUtil):
 	self._isy_event = None
 	self.error_str = ""
 	self.soap_client = None
+	self.callbacks = dict ()
 
         if self.addr == None :
             from ISY.IsyDiscover import isy_discover
@@ -258,9 +262,13 @@ class Isy(IsyUtil):
 
         assert isinstance(evnt_dat, dict), "_read_event Arg must me dict"
 
+	event_targ = None
         if evnt_dat["control"] in skip :
             return
 
+	#
+	# Status/property changed
+	#
         if evnt_dat["control"] in ["ST", "RR", "OL"] :
             if evnt_dat["node"] in self._nodedict :
 		# ADD LOCK ON NODE DATA
@@ -268,6 +276,8 @@ class Isy(IsyUtil):
                 # print("===a :", ar)
                 #print(self._nodedict[evnt_dat["node"]])
                 target_node =  self._nodedict[evnt_dat["node"]]
+
+		event_targ = evnt_dat["node"]
 
                 # create property if we do not have it yet
                 if not evnt_dat["control"] in target_node["property"] :
@@ -289,16 +299,21 @@ class Isy(IsyUtil):
 	    print("Node Change/Updated Event :  {0}".format(evnt_dat["node"]))
 	    print("evnt_dat : ", evnt_dat)
 
+	#
         # handle VAR value change
+	#
         elif evnt_dat["control"] == "_1" :
             # Var Status / Initialized
             if evnt_dat["action"] == "6" or  evnt_dat["action"] == "7" :
                 var_eventInfo =  evnt_dat['eventInfo']['var']
                 vid = var_eventInfo['var-type'] + ":" + var_eventInfo['var-id']
+
                 # check if the event var exists in out world
                 if vid in self._vardict :
 		    # ADD LOCK ON VAR DATA
                     # copy var properties from event
+
+		    event_targ = vid
 
 		    self._vardict[vid].update(var_eventInfo)
 
@@ -311,6 +326,16 @@ class Isy(IsyUtil):
         else:
             print("evnt_dat :", evnt_dat)
             print("Event fall though : '{0}'".format(evnt_dat["node"]))
+
+	if event_targ in self.callbacks :
+	    cb = self.callbacks[event_targ]
+	    if isinstance(cb[0], collections.Callable) :
+		cb[0](evnt_dat, *cb[1])
+	    else :
+		print "callbacks for event_targ not callablei, deleting callback"
+		del self.callbacks[event_targ]
+
+	return
 
 
 
@@ -652,9 +677,47 @@ class Isy(IsyUtil):
 	    self._printXML(resp)
 	    return et2d(resp)
 
+    ##
+    ## Callback functions
+    ##
+    def callback_set(self, id, func, *args):
+	"""set a callback funtion for Nodes
+	funtion will be called when  there is a change event for
+	specified node
+	"""
+
+	if not isinstance(func, collections.Callable) :
+	    raise IsyValueError("callback_set : Invalid Arg, function not callable")
+	    # func.__repr__()
+
+	id == self._node_get_id(id)
+	if id == None :
+	    raise LookupError("no such Node : " + str(id) )
+
+	self.callbacks[id] = (func, args)
+
+    def callback_get(self, id):
+	"""get a callback funtion for Nodes, if exists.
+	    no none exist then value None is returned
+	"""
+
+	id == self._node_get_id(id)
+
+	if id != None and id in self.callbacks :
+	    return self.callbacks[id]
+	
+	return None
+
+    def callback_del(self, id):
+	"""delete a callback funtion for a Node, if exists.
+	     no error is raised if callback does not exist
+	"""
+	id == self._node_get_id(id)
+	if id != None and id in self.callbacks :
+	    del self.callbacks[id]
 
     ##
-    ## support funtions
+    ## support functions
     ##
     def _printinfolist(self, uobj, ulabel="_printinfo"):
         print("\n\n" + ulabel + " : ")
