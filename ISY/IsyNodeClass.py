@@ -341,6 +341,9 @@ class IsyNode(_IsyNodeBase):
 #    def beep(self) :
 #        self.isy._node_send(self._mydict["address"], "cmd", "BEEP")
 
+    def rename(self, newname) :
+	self.isy.call_soap_method("RenameNode",
+			self._mydict["address"], newwname)
     #
     #
     #
@@ -431,6 +434,10 @@ class IsyScene(_IsyNodeBase):
                 return obj._get_prop("address") in self._mydict["members"]
         return False
 
+    def rename(self, newname) :
+	self.isy.call_soap_method("RenameGroup",
+			self._mydict["address"], newwname)
+
     def member_iter(self, flag=0):
         if "members" in self._mydict :
             for k in list(self._mydict["members"].keys()) :
@@ -463,6 +470,10 @@ class IsyNodeFolder(_IsyNodeBase):
     def _gettype(self):
         return "folder"
     type = property(_gettype)
+
+    def rename(self, newname) :
+	self.isy.call_soap_method("RenameFolder",
+			self._mydict["address"], newwname)
 
     def __iter__(self):
         return self.member_iter()

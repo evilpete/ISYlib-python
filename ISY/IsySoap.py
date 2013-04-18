@@ -78,9 +78,9 @@ known methods ( what is avalible varies by release )
 
 try:
     from suds.client import Client
-    heterodox = 0
+    no_suds_import = 0
 except ImportError :
-    heterodox = 1
+    no_suds_import = 1
 
 import sys
 
@@ -107,6 +107,10 @@ heterodox_methods = [ "Reboot" ]
 
 class IsySoap(object) :
 
+    def _reb(self) :
+	print "_reb"
+	return
+
     def __init__(self, isy) :
 
 	print "IsySoap: __init__"
@@ -123,6 +127,8 @@ class IsySoap(object) :
 	else :
 	    print "No Suds, using unorthodox method"
 	self.opener = isy._opener
+	setattr(self, "reb", self.client.service.Reboot)
+	setattr(self, "starttime", self.client.service.GetStartupTime)
 
 
     def list_methods(self) :

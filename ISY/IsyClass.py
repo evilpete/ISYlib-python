@@ -24,6 +24,11 @@ import collections
 
 
 
+try:
+    from suds.client import Client
+    suds_import = 1
+except ImportError :
+    suds_import = 0
 
 
 
@@ -66,6 +71,9 @@ from ISY.IsySoap import IsySoap
 # 0x40 =
 # 0x80 =
 #
+
+pro_models = [ 1100, 1110, 1040, 1050 ]
+
 __all__ = ['Isy']
 
 
@@ -138,6 +146,7 @@ class Isy(IsyUtil):
 	self.userl = kwargs.get("userl", "admin")
 	self.userp = kwargs.get("userp", "admin")
         self.debug = kwargs.get("debug", 0)
+        self.usesoap = kwargs.get("usesoap", suds_import)
         self.cachetime = kwargs.get("cachetime", 0)
         self.faststart = kwargs.get("faststart", 1)
         self.eventupdates = kwargs.get("eventupdates", 0)
@@ -146,6 +155,7 @@ class Isy(IsyUtil):
 	self.error_str = ""
 	self.soap_client = None
 	self.callbacks = dict ()
+        self._is_pro = True
 
         if self.addr == None :
             from ISY.IsyDiscover import isy_discover
@@ -185,9 +195,6 @@ class Isy(IsyUtil):
 		print 'Problem connecting with ISY device'
 		raise IsyCommunicationError(e)
 
-
-        if kwargs.get("usesoap", False) :
-	    self.soap_client = IsySoap(self)
 
         if not self.faststart :
             self.load_nodes()
@@ -354,6 +361,45 @@ class Isy(IsyUtil):
 
 
     #
+    # Soap Calls
+    #
+    def call_soap_method(self, meth_name, *arg):
+	print "IsySoap: call_method"
+
+	if not self.usesoap :
+	    print "Cant call_method : no soap"
+	    return
+
+	if self.soap_client == Null :
+	    self.soap_client = self._get_soap_client()
+
+	if not isinstance(meth_name, str) or not len(meth_name) :
+	    raise IsyValueError("Method name missing")
+
+	meth = getattr(self.soap_client.service, meth_name)
+
+	if not meth :
+            raise IsyPropertyError("Method not found: {!s}".format(meth_name))
+
+	res = meth(*arg)
+	return res
+
+    def _get_soap_client(self) :
+
+	xurl = self.baseurl + '/services.wsdl'
+
+	if self.debug & 0x02 :
+	    print("xurl = " + xurl)
+
+	self.csoap_client = Client(xurl, username=self.userl,
+		    password=self.userp, faults=False)
+
+
+    def reboot(self) :
+	self.call_soap_method(Reboot)
+	#self.client.service.Reboot()
+
+    #
     #  Util Funtions
     #
     def _preload(self, mask=0, reload=0):
@@ -448,11 +494,17 @@ class Isy(IsyUtil):
                         = cprop["name"].upper()
 
         self.config = dict ()
-        for v in ( "platform", "app_version" ):
+        for v in ( "platform", "app_version", "driver_timestamp",
+		    "app", " build_timestamp" ):
             n = self.configinfo.find(v)
             if not n is None:
                 if isinstance(n.text, str):
                     self.config[v] = n.text
+	xelm = self.configinfo.find("product/id")
+	if not xelm is None:
+	    if hasattr(xelm, 'text') :
+		self.config["product_id"] = xelm.text
+
 
         # print("self.controls : ", self.controls)
         #self._printdict(self.controls)
@@ -484,15 +536,6 @@ class Isy(IsyUtil):
         if c in self.name2control :
             return self.name2control[c]
         return None
-
-    ##
-    ## Soap
-    ##
-    def get_soap(self) :
-	if not self.soap_client :
-	    self.soap_client = IsySoap(self)
-
-	return self.soap_client
 
 
     ##
