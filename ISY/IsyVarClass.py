@@ -17,8 +17,6 @@ class IsyVar(IsySubClass):
             name :      name of var
 
         funtions:
-            get_var_ts() :      get timestamp
-            get_var_type() :    get Var type
             get_var_init() :    get  inital value for Var
             set_var_init(new_value) :   set inital value for Var
             get_var_value() :   get current value
@@ -62,9 +60,7 @@ class IsyVar(IsySubClass):
         self.isy._var_set_value(self._mydict['id'], new_value, "init")
 
     init = property(get_var_init, set_var_init)
-    """ init property
-    this value can also be read or set
-    """
+
 
     def get_var_value(self):
         """ returns var value
@@ -87,8 +83,11 @@ class IsyVar(IsySubClass):
 #    name = property(get_var_name)
 
 
+#    def rename(self, newname) :
+#	self.isy.call_soap_method("RenameNode",
+#			self._mydict["address"], newwname)
 
-    # NotImplemented
+    # Not fully Implemented
     def __cast(self, other):
         if isinstance(other, self.__class__): return other._mydict["val"]
 	if isinstance(other, str) and other.isdigit() : return int( other )

@@ -39,7 +39,7 @@ def usage(code, msg=''):
 
 class Options:
     debug = 0
-    list = 0
+    olist = 0	# olist cause "list" was taken
     bash = 0
     csh = 0
 
@@ -48,7 +48,7 @@ def parseargs():
 
     # shortcut
     if len(sys.argv) == 1:
-	options.list = 1
+	options.olist = 1
 	return options
 
     try:
@@ -66,7 +66,7 @@ def parseargs():
         elif opt in ('-c', '--csh'):
             options.csh = 1
         elif opt in ('-l', '--list'):
-            options.list = 1
+            options.olist = 1
         elif opt in ('-d', '--debug'):
             options.debug = arg 
 
@@ -91,7 +91,7 @@ if __name__ == '__main__':
     options, arg = parseargs()
     myisy = ISY.Isy( debug=options.debug )
 
-    if options.list :
+    if options.olist :
 	list_vars(myisy)
     elif options.bash or options.csh:
 	list_vars_bash(myisy, options.csh)

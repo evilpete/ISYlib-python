@@ -26,6 +26,7 @@ def load_vars(self) :
 		if vd.tag != "var" :
 		    vdat[vd.tag] = vd.text
 	    vdat["val"] = int(vdat["val"])
+	    vdat["init"] = int(vdat["init"])
 	    self._vardict[t + ":" + v.attrib["id"]] = vdat
 	# self._printdict(self._vardict)
 

@@ -323,10 +323,9 @@ class Isy(IsyUtil):
 		    event_targ = vid
 
 		    self._vardict[vid].update(var_eventInfo)
+		    self._vardict[vid]["val"]  = int(self._vardict[vid]["val"])
+		    self._vardict[vid]["init"] = int(self._vardict[vid]["init"])
 
-                    #for prop in ['init', 'val', 'ts'] :
-                    #    if prop in var_eventInfo :
-                    #        self._vardict[vid][prop] = var_eventInfo[prop]
                 else :
                     warn("Event for Unknown Var : {0}".format(vid), RuntimeWarning)
 
@@ -339,7 +338,8 @@ class Isy(IsyUtil):
 	    if isinstance(cb[0], collections.Callable) :
 		cb[0](evnt_dat, *cb[1])
 	    else :
-		print "callbacks for event_targ not callablei, deleting callback"
+		warn("callback for {0} not callable, deleting callback".format(event_targ),
+                        RuntimeWarning)
 		del self.callbacks[event_targ]
 
 	return
@@ -364,6 +364,7 @@ class Isy(IsyUtil):
     # Soap Calls
     #
     def call_soap_method(self, meth_name, *arg):
+	""" Call named Soap API method """
 	print "IsySoap: call_method"
 
 	if not self.usesoap :
@@ -396,6 +397,7 @@ class Isy(IsyUtil):
 
 
     def reboot(self) :
+	""" Reboot ISY Device """
 	self.call_soap_method(Reboot)
 	#self.client.service.Reboot()
 
@@ -403,6 +405,11 @@ class Isy(IsyUtil):
     #  Util Funtions
     #
     def _preload(self, mask=0, reload=0):
+	""" Internal function
+
+	    preload all data tables from ISY device into cache
+	    normally this is done "on demand" as needed
+	"""
 	if reload or  not hasattr(self, "controls") :
 	    self.load_conf()
 
