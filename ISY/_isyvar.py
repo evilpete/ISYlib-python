@@ -140,7 +140,7 @@ def var_get_value(self, var, prop="val") :
     if not prop in ['init', 'val'] :
 	raise TypeError("var_set_value: unknown propery : " + str(prop) )
     if varid in self._vardict :
-	return(self._vardict[prop])
+	return(self._vardict[varid][prop])
 
 
 #    def var_names(self) :
