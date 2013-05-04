@@ -3,6 +3,7 @@ from urllib2 import URLError
 __all__ = [ 'IsyError', 'IsyNodeError',
 	'IsyResponseError', 'IsyPropertyError', 'IsyValueError',
 	'IsyInvalidCmdError',
+	'IsySUDSError', 'IsyTypeError',
 	'IsyCommunicationError']
 
 
@@ -53,6 +54,14 @@ class IsyCommunicationError(IsyError,URLError):
 # class IsyCommandError(IsyError):
 #     """General exception for command errors."""
 #     pass
+
+class IsySUDSError(IsyError):
+    """General exception for SUDS/SOAP errors."""
+    pass
+
+class IsyTypeError(IsyError,TypeError):
+    """General exception for Type errors."""
+    pass
 
 class IsyNodeError(IsyError):
     """General exception for Node errors."""

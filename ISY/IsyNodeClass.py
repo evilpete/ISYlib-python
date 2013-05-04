@@ -59,7 +59,7 @@ class _IsyNodeBase(IsySubClass):
 
         """
 	if not str(val).isdigit :       
-	    TypeError("On Command : Bad Value : node=%s val=%s" %
+	    raise IsyTypeError("On Command : Bad Value : node=%s val=%s" %
 		    self._mydict["address"], str(val))
 
         self.isy._node_send(self._mydict["address"], "cmd", "DON", val)
@@ -103,6 +103,20 @@ class _IsyNodeBase(IsySubClass):
             elif isinstance(obj, IsyBaseClass)  :
                 return obj._get_prop("address") in self._mydict["members"]
         return False
+
+    def _rename(self, cmd,  newname) :
+        if self.debug & 0x01 :
+	    print("rename : ", self.__class__.__name__, " : ", newname)
+	#if not isinstance(newname, str) or len(newname) == 0 :
+	#    print "newname : ", newname
+	#    raise IsyTypeError("rename : name value not str")
+	r = self.isy.call_soap_method(cmd,
+			self._mydict["address"], str(newname) )
+
+	if isinstance(r, tuple) and r[0] == 200 :
+	    return True
+	else :
+	    return False
 
     # check if scene _contains_ node
     def __contains__(self, other):
@@ -168,14 +182,14 @@ class IsyNode(_IsyNodeBase):
             self._mydict = ndict
         else :
             print("error : class IsyNode called without ndict")
-            raise TypeError("IsyNode: called without ndict")
+            raise IsyTypeError("IsyNode: called without ndict")
 
         if isinstance(isy, IsyUtil):
             self.isy = isy
             self.debug = isy.debug
         else :
             print("error : class IsyNode called without isyUtilClass")
-            raise TypeError("IsyNode: isy is wrong class")
+            raise IsyTypeError("IsyNode: isy is wrong class")
         # only update if not a scene
 
         if not self.isy.eventupdates :
@@ -255,7 +269,7 @@ class IsyNode(_IsyNodeBase):
 
         if prop in ['OL', 'RR'] :
             if not str(new_value).isdigit :
-                TypeError("Set Property : Bad Value : node=%s prop=%s val=%s" %
+                raise IsyTypeError("Set Property : Bad Value : node=%s prop=%s val=%s" %
                             self._mydict["address"], prop, str(new_value))
 
 
@@ -342,8 +356,9 @@ class IsyNode(_IsyNodeBase):
 #        self.isy._node_send(self._mydict["address"], "cmd", "BEEP")
 
     def rename(self, newname) :
-	self.isy.call_soap_method("RenameNode",
-			self._mydict["address"], newwname)
+	return  self._rename("RenameNode",  newname) 
+
+
     #
     #
     #
@@ -435,8 +450,7 @@ class IsyScene(_IsyNodeBase):
         return False
 
     def rename(self, newname) :
-	self.isy.call_soap_method("RenameGroup",
-			self._mydict["address"], newwname)
+	return  self._rename("RenameGroup",  newname)
 
     def member_iter(self, flag=0):
         if "members" in self._mydict :
@@ -472,8 +486,7 @@ class IsyNodeFolder(_IsyNodeBase):
     type = property(_gettype)
 
     def rename(self, newname) :
-	self.isy.call_soap_method("RenameFolder",
-			self._mydict["address"], newwname)
+	return self._rename("RenameFolder",  newname)
 
     def __iter__(self):
         return self.member_iter()

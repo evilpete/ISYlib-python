@@ -19,6 +19,10 @@ import sys
 import pprint
 import time
 from warnings import warn
+import logging
+
+#logging.basicConfig(level=logging.INFO)
+
 
 import collections
 
@@ -363,26 +367,40 @@ class Isy(IsyUtil):
     #
     # Soap Calls
     #
+    # This is a total have and can be done better
+    #
     def call_soap_method(self, meth_name, *arg):
 	""" Call named Soap API method """
-	print "IsySoap: call_method"
+	# print "IsySoap: call_method"
+	# print "IsySoap: ", self.__class__.__name__
 
 	if not self.usesoap :
-	    print "Cant call_method : no soap"
+	    # raise IsyValueError("Method name missing")
+	    warn("Cant call_method : 'call_soap_method' feature not active",
+                        RuntimeWarning)
 	    return
 
-	if self.soap_client == Null :
+	if self.soap_client == None :
 	    self.soap_client = self._get_soap_client()
 
 	if not isinstance(meth_name, str) or not len(meth_name) :
-	    raise IsyValueError("Method name missing")
+	    raise IsyValueError("SOAP Method name missing")
+
 
 	meth = getattr(self.soap_client.service, meth_name)
 
 	if not meth :
             raise IsyPropertyError("Method not found: {!s}".format(meth_name))
 
-	res = meth(*arg)
+
+	try :
+	    res = meth(*arg)
+	except Exception as e:
+	    # print "soap_client", e
+	    res = e
+	    raise IsySUDSError(e)
+	    # print("Unexpected error:", sys.exc_info()[0])
+
 	return res
 
     def _get_soap_client(self) :
@@ -392,8 +410,17 @@ class Isy(IsyUtil):
 	if self.debug & 0x02 :
 	    print("xurl = " + xurl)
 
-	self.csoap_client = Client(xurl, username=self.userl,
-		    password=self.userp, faults=False)
+	
+	if self.debug & 0x06 :
+	    # print "logging.INFO"
+	    logging.getLogger('suds.client').setLevel(logging.INFO )
+	else :
+	    # print "logging.CRITICAL"
+	    logging.getLogger('suds.client').setLevel(logging.CRITICAL )
+
+
+	return Client(xurl, username=self.userl, password=self.userp,
+		faults=False)
 
 
     def reboot(self) :
@@ -451,6 +478,8 @@ class Isy(IsyUtil):
         self._writedict(self.controls, "controls.txt")
 
         self._writedict(self._progdict, "progdict.txt")
+
+        self._writedict(self.nodeCategory, "nodeCategory.txt")
 
 
 

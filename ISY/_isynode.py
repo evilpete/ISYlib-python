@@ -410,7 +410,7 @@ def node_set_prop(self, naddr, prop, val) :
     prop = str(prop)
 
     if "isNumeric" in self.controls[prop_id] and \
-	    self.controls["prop_id"]["readOnly"] == "true" and \
+	    self.controls["prop_id"]["isNumeric"] == "true" and \
 	    not str(val).isdigit :
 	raise IsyPropertyError("Numeric property " + prop_id)
 
