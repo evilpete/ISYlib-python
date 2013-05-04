@@ -64,10 +64,13 @@ def main() :
     myisy= ISY.Isy(debug=0, faststart=1)
     myisy.load_vars()
 
-    # for debug
-#    args = ( "1:38=current_temperature",
-#		"nest_humidity=current_humidity",
-#		"nest_away=away")
+    auto_args = ( "nest_temp=current_temperature",
+		"nest_humidity=current_humidity",
+		"nest_away=away")
+
+    if (args[0]=="auto") :
+	args.pop(0)
+	args.extend(auto_args)
 
     for var_arg in args :
 	(isy_var, src_var) = var_arg.split('=')
