@@ -18,10 +18,13 @@ PACKAGE CONTENTS
     IsyUtilClass
     IsyVarClass
     _isyclimate
+    _isynet_re
+    _isynet_resources
     _isynode
     _isyprog
     _isyvar
     _isywol
+    _isyzb
 
 CLASSES
     ISY.IsyNodeClass._IsyNodeBase(ISY.IsyUtilClass.IsySubClass)
@@ -60,7 +63,7 @@ CLASSES
      |  __getitem__(self, nodeaddr)
      |      access node obj line a dictionary entery
      |  
-     |  __init__(self, userl='admin', userp='admin', **kwargs)
+     |  __init__(self, **kwargs)
      |  
      |  __iter__(self)
      |      iterate though Node Obj (see: node_iter() )
@@ -76,6 +79,22 @@ CLASSES
      |  batterypoweredwrites(self, on=-1)
      |      #/rest/batterypoweredwrites
      |  
+     |  call_soap_method(self, meth_name, *arg)
+     |      Call named Soap API method
+     |  
+     |  callback_del(self, id)
+     |      delete a callback funtion for a Node, if exists.
+     |      no error is raised if callback does not exist
+     |  
+     |  callback_get(self, id)
+     |      get a callback funtion for Nodes, if exists.
+     |      no none exist then value None is returned
+     |  
+     |  callback_set(self, id, func, *args)
+     |      set a callback funtion for Nodes
+     |      funtion will be called when  there is a change event for
+     |      specified node
+     |  
      |  clim_get_val(self, prop)
      |  
      |  clim_iter(self)
@@ -89,6 +108,11 @@ CLASSES
      |  
      |  clim_query(self)
      |      returns dictionary of climate info
+     |  
+     |  electricity(self)
+     |      Returns electricity module info and specifically Energy Monitor,
+     |      Open ADR and Flex Your Power status
+     |      Only applicable to 994 Z Series.
      |  
      |  get_node(self, node_id)
      |      Get a Node object for given node or scene name or ID
@@ -133,6 +157,13 @@ CLASSES
      |      ## Logs
      |      ##
      |  
+     |  load_net_resource(self)
+     |  
+     |  load_net_wol(self)
+     |      Load Wake On LAN networking resources 
+     |      
+     |      internal function call
+     |  
      |  load_node_types(self)
      |      Load node type info into a multi dimentional dictionary
      |      
@@ -161,13 +192,6 @@ CLASSES
      |      
      |      internal function call
      |  
-     |  load_wol(self)
-     |      Load Wake On LAN IDs 
-     |      
-     |      args : none
-     |      
-     |      internal function call
-     |  
      |  log_format_line(self, line)
      |      format a ISY log line into a more human readable form
      |  
@@ -185,6 +209,25 @@ CLASSES
      |  
      |  log_reset(self, errorlog=0)
      |      clear log lines in ISY
+     |  
+     |  net_resource_iter(self)
+     |      iterate threw net_resource data
+     |  
+     |  net_resource_names(self)
+     |      method to retrieve a list of networking resource names
+     |      returns List of names or None
+     |  
+     |  net_resource_run(self, id)
+     |  
+     |  net_wol(self, wid)
+     |      Send Wake On LAN to registared wol ID
+     |  
+     |  net_wol_iter(self)
+     |      Iterate though Wol Ids values
+     |  
+     |  net_wol_names(self)
+     |      method to retrieve a list of WOL names
+     |      returns List of WOL names and IDs or None
      |  
      |  network(self)
      |  
@@ -225,6 +268,9 @@ CLASSES
      |      Iterate though program objects
      |      
      |      Returns an iterator over Program Objects types
+     |  
+     |  reboot(self)
+     |      Reboot ISY Device
      |  
      |  scene_addrs(self)
      |      access method for scene addresses
@@ -292,16 +338,6 @@ CLASSES
      |      raise:
      |          LookupError :  if var name or Id is invalid
      |          TypeError :  if property is not 'val or 'init'
-     |  
-     |  wol(self, wid)
-     |      Send Wake On LAN to registared wol ID
-     |  
-     |  wol_iter()
-     |      Iterate though Wol Ids values
-     |  
-     |  wol_names(self)
-     |      method to retrieve a list of WOL names
-     |      returns List of WOL names and IDs or None
      |  
      |  x10_comm(self, unit, cmd)
      |      direct send x10 command
@@ -374,6 +410,8 @@ CLASSES
      |  get_status(self)
      |      Get/Set Status property of Node
      |  
+     |  rename(self, newname)
+     |  
      |  set_ol(self, new_value)
      |      Get/Set On Level property of Node
      |  
@@ -405,6 +443,8 @@ CLASSES
      |      # check if scene _contains_ node
      |  
      |  beep(self)
+     |  
+     |  is_dimable(self)
      |  
      |  is_member(self, obj)
      |  
@@ -492,8 +532,6 @@ CLASSES
      |      name :      name of var
      |  
      |  funtions:
-     |      get_var_ts() :      get timestamp
-     |      get_var_type() :    get Var type
      |      get_var_init() :    get  inital value for Var
      |      set_var_init(new_value) :   set inital value for Var
      |      get_var_value() :   get current value
