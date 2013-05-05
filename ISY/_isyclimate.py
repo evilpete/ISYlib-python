@@ -32,9 +32,7 @@ def clim_get_val(self, prop):
 
 def clim_query(self):
     """ returns dictionary of climate info """
-    try:
-	self.climateinfo
-    except AttributeError:
+    if not self.climateinfo :
 	self.load_clim()
 
     #
@@ -51,9 +49,7 @@ def clim_iter(self):
 	returns :
 	    Return an iterator over the climate values
     """
-    try:
-	self.climateinfo
-    except AttributeError:
+    if not self.climateinfo :
 	self.load_clim()
     k = self.climateinfo.keys()
     for p in k :

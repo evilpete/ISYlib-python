@@ -2,6 +2,8 @@ from ISY.IsyVarClass import IsyVar
 from ISY.IsyExceptionClass import IsyValueError, IsyResponseError, IsyPropertyError
 
 import string
+from warnings import warn 
+
 # import pprint
 
 ##
@@ -154,13 +156,9 @@ def var_addrs(self)  :
 
 	returns :  a iist view of var ids
     """
-    try:
-	self._vardict
-    except AttributeError:
+    if not self._vardict :
 	self.load_vars()
-#       except:
-#           print("Unexpected error:", sys.exc_info()[0])
-#           return None
+
     return self.name2var.viewkeys()
 
 
@@ -199,13 +197,8 @@ def _var_get_id(self, vname):
     """ Lookup var value by name or ID
     returns ISY Id  or None
     """
-    try:
-	self._vardict
-    except AttributeError:
+    if not self._vardict :
 	self.load_vars()
-#       except:
-#           print("Unexpected error:", sys.exc_info()[0])
-#           return None
     
     if isinstance(vname, IsyVar) :
 	 return vname["id"]
@@ -232,10 +225,10 @@ def var_get_type(self, var) :
     """
     v = self._var_get_id(var)
     if v in self._vardict :
-	type, id = str(v).split(':') 
-	if  type == "1" :
+	vtype, vid = str(v).split(':') 
+	if  vtype == "1" :
 	    return "Integer"
-	elif type == "2" :
+	elif vtype == "2" :
 	    return "State"
     return "none"
 
@@ -249,12 +242,8 @@ def var_iter(self, vartype=0):
 	returns :
 	    Return an iterator over the Var Obj
     """
-    try:
-	self._vardict
-    except AttributeError:
+    if not self._vardict :
 	self.load_vars()
-#       except:
-#           print("Unexpected error:", sys.exc_info()[0])
 
     k = self._vardict.keys()
     for v in k :

@@ -46,10 +46,11 @@ class Options:
 def parseargs():
     options = Options()
 
+    print "len(sys.argv) ", len(sys.argv)
     # shortcut
     if len(sys.argv) == 1:
 	options.olist = 1
-	return options
+	return options, []
 
     try:
         opts, args = getopt.getopt(

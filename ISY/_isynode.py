@@ -40,9 +40,7 @@ def _gen_member_list(self) :
 	internal function call
 
     """
-    try:
-	self._nodedict
-    except AttributeError:
+    if not self._nodedict :
 	return
     else :
 
@@ -242,9 +240,7 @@ def node_names(self) :
     """  access method for node names
 	returns a dict of ( Node names : Node address )
     """
-    try:
-	self.node2addr
-    except AttributeError:
+    if not self.node2addr :
 	self.load_nodes()
     return self.node2addr[:]
 
@@ -252,9 +248,7 @@ def scene_names(self) :
     """ access method for scene names
 	returns a dict of ( Node names : Node address )
     """
-    try:
-	self.groups2addr
-    except AttributeError:
+    if not self.groups2addr :
 	self.load_nodes()
     return self.groups2addr[:]
 
@@ -262,9 +256,7 @@ def node_addrs(self) :
     """ access method for node addresses
 	returns a iist scene/group addresses
     """
-    try:
-	self._nodedict
-    except AttributeError:
+    if not self._nodedict :
 	self.load_nodes()
     return self._nodedict.viewkeys()
 
@@ -272,9 +264,7 @@ def scene_addrs(self) :
     """ access method for scene addresses
 	returns a iist scene/group addresses
     """
-    try:
-	self._nodegroups
-    except AttributeError:
+    if not self._nodegroups :
 	self.load_nodes()
     return self._nodegroups.viewkeys()
 
@@ -317,9 +307,7 @@ def get_node(self, node_id) :
 def _node_get_id(self, nid):
     """ node/scene/Folder name to node/scene/folder ID """
 
-    try:
-	self._nodedict
-    except AttributeError:
+    if not self._nodedict :
 	self.load_nodes()
 
     if isinstance(nid, IsySubClass) :
@@ -534,9 +522,7 @@ def load_node_types(self) :
 
 def node_get_type(self, typid) :
     """ Take a node's type value and returns a string idnentifying the device """
-    try:
-	self.nodeCategory
-    except :
+    if not self.nodeCategory :
 	self.load_node_types()
     #
     # devcat = "UNKNOWN"
@@ -567,9 +553,7 @@ def node_iter(self, nodetype=""):
 	returns :
 	    Return an iterator over the Node Obj
     """
-    try:
-	self._nodedict
-    except AttributeError:
+    if not self._nodedict :
 	self.load_nodes()
     if nodetype == "node" :
 	k = self._nodedict.keys()
