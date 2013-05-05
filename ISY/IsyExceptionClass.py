@@ -47,7 +47,7 @@ SubClasses :
         raise AttributeError("__getitem__")
 
 
-class IsyCommunicationError(IsyError,URLError):
+class IsyCommunicationError(IsyError, URLError):
     """Failed Server connection of responce ."""
     pass
 
@@ -59,7 +59,7 @@ class IsySUDSError(IsyError):
     """General exception for SUDS/SOAP errors."""
     pass
 
-class IsyTypeError(IsyError,TypeError):
+class IsyTypeError(IsyError, TypeError):
     """General exception for Type errors."""
     pass
 
@@ -67,15 +67,15 @@ class IsyNodeError(IsyError):
     """General exception for Node errors."""
     pass
 
-class IsyResponseError(IsyError,RuntimeError):
+class IsyResponseError(IsyError, RuntimeError):
     """General exception for Isy responce errors."""
     pass
 
-class IsyPropertyError(IsyError,LookupError):
+class IsyPropertyError(IsyError, LookupError):
     """General exception for property errors."""
     pass
 
-class IsyValueError(IsyError,ValueError):
+class IsyValueError(IsyError, ValueError):
     """General exception for arg value errors."""
     pass
 
@@ -92,7 +92,7 @@ class IsyInvalidCmdError(IsyError):
 #    """General exception for Isy errors."""
 #    pass
 
-class IsyAttributeError(IsyError,AttributeError):
+class IsyAttributeError(IsyError, AttributeError):
     """General exception for Isy errors."""
     pass
 
