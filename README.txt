@@ -14,7 +14,6 @@ PACKAGE CONTENTS
     IsyExceptionClass
     IsyNodeClass
     IsyProgramClass
-    IsySoap
     IsyUtilClass
     IsyVarClass
     _isyclimate

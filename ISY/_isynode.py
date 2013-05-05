@@ -1,6 +1,8 @@
-from ISY.IsyNodeClass import IsyNode, IsyScene, IsyNodeFolder, _IsyNodeBase
+from ISY.IsyNodeClass import IsyNode, IsyScene #, IsyNodeFolder, _IsyNodeBase
 from ISY.IsyUtilClass import IsySubClass
-import string
+from ISY.IsyExceptionClass import IsyPropertyError, IsyResponseError
+from warnings import warn
+# import string
 
 ##
 ## Node funtions
@@ -350,7 +352,7 @@ def _node_get_id(self, nid):
 #
 # Get property for a node
 #
-def node_get_prop(self, naddr, prop) :
+def node_get_prop(self, naddr, prop_id) :
     #<isQueryAble>true</isQueryAble>
     if self.debug & 0x01 :
 	print("node_get_prop")
@@ -388,7 +390,7 @@ def node_set_prop(self, naddr, prop, val) :
     if not node_id :
 	raise LookupError("node_set_prop: unknown node : " + str(naddr) )
 
-    prop_id = _get_control_id(prop);
+    prop_id = self._get_control_id(prop);
     if prop_id :
 	# raise TypeError("node_set_prop: unknown prop : " + str(cmd) )
 	if "readOnly" in self.controls[prop_id] and \
@@ -423,8 +425,8 @@ def _node_send(self, naddr, action,  prop, *args) :
     self._printXML(resp)
     if resp == None or resp.attrib["succeeded"] != 'true' :
 	raise IsyResponseError(
-		"Node Cmd/Property Set error : node=%s prop=%s val=%s" %
-		naddr, prop, val )
+		"Node Cmd/Property Set error : node=%s prop=%s " %
+		naddr, prop )
 
 #def _node_set_prop(self, naddr, prop, val) :
 #    """ node_set_prop without argument validation """
@@ -591,7 +593,7 @@ def _updatenode(self, naddr) :
 	print("_updatenode pre _getXML")
     _nodestat = self._getXMLetree(xurl)
     # del self._nodedict[naddr]["property"]["ST"]
-    for child in list(inode) :
+    for child in list(_nodestat) :
 	if child.tag == "property" : next
 	if child.text :
 	    self._nodedict[naddr][child.tag] = child.text

@@ -773,7 +773,7 @@ class Isy(IsyUtil):
     ##
     ## Callback functions
     ##
-    def callback_set(self, nodeid, func, *args):
+    def callback_set(self, nid, func, *args):
 	"""set a callback funtion for Nodes
 	funtion will be called when  there is a change event for
 	specified node
@@ -783,29 +783,29 @@ class Isy(IsyUtil):
 	    raise IsyValueError("callback_set : Invalid Arg, function not callable")
 	    # func.__repr__()
 
-	nodeid == self._node_get_id(id)
+	nodeid == self._node_get_id(nid)
 	if nodeid == None :
 	    raise LookupError("no such Node : " + str(nodeid) )
 
 	self.callbacks[nodeid] = (func, args)
 
-    def callback_get(self, nodeid):
+    def callback_get(self, nid):
 	"""get a callback funtion for Nodes, if exists.
 	    no none exist then value None is returned
 	"""
 
-	nodeid == self._node_get_id(nodeid)
+	nodeid == self._node_get_id(nid)
 
 	if nodeid != None and nodeid in self.callbacks :
 	    return self.callbacks[nodeid]
 	
 	return None
 
-    def callback_del(self, nodeid):
+    def callback_del(self, nid):
 	"""delete a callback funtion for a Node, if exists.
 	     no error is raised if callback does not exist
 	"""
-	nodeid == self._node_get_id(nodeid)
+	nodeid == self._node_get_id(nid)
 	if nodeid != None and nodeid in self.callbacks :
 	    del self.callbacks[nodeid]
 

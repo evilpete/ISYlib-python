@@ -297,8 +297,8 @@ class ISYEvent(object) :
             reads events packets and passes them to processor
 
         """
-        ignorelist=kargs.get("ignorelist", None)
-        poll_interval=kargs.get("poll_interval", 0.5)
+        ignorelist = kargs.get("ignorelist", None)
+        poll_interval = kargs.get("poll_interval", 0.5)
 
         if self.debug & 0x01 :
             print("events_loop ", self.__class__.__name__)
