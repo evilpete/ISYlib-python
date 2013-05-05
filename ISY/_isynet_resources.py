@@ -29,13 +29,11 @@ def _load_networking(self, resource_id):
 def load_net_resource(self):
     (self.net_resource, self.name2net_res) = self._load_networking("resources")
     #self._printdict(self.net_resource)
-    self._printdict(self.name2net_res)
+    #self._printdict(self.name2net_res)
 
 
 def _net_resource_get_id(self, name):
-    try:
-	self.net_resource
-    except AttributeError:
+    if not self.net_resource :
 	self.load_net_resource()
 
     if name in self.net_resource:
@@ -45,21 +43,21 @@ def _net_resource_get_id(self, name):
 
     return None
 
-def net_resource_run(self, id):
+def net_resource_run(self, rrid):
 
-    id = _net_resource_get_id(id)
+    rid = self._net_resource_get_id(rrid)
 
-    if id == None :
-	raise IsyValueError("bad network resources ID : " + id)
+    if rid == None :
+	raise IsyValueError("bad network resources ID : " + rrid)
 
-    xurl = "/rest/networking/resources/{!s}".format(id)
+    xurl = "/rest/networking/resources/{!s}".format(rid)
 
     if self.debug & 0x02 :
 	print("wol : xurl = " + xurl)
     resp = self._getXMLetree(xurl)
     # self._printXML(resp)
     if None or  resp.attrib["succeeded"] != 'true' :
-	raise IsyResponseError("ISY network resources error : id=" + str(id))
+	raise IsyResponseError("ISY network resources error : rid=" + str(rid))
 
 
 
@@ -68,9 +66,7 @@ def net_resource_names(self):
     method to retrieve a list of networking resource names
     returns List of names or None
     """
-    try:
-	self.net_resource
-    except AttributeError:
+    if not self.net_resource :
 	self.load_net_resource()
 
     return self.name2net_res.keys()
@@ -78,17 +74,10 @@ def net_resource_names(self):
     
 def net_resource_iter(self):
     """ iterate threw net_resource data """ 
-    try:
-	self.net_resource
-    except AttributeError:
+    if not self.net_resource :
 	self.load_net_resource()
     for k, v in self.net_resource.items() :
 	yield v
-
-
-##
-## networking wol
-##
 
 
 
@@ -129,10 +118,9 @@ def net_wol(self, wid) :
 
 def _net_wol_get_id(self, name) :
     """ wol name to wol ID """
-    try:
-	self.wolinfo
-    except AttributeError:
+    if not self.wolinfo :
 	self.load_wol()
+
     # name = str(name).upper()
     if name in self.wolinfo :
 	return name
@@ -148,19 +136,16 @@ def net_wol_names(self) :
     method to retrieve a list of WOL names
     returns List of WOL names and IDs or None
     """
-    try:
-	self.wolinfo
-    except AttributeError:
+    if not self.wolinfo :
 	self.load_wol()
     return self.name2wol.keys()
 
 
 def net_wol_iter(self):
     """ Iterate though Wol Ids values """
-    try:
-	self.wolinfo
-    except AttributeError:
+    if not self.wolinfo :
 	self.load_wol()
+
     for k, v in self.wolinfo.items() :
 	yield v
 
