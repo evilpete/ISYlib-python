@@ -36,7 +36,7 @@ IsyNodeFolders are just for organizing
 
 
 """
-from ISY.IsyUtilClass import IsyUtil, IsySubClass, val2bool
+from ISY.IsyUtilClass import IsyUtil, IsySubClass, val2bool 
 from ISY.IsyExceptionClass import *
 # from IsyClass import *
 # from IsyNodeClass import *
@@ -110,7 +110,7 @@ class _IsyNodeBase(IsySubClass):
         if "members" in self._mydict :
             if isinstance(obj, str)  :
                 return obj in self._mydict["members"]
-            elif isinstance(obj, IsyBaseClass)  :
+            elif isinstance(obj, _IsyNodeBase)  :
                 return obj._get_prop("address") in self._mydict["members"]
         return False
 

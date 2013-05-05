@@ -52,6 +52,8 @@ from ISY.IsyProgramClass import *
 from ISY.IsyExceptionClass import  *
 from ISY.IsyEvent import ISYEvent
 
+import netrc
+
 # Debug Flags:
 # 0x01 = report loads
 # 0x02 = report urls used
@@ -146,14 +148,16 @@ class Isy(IsyUtil):
         #
         # Keyword args
         #
-	self.userl = kwargs.get("userl", "admin")
-	self.userp = kwargs.get("userp", "admin")
+	self.userl = kwargs.get("userl", os.getenv('ISY_USER', None))
+	self.userp = kwargs.get("userp", os.getenv('ISY_PASS', None))
+        self.addr = kwargs.get("addr", os.getenv('ISY_ADDR', None))
+
+
         self.debug = kwargs.get("debug", 0)
         self.usesoap = kwargs.get("usesoap", suds_import)
         self.cachetime = kwargs.get("cachetime", 0)
         self.faststart = kwargs.get("faststart", 1)
         self.eventupdates = kwargs.get("eventupdates", 0)
-        self.addr = kwargs.get("addr", os.getenv('ISY_ADDR', None))
 	self._isy_event = None
 	self.error_str = ""
 	self.soap_client = None
@@ -163,6 +167,7 @@ class Isy(IsyUtil):
 
 	# data dictionaries for ISY state
 	self.controls = None
+	self.name2control = None
 	self._folderlist = None
 	self._progdict = None      
 	self._nodedict = None
@@ -186,7 +191,20 @@ class Isy(IsyUtil):
             self.baseurl = "http://" + self.addr
 
         if self.addr == None :
-            raise Exception("No ISY address given or found")
+	    warn("No ISY address : guessing \"isy\"")
+	    self.addr == "isy"
+
+	print "\n\taddr", "=>", self.addr, "\n\n"
+
+
+	if ( not self.userl or not self.userp ) :
+	    netrc_info = netrc.netrc()
+	    login, account, password = netrc_info.authenticators(self.addr)
+	    print "login", "=>", repr(login)
+	    print "account", "=>", repr(account)
+	    print "password", "=>", repr(password)
+	    self.userl = "admin"
+	    self.userp = "admin"
 
         if self.debug & 0x01 :
             print("class Isy __init__")
@@ -512,13 +530,13 @@ class Isy(IsyUtil):
         """
         if self.debug & 0x01 :
             print("load_conf pre _getXMLetree")
-        self.configinfo = self._getXMLetree("/rest/config")
-        # Isy._printXML(self.configinfo)
+        configinfo = self._getXMLetree("/rest/config")
+        # Isy._printXML(configinfo)
 	# IsyCommunicationError
 
         self.name2control = dict ( )
         self.controls = dict ( )
-        for ctl in self.configinfo.iter('control') :
+        for ctl in configinfo.iter('control') :
             # self._printXML(ctl)
             # self._printinfo(ctl, "configinfo : ")
             cprop = dict ( )
@@ -548,11 +566,11 @@ class Isy(IsyUtil):
         self.config = dict ()
         for v in ( "platform", "app_version", "driver_timestamp",
 		    "app", " build_timestamp" ):
-            n = self.configinfo.find(v)
+            n = configinfo.find(v)
             if not n is None:
                 if isinstance(n.text, str):
                     self.config[v] = n.text
-	xelm = self.configinfo.find("product/id")
+	xelm = configinfo.find("product/id")
 	if not xelm is None:
 	    if hasattr(xelm, 'text') :
 		self.config["product_id"] = xelm.text
@@ -783,7 +801,7 @@ class Isy(IsyUtil):
 	    raise IsyValueError("callback_set : Invalid Arg, function not callable")
 	    # func.__repr__()
 
-	nodeid == self._node_get_id(nid)
+	nodeid = self._node_get_id(nid)
 	if nodeid == None :
 	    raise LookupError("no such Node : " + str(nodeid) )
 
@@ -794,7 +812,7 @@ class Isy(IsyUtil):
 	    no none exist then value None is returned
 	"""
 
-	nodeid == self._node_get_id(nid)
+	nodeid = self._node_get_id(nid)
 
 	if nodeid != None and nodeid in self.callbacks :
 	    return self.callbacks[nodeid]
@@ -805,7 +823,7 @@ class Isy(IsyUtil):
 	"""delete a callback funtion for a Node, if exists.
 	     no error is raised if callback does not exist
 	"""
-	nodeid == self._node_get_id(nid)
+	nodeid = self._node_get_id(nid)
 	if nodeid != None and nodeid in self.callbacks :
 	    del self.callbacks[nodeid]
 

@@ -1,7 +1,6 @@
 from ISY.IsyVarClass import IsyVar
 from ISY.IsyExceptionClass import IsyValueError, IsyResponseError, IsyPropertyError
 
-import string
 from warnings import warn 
 
 # import pprint
@@ -204,9 +203,9 @@ def _var_get_id(self, vname):
 	 return vname["id"]
     else :
 	v = str(vname)
-    if string.upper(v) in self._vardict :
-	# print("_get_var_id : " + v + " vardict " + string.upper(v))
-	return string.upper(v)
+    if (v).upper() in self._vardict :
+	# print("_get_var_id : " + v + " vardict " + v.upper())
+	return v.upper()
     if v in self.name2var :
 	# print("_var_get_id : " + v + " name2var " + self.name2var[v])
 	return self.name2var[v]

@@ -16,8 +16,8 @@ else :
     import urllib.request as URL
 
 import re
-from pprint import pprint
-
+# from pprint import pprint
+ 
 
 import signal
 
@@ -109,7 +109,7 @@ def isy_discover(**kwargs):
 
             #.decode('UTF-8')
             if sys.hexversion >= 0x3000000 :
-                data = str( data,encoding='utf8')
+                data = str( data, encoding='utf8')
 
             if ddata.debug :
                 print('received %s bytes from %s' % (len(data), address))
