@@ -91,7 +91,7 @@ class ISYEvent(object) :
         if self.debug & 0x01 :
             print("subscribe ", addr)
         if addr in self.connect_list :
-            warning.warn("Duplicate addr : {0}.format(addr)", RuntimeWarning)
+            warnings.warn("Duplicate addr : {0}.format(addr)", RuntimeWarning)
             return
 
 	new_conn = ISYEventConnection(addr, self)
@@ -113,7 +113,7 @@ class ISYEvent(object) :
         """
         remote_ip = socket.gethostbyname(addr)
         if not addr in self.connect_list :
-            warning.warn("address {0}/{1} not subscribed".format(addr, remote_ip),
+            warnings.warn("address {0}/{1} not subscribed".format(addr, remote_ip),
                 RuntimeWarning)
             return
         isyconn = self.connect_list[self.connect_list.index(addr)]
