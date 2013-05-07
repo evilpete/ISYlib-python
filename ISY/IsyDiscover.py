@@ -149,7 +149,7 @@ def isy_discover(**kwargs):
         signal.signal(signal.SIGALRM, old_handler)
     except UpnpLimitExpired:
         pass
-    # except :
+    # except Exception :
         # print("Unexpected error:", sys.exc_info()[0])
     finally :
         signal.alarm(0)

@@ -6,6 +6,7 @@ suds
 tt.py
 test.*
 Sav/*
+Bak/*
 *bak
 
 # C extensions
