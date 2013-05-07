@@ -148,8 +148,8 @@ class Isy(IsyUtil):
         #
         # Keyword args
         #
-	self.userl = kwargs.get("userl", os.getenv('ISY_USER', None))
-	self.userp = kwargs.get("userp", os.getenv('ISY_PASS', None))
+	self.userl = kwargs.get("userl", os.getenv('ISY_USER', "admin"))
+	self.userp = kwargs.get("userp", os.getenv('ISY_PASS', "admin"))
         self.addr = kwargs.get("addr", os.getenv('ISY_ADDR', None))
 
 
@@ -194,17 +194,17 @@ class Isy(IsyUtil):
 	    warn("No ISY address : guessing \"isy\"")
 	    self.addr == "isy"
 
-	print "\n\taddr", "=>", self.addr, "\n\n"
+#	print "\n\taddr", "=>", self.addr, "\n\n"
 
 
-	if ( not self.userl or not self.userp ) :
-	    netrc_info = netrc.netrc()
-	    login, account, password = netrc_info.authenticators(self.addr)
-	    print "login", "=>", repr(login)
-	    print "account", "=>", repr(account)
-	    print "password", "=>", repr(password)
-	    self.userl = "admin"
-	    self.userp = "admin"
+#	if ( not self.userl or not self.userp ) :
+#	    netrc_info = netrc.netrc()
+#	    login, account, password = netrc_info.authenticators(self.addr)
+#	    print "login", "=>", repr(login)
+#	    print "account", "=>", repr(account)
+#	    print "password", "=>", repr(password)
+#	    self.userl = "admin"
+#	    self.userp = "admin"
 
         if self.debug & 0x01 :
             print("class Isy __init__")
