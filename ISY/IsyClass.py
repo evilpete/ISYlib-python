@@ -405,8 +405,8 @@ class Isy(IsyUtil):
     #
     def call_soap_method(self, meth_name, *arg):
 	""" Call named Soap API method """
-	# print "IsySoap: call_method"
-	# print "IsySoap: ", self.__class__.__name__
+	# print "call_soap_method: call_method"
+	# print "call_soap_method: ", self.__class__.__name__
 
 	if not self.usesoap :
 	    # raise IsyValueError("Method name missing")
