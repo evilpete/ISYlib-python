@@ -1,7 +1,7 @@
 from ISY.IsyNodeClass import IsyNode, IsyScene #, IsyNodeFolder, _IsyNodeBase
 from ISY.IsyUtilClass import IsySubClass
 from ISY.IsyExceptionClass import IsyPropertyError, IsyResponseError
-from warnings import warn
+import warnings
 # import string
 
 ##
@@ -63,7 +63,7 @@ def _gen_member_list(self) :
 		    self._folderlist[foldr['parent']]['members'].append( foldr['address'])  
 		else:
 		    print("warn bad parenting foldr =", foldr)
-		    warn("Bad Parent : Folder  (0)  (1) : (2)".format( \
+		    warnings.warn("Bad Parent : Folder  (0)  (1) : (2)".format( \
 			    foldr["name"], faddr, foldr['parent']), RuntimeWarning)
 
 	# Scenes can only belong to Folders
@@ -74,7 +74,7 @@ def _gen_member_list(self) :
 		    self._folderlist[s['parent']]['members'].append( s['address'])
 		else:
 		    print("warn bad parenting s = ", s)
-		    warn("Bad Parent : Scene  (0)  (1) : (2)".format( \
+		    warnings.warn("Bad Parent : Scene  (0)  (1) : (2)".format( \
 			    s["name"], sa, s['parent']), RuntimeWarning)
 
 	# A Node can belong only to ONE and only ONE Folder or another Node
@@ -114,7 +114,7 @@ def _gen_folder_list(self, nodeinfo) :
 	    else :
 		fprop = self._folderlist[xelm.text] = dict()
 	else :
-	    warn("Error : no address in folder", RuntimeWarning)
+	    warnings.warn("Error : no address in folder", RuntimeWarning)
 	    continue
 
 
@@ -143,7 +143,7 @@ def _gen_nodegroups(self, nodeinfo) :
 	    else :
 		gprop = self._nodegroups[xelm.text] = dict()
 	else :
-	    warn("Error : no address in scene", RuntimeWarning)
+	    warnings.warn("Error : no address in scene", RuntimeWarning)
 	    continue
 
 
@@ -169,7 +169,7 @@ def _gen_nodegroups(self, nodeinfo) :
 	    # self._nodegroups[gprop["address"]] = gprop
 	    if "name" in gprop :
 		if gprop["name"] in self.groups2addr :
-		    warn("Duplicate group name (0) : (1) (2)".format(gprop["name"], \
+		    warnings.warn("Duplicate group name (0) : (1) (2)".format(gprop["name"], \
 			    str(gprop["address"]), self.groups2addr[gprop["name"]]), RuntimeWarning)
 		else :
 		    self.groups2addr[gprop["name"]] = str(gprop["address"])
@@ -191,7 +191,7 @@ def _gen_nodedict(self, nodeinfo) :
 	    else :
 		idict = self._nodedict[xelm.text] = dict()
 	else :
-	    warn("Error : no address in node", RuntimeWarning)
+	    warnings.warn("Error : no address in node", RuntimeWarning)
 	    continue
 
 
@@ -223,14 +223,14 @@ def _gen_nodedict(self, nodeinfo) :
 		if idict["name"] in self.node2addr :
 		    warn_mess = "Duplicate Node name (0) : (1) (2)".format(idict["name"], \
 			    idict["address"], self.node2addr[idict["name"]])
-		    warn(warn_mess, RuntimeWarning)
+		    warnings.warn(warn_mess, RuntimeWarning)
 		else :
 		    self.node2addr[idict["name"]] = idict["address"]
 
 	else :
 	    # should raise an exception
 	    # self._printinfo(inode, "Error : no address in node :")
-	    warn("Error : no address in node", RuntimeWarning)
+	    warnings.warn("Error : no address in node", RuntimeWarning)
     #print("\n>>>>\t", self._nodedict, "\n<<<<<\n")
 
 
