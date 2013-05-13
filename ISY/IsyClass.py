@@ -842,7 +842,7 @@ class Isy(IsyUtil):
     ##
 
     # Design question :
-    # should __get/setitem__  return a node obj or a node's current value ?
+    # __get/setitem__  returns a node obj ?
     def __getitem__(self, nodeaddr):
         """ access node obj line a dictionary entery """
         if nodeaddr in self.nodeCdict :

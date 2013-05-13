@@ -348,22 +348,6 @@ class IsyNode(_IsyNodeBase):
     #
 
 
-#    def on(self) :
-#        self.isy._node_send(self._mydict["address"], "cmd", "DON")
-#       #if "property" in self._mydict :
-#        #    self._mydict["property"]["time"] = 0
-#        # self.update()
-#
-#    def off(self) :
-#        self.isy._node_send(self._mydict["address"], "cmd", "DOF")
-#       if "property" in self._mydict :
-#            self._mydict["property"]["time"] = 0
-#           if "ST" in  self._mydict["property"] :
-#               self._mydict["property"]["ST"]["value"] = 0
-#               self._mydict["property"]["ST"]["formatted"] = "off"
-#
-#    def beep(self) :
-#        self.isy._node_send(self._mydict["address"], "cmd", "BEEP")
 
     def rename(self, newname) :
 	return  self._rename("RenameNode",  newname) 
@@ -460,9 +444,15 @@ class IsyScene(_IsyNodeBase):
         return False
 
     def rename(self, newname) :
+	""" rename node/scene/folder """
 	return  self._rename("RenameGroup",  newname)
 
     def member_iter(self, flag=0):
+	""" iter though members
+	    Folders iter though their contents (nodes/scenes/folders)
+	    Scene iter though their members	(nodes)
+	    Nodes iter though sub-nodes		(nodes)
+	"""
         if "members" in self._mydict :
             for k in list(self._mydict["members"].keys()) :
                 if flag and not(flag & self._mydict["members"][k]) :
