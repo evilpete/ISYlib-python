@@ -50,20 +50,3 @@ setup(
 
 
 
-
-setup(
-    name='ISYlib',
-    version='0.1.3',
-    author='Peter Shipley',
-    author_email='Peter.Shipley@gmail.com',
-    packages=find_packages(),
-    scripts=['bin/isy_nestset.py', 'bin/isy_showevents.py'],
-    data_files=[
-	('examples', ['bin/isy_find.py', 'bin/isy_progs.py', 'bin/isy_log.py',
-			'bin/isy_net_wol.py']),
-        ('bin', ['bin/isy_nodes.py',  'bin/isy_var.py'] )],
-    url='https://github.com/evilpete/ISYlib-python',
-    license='BSD',
-    description='Python API for the ISY home automation controller.',
-    long_description=open('README.txt').read(),
-)

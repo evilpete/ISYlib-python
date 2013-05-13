@@ -51,7 +51,8 @@ from ISY.IsyProgramClass import *
 #from ISY.IsyVarClass import IsyVar
 from ISY.IsyExceptionClass import  *
 from ISY.IsyEvent import ISYEvent
-from ISY.IsySoap import IsySoap
+
+import netrc
 
 # Debug Flags:
 # 0x01 = report loads
@@ -112,18 +113,18 @@ class Isy(IsyUtil):
 
     """
 
-    from _isyclimate import load_clim, clim_get_val, clim_query, clim_iter
-    from _isyvar  import load_vars, var_set_value, _var_set_value, \
+    from ISY._isyclimate import load_clim, clim_get_val, clim_query, clim_iter
+    from ISY._isyvar  import load_vars, var_set_value, _var_set_value, \
 		var_get_value, var_addrs, get_var, _var_get_id, \
 		var_get_type, var_iter
-    from _isyprog import load_prog, get_prog, _prog_get_id, \
+    from ISY._isyprog import load_prog, get_prog, _prog_get_id, \
 		prog_iter, prog_comm, _prog_comm
-    from _isynode import load_nodes, _gen_member_list, _gen_folder_list, \
+    from ISY._isynode import load_nodes, _gen_member_list, _gen_folder_list, \
 		_gen_nodegroups, _gen_nodedict, node_names, scene_names, \
 		node_addrs, scene_addrs, get_node, _node_get_id, node_get_prop, \
 		node_set_prop, _node_send, node_comm, _updatenode, \
 		load_node_types, node_get_type, node_iter, _updatenode
-    from _isynet_resources import _load_networking, load_net_resource, \
+    from ISY._isynet_resources import _load_networking, load_net_resource, \
 		_net_resource_get_id, net_resource_run, \
 		net_resource_names, net_resource_iter, \
 		load_net_wol, net_wol, _net_wol_get_id, net_wol_names, net_wol_iter
@@ -147,19 +148,37 @@ class Isy(IsyUtil):
         #
         # Keyword args
         #
-	self.userl = kwargs.get("userl", "admin")
-	self.userp = kwargs.get("userp", "admin")
+	self.userl = kwargs.get("userl", os.getenv('ISY_USER', "admin"))
+	self.userp = kwargs.get("userp", os.getenv('ISY_PASS', "admin"))
+        self.addr = kwargs.get("addr", os.getenv('ISY_ADDR', None))
+
+
         self.debug = kwargs.get("debug", 0)
         self.usesoap = kwargs.get("usesoap", suds_import)
         self.cachetime = kwargs.get("cachetime", 0)
         self.faststart = kwargs.get("faststart", 1)
         self.eventupdates = kwargs.get("eventupdates", 0)
-        self.addr = kwargs.get("addr", os.getenv('ISY_ADDR', None))
 	self._isy_event = None
 	self.error_str = ""
 	self.soap_client = None
 	self.callbacks = dict ()
         self._is_pro = True
+
+
+	# data dictionaries for ISY state
+	self.controls = None
+	self.name2control = None
+	self._folderlist = None
+	self._progdict = None      
+	self._nodedict = None
+	self._nodegroups = None
+	self.groups2addr = None
+	self.node2addr = None
+	self.nodeCategory = None
+	self._vardict = None        
+	self.wolinfo = None
+	self.net_resource = None
+	self.climateinfo  = None
 
         if self.addr == None :
             from ISY.IsyDiscover import isy_discover
@@ -172,7 +191,20 @@ class Isy(IsyUtil):
             self.baseurl = "http://" + self.addr
 
         if self.addr == None :
-            raise Exception("No ISY address given or found")
+	    warn("No ISY address : guessing \"isy\"")
+	    self.addr == "isy"
+
+#	print "\n\taddr", "=>", self.addr, "\n\n"
+
+
+#	if ( not self.userl or not self.userp ) :
+#	    netrc_info = netrc.netrc()
+#	    login, account, password = netrc_info.authenticators(self.addr)
+#	    print "login", "=>", repr(login)
+#	    print "account", "=>", repr(account)
+#	    print "password", "=>", repr(password)
+#	    self.userl = "admin"
+#	    self.userp = "admin"
 
         if self.debug & 0x01 :
             print("class Isy __init__")
@@ -218,6 +250,8 @@ class Isy(IsyUtil):
     #
     def start_event_thread(self, mask=0):
         """  starts event stream update thread
+
+	mask will eventually be used to "masking" events
 
 
         """
@@ -371,8 +405,8 @@ class Isy(IsyUtil):
     #
     def call_soap_method(self, meth_name, *arg):
 	""" Call named Soap API method """
-	# print "IsySoap: call_method"
-	# print "IsySoap: ", self.__class__.__name__
+	# print "call_soap_method: call_method"
+	# print "call_soap_method: ", self.__class__.__name__
 
 	if not self.usesoap :
 	    # raise IsyValueError("Method name missing")
@@ -425,38 +459,38 @@ class Isy(IsyUtil):
 
     def reboot(self) :
 	""" Reboot ISY Device """
-	self.call_soap_method(Reboot)
+	self.call_soap_method("Reboot")
 	#self.client.service.Reboot()
 
     #
     #  Util Funtions
     #
-    def _preload(self, mask=0, reload=0):
+    def _preload(self, rload=0): #mask=0, 
 	""" Internal function
 
 	    preload all data tables from ISY device into cache
 	    normally this is done "on demand" as needed
 	"""
-	if reload or  not hasattr(self, "controls") :
+	if rload or  not hasattr(self, "controls") :
 	    self.load_conf()
 
-	if reload or not hasattr(self, "_nodedict") :
+	if rload or not hasattr(self, "_nodedict") :
 	    self.load_nodes()
 
         # self._gen_member_list()
-	# if reload or  not hasattr(self, "climateinfo") :
+	# if rload or  not hasattr(self, "climateinfo") :
 	    # self.load_clim()
 
-	if reload or  not hasattr(self, "_vardict") :
+	if rload or  not hasattr(self, "_vardict") :
 	    self.load_vars()
 
-	if reload or  not hasattr(self, "_progdict") :
+	if rload or  not hasattr(self, "_progdict") :
 	    self.load_prog()
 
-	# if reload or  not hasattr(self, "wolinfo") :
+	# if rload or  not hasattr(self, "wolinfo") :
 	    #self.load_wol()
 
-	if reload or  not hasattr(self, "nodeCategory") :
+	if rload or  not hasattr(self, "nodeCategory") :
 	    self.load_node_types()
 
     def _savedict(self) :
@@ -496,13 +530,13 @@ class Isy(IsyUtil):
         """
         if self.debug & 0x01 :
             print("load_conf pre _getXMLetree")
-        self.configinfo = self._getXMLetree("/rest/config")
-        # Isy._printXML(self.configinfo)
+        configinfo = self._getXMLetree("/rest/config")
+        # Isy._printXML(configinfo)
 	# IsyCommunicationError
 
         self.name2control = dict ( )
         self.controls = dict ( )
-        for ctl in self.configinfo.iter('control') :
+        for ctl in configinfo.iter('control') :
             # self._printXML(ctl)
             # self._printinfo(ctl, "configinfo : ")
             cprop = dict ( )
@@ -532,11 +566,11 @@ class Isy(IsyUtil):
         self.config = dict ()
         for v in ( "platform", "app_version", "driver_timestamp",
 		    "app", " build_timestamp" ):
-            n = self.configinfo.find(v)
+            n = configinfo.find(v)
             if not n is None:
                 if isinstance(n.text, str):
                     self.config[v] = n.text
-	xelm = self.configinfo.find("product/id")
+	xelm = configinfo.find("product/id")
 	if not xelm is None:
 	    if hasattr(xelm, 'text') :
 		self.config["product_id"] = xelm.text
@@ -561,9 +595,7 @@ class Isy(IsyUtil):
 
     def _get_control_id(self, comm):
         """ command name to command ID """
-        try:
-            self.controls
-        except AttributeError:
+	if not self.controls :
             self.load_conf()
 
         c = comm.strip().upper()
@@ -759,7 +791,7 @@ class Isy(IsyUtil):
     ##
     ## Callback functions
     ##
-    def callback_set(self, id, func, *args):
+    def callback_set(self, nid, func, *args):
 	"""set a callback funtion for Nodes
 	funtion will be called when  there is a change event for
 	specified node
@@ -769,31 +801,31 @@ class Isy(IsyUtil):
 	    raise IsyValueError("callback_set : Invalid Arg, function not callable")
 	    # func.__repr__()
 
-	id == self._node_get_id(id)
-	if id == None :
-	    raise LookupError("no such Node : " + str(id) )
+	nodeid = self._node_get_id(nid)
+	if nodeid == None :
+	    raise LookupError("no such Node : " + str(nodeid) )
 
-	self.callbacks[id] = (func, args)
+	self.callbacks[nodeid] = (func, args)
 
-    def callback_get(self, id):
+    def callback_get(self, nid):
 	"""get a callback funtion for Nodes, if exists.
 	    no none exist then value None is returned
 	"""
 
-	id == self._node_get_id(id)
+	nodeid = self._node_get_id(nid)
 
-	if id != None and id in self.callbacks :
-	    return self.callbacks[id]
+	if nodeid != None and nodeid in self.callbacks :
+	    return self.callbacks[nodeid]
 	
 	return None
 
-    def callback_del(self, id):
+    def callback_del(self, nid):
 	"""delete a callback funtion for a Node, if exists.
 	     no error is raised if callback does not exist
 	"""
-	id == self._node_get_id(id)
-	if id != None and id in self.callbacks :
-	    del self.callbacks[id]
+	nodeid = self._node_get_id(nid)
+	if nodeid != None and nodeid in self.callbacks :
+	    del self.callbacks[nodeid]
 
     ##
     ## support functions
@@ -810,7 +842,7 @@ class Isy(IsyUtil):
     ##
 
     # Design question :
-    # should __get/setitem__  return a node obj or a node's current value ?
+    # __get/setitem__  returns a node obj ?
     def __getitem__(self, nodeaddr):
         """ access node obj line a dictionary entery """
         if nodeaddr in self.nodeCdict :

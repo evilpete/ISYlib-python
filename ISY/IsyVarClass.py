@@ -93,7 +93,7 @@ class IsyVar(IsySubClass):
 	if isinstance(other, str) and other.isdigit() : return int( other )
         else: return other
 
-    def bit_length(self): return bit_length(self._mydict["val"])
+    def bit_length(self): return int(self._mydict["val"]).bit_length()
 
     #
     # Type conversion

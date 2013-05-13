@@ -36,7 +36,7 @@ IsyNodeFolders are just for organizing
 
 
 """
-from ISY.IsyUtilClass import IsyUtil, IsySubClass, val2bool
+from ISY.IsyUtilClass import IsyUtil, IsySubClass, val2bool 
 from ISY.IsyExceptionClass import *
 # from IsyClass import *
 # from IsyNodeClass import *
@@ -96,11 +96,21 @@ class _IsyNodeBase(IsySubClass):
             return self._mydict['members'][:]
         return [ ]
 
+    def is_dimable(self) :
+	if type in self._mydict :
+	    a = self._mydict["type"].split('.') 
+	    if a[0] == "1" :
+		return True
+
+	return False
+
+
+
     def is_member(self, obj) :
         if "members" in self._mydict :
             if isinstance(obj, str)  :
                 return obj in self._mydict["members"]
-            elif isinstance(obj, IsyBaseClass)  :
+            elif isinstance(obj, _IsyNodeBase)  :
                 return obj._get_prop("address") in self._mydict["members"]
         return False
 
@@ -338,22 +348,6 @@ class IsyNode(_IsyNodeBase):
     #
 
 
-#    def on(self) :
-#        self.isy._node_send(self._mydict["address"], "cmd", "DON")
-#       #if "property" in self._mydict :
-#        #    self._mydict["property"]["time"] = 0
-#        # self.update()
-#
-#    def off(self) :
-#        self.isy._node_send(self._mydict["address"], "cmd", "DOF")
-#       if "property" in self._mydict :
-#            self._mydict["property"]["time"] = 0
-#           if "ST" in  self._mydict["property"] :
-#               self._mydict["property"]["ST"]["value"] = 0
-#               self._mydict["property"]["ST"]["formatted"] = "off"
-#
-#    def beep(self) :
-#        self.isy._node_send(self._mydict["address"], "cmd", "BEEP")
 
     def rename(self, newname) :
 	return  self._rename("RenameNode",  newname) 
@@ -450,9 +444,15 @@ class IsyScene(_IsyNodeBase):
         return False
 
     def rename(self, newname) :
+	""" rename node/scene/folder """
 	return  self._rename("RenameGroup",  newname)
 
     def member_iter(self, flag=0):
+	""" iter though members
+	    Folders iter though their contents (nodes/scenes/folders)
+	    Scene iter though their members	(nodes)
+	    Nodes iter though sub-nodes		(nodes)
+	"""
         if "members" in self._mydict :
             for k in list(self._mydict["members"].keys()) :
                 if flag and not(flag & self._mydict["members"][k]) :

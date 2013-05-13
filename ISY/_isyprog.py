@@ -46,29 +46,24 @@ def get_prog(self, pname) :
     """ get prog class obj """
     if self.debug & 0x01 :
 	print("get_prog :" + pname)
-    try:
-	self._progdict
-    except AttributeError:
+    if not self._progdict :
 	self.load_prog()
-#       except:
-#           print("Unexpected error:", sys.exc_info()[0])
-#           return None
-    finally:
-	progid = self._prog_get_id(pname)
-	# print("\tprogid : " + progid)
-	if progid in self._progdict :
-	    if not progid in self.progCdict :
-		# print("not progid in self.progCdict:")
-		# self._printdict(self._progdict[progid])
-		self.progCdict[progid] = IsyProgram(self, self._progdict[progid])
-	    #self._printdict(self._progdict)
-	    # print("return : ",)
-	    #self._printdict(self.progCdict[progid])
-	    return self.progCdict[progid]
-	else :
-	    if self.debug & 0x01 :
-		print("Isy get_prog no prog : \"%s\"" % progid)
-	    raise LookupError("no prog : " + str(progid) )
+
+    progid = self._prog_get_id(pname)
+    # print("\tprogid : " + progid)
+    if progid in self._progdict :
+	if not progid in self.progCdict :
+	    # print("not progid in self.progCdict:")
+	    # self._printdict(self._progdict[progid])
+	    self.progCdict[progid] = IsyProgram(self, self._progdict[progid])
+	#self._printdict(self._progdict)
+	# print("return : ",)
+	#self._printdict(self.progCdict[progid])
+	return self.progCdict[progid]
+    else :
+	if self.debug & 0x01 :
+	    print("Isy get_prog no prog : \"%s\"" % progid)
+	raise LookupError("no prog : " + str(progid) )
 
 def _prog_get_id(self, pname):
     """ Lookup prog value by name or ID
@@ -94,12 +89,8 @@ def prog_iter(self):
 
 	Returns an iterator over Program Objects types
     """
-    try:
-	self._progdict
-    except AttributeError:
+    if not self._progdict :
 	self.load_prog()
-#       except:
-#           print("Unexpected error:", sys.exc_info()[0])
 
     k = self._progdict.keys()
     for v in k :

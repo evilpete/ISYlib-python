@@ -1,6 +1,8 @@
-from ISY.IsyNodeClass import IsyNode, IsyScene, IsyNodeFolder, _IsyNodeBase
+from ISY.IsyNodeClass import IsyNode, IsyScene #, IsyNodeFolder, _IsyNodeBase
 from ISY.IsyUtilClass import IsySubClass
-import string
+from ISY.IsyExceptionClass import IsyPropertyError, IsyResponseError
+import warnings
+# import string
 
 ##
 ## Node funtions
@@ -40,9 +42,7 @@ def _gen_member_list(self) :
 	internal function call
 
     """
-    try:
-	self._nodedict
-    except AttributeError:
+    if not self._nodedict :
 	return
     else :
 
@@ -63,7 +63,7 @@ def _gen_member_list(self) :
 		    self._folderlist[foldr['parent']]['members'].append( foldr['address'])  
 		else:
 		    print("warn bad parenting foldr =", foldr)
-		    warn("Bad Parent : Folder  (0)  (1) : (2)".format( \
+		    warnings.warn("Bad Parent : Folder  (0)  (1) : (2)".format( \
 			    foldr["name"], faddr, foldr['parent']), RuntimeWarning)
 
 	# Scenes can only belong to Folders
@@ -74,7 +74,7 @@ def _gen_member_list(self) :
 		    self._folderlist[s['parent']]['members'].append( s['address'])
 		else:
 		    print("warn bad parenting s = ", s)
-		    warn("Bad Parent : Scene  (0)  (1) : (2)".format( \
+		    warnings.warn("Bad Parent : Scene  (0)  (1) : (2)".format( \
 			    s["name"], sa, s['parent']), RuntimeWarning)
 
 	# A Node can belong only to ONE and only ONE Folder or another Node
@@ -114,7 +114,7 @@ def _gen_folder_list(self, nodeinfo) :
 	    else :
 		fprop = self._folderlist[xelm.text] = dict()
 	else :
-	    warn("Error : no address in folder", RuntimeWarning)
+	    warnings.warn("Error : no address in folder", RuntimeWarning)
 	    continue
 
 
@@ -143,7 +143,7 @@ def _gen_nodegroups(self, nodeinfo) :
 	    else :
 		gprop = self._nodegroups[xelm.text] = dict()
 	else :
-	    warn("Error : no address in scene", RuntimeWarning)
+	    warnings.warn("Error : no address in scene", RuntimeWarning)
 	    continue
 
 
@@ -169,7 +169,7 @@ def _gen_nodegroups(self, nodeinfo) :
 	    # self._nodegroups[gprop["address"]] = gprop
 	    if "name" in gprop :
 		if gprop["name"] in self.groups2addr :
-		    warn("Duplicate group name (0) : (1) (2)".format(gprop["name"], \
+		    warnings.warn("Duplicate group name (0) : (1) (2)".format(gprop["name"], \
 			    str(gprop["address"]), self.groups2addr[gprop["name"]]), RuntimeWarning)
 		else :
 		    self.groups2addr[gprop["name"]] = str(gprop["address"])
@@ -191,7 +191,7 @@ def _gen_nodedict(self, nodeinfo) :
 	    else :
 		idict = self._nodedict[xelm.text] = dict()
 	else :
-	    warn("Error : no address in node", RuntimeWarning)
+	    warnings.warn("Error : no address in node", RuntimeWarning)
 	    continue
 
 
@@ -223,14 +223,14 @@ def _gen_nodedict(self, nodeinfo) :
 		if idict["name"] in self.node2addr :
 		    warn_mess = "Duplicate Node name (0) : (1) (2)".format(idict["name"], \
 			    idict["address"], self.node2addr[idict["name"]])
-		    warn(warn_mess, RuntimeWarning)
+		    warnings.warn(warn_mess, RuntimeWarning)
 		else :
 		    self.node2addr[idict["name"]] = idict["address"]
 
 	else :
 	    # should raise an exception
 	    # self._printinfo(inode, "Error : no address in node :")
-	    warn("Error : no address in node", RuntimeWarning)
+	    warnings.warn("Error : no address in node", RuntimeWarning)
     #print("\n>>>>\t", self._nodedict, "\n<<<<<\n")
 
 
@@ -242,9 +242,7 @@ def node_names(self) :
     """  access method for node names
 	returns a dict of ( Node names : Node address )
     """
-    try:
-	self.node2addr
-    except AttributeError:
+    if not self.node2addr :
 	self.load_nodes()
     return self.node2addr[:]
 
@@ -252,9 +250,7 @@ def scene_names(self) :
     """ access method for scene names
 	returns a dict of ( Node names : Node address )
     """
-    try:
-	self.groups2addr
-    except AttributeError:
+    if not self.groups2addr :
 	self.load_nodes()
     return self.groups2addr[:]
 
@@ -262,9 +258,7 @@ def node_addrs(self) :
     """ access method for node addresses
 	returns a iist scene/group addresses
     """
-    try:
-	self._nodedict
-    except AttributeError:
+    if not self._nodedict :
 	self.load_nodes()
     return self._nodedict.viewkeys()
 
@@ -272,9 +266,7 @@ def scene_addrs(self) :
     """ access method for scene addresses
 	returns a iist scene/group addresses
     """
-    try:
-	self._nodegroups
-    except AttributeError:
+    if not self._nodegroups :
 	self.load_nodes()
     return self._nodegroups.viewkeys()
 
@@ -317,9 +309,7 @@ def get_node(self, node_id) :
 def _node_get_id(self, nid):
     """ node/scene/Folder name to node/scene/folder ID """
 
-    try:
-	self._nodedict
-    except AttributeError:
+    if not self._nodedict :
 	self.load_nodes()
 
     if isinstance(nid, IsySubClass) :
@@ -362,7 +352,7 @@ def _node_get_id(self, nid):
 #
 # Get property for a node
 #
-def node_get_prop(self, naddr, prop) :
+def node_get_prop(self, naddr, prop_id) :
     #<isQueryAble>true</isQueryAble>
     if self.debug & 0x01 :
 	print("node_get_prop")
@@ -400,7 +390,7 @@ def node_set_prop(self, naddr, prop, val) :
     if not node_id :
 	raise LookupError("node_set_prop: unknown node : " + str(naddr) )
 
-    prop_id = _get_control_id(prop);
+    prop_id = self._get_control_id(prop);
     if prop_id :
 	# raise TypeError("node_set_prop: unknown prop : " + str(cmd) )
 	if "readOnly" in self.controls[prop_id] and \
@@ -435,8 +425,8 @@ def _node_send(self, naddr, action,  prop, *args) :
     self._printXML(resp)
     if resp == None or resp.attrib["succeeded"] != 'true' :
 	raise IsyResponseError(
-		"Node Cmd/Property Set error : node=%s prop=%s val=%s" %
-		naddr, prop, val )
+		"Node Cmd/Property Set error : node=%s prop=%s " %
+		naddr, prop )
 
 #def _node_set_prop(self, naddr, prop, val) :
 #    """ node_set_prop without argument validation """
@@ -534,9 +524,7 @@ def load_node_types(self) :
 
 def node_get_type(self, typid) :
     """ Take a node's type value and returns a string idnentifying the device """
-    try:
-	self.nodeCategory
-    except :
+    if not self.nodeCategory :
 	self.load_node_types()
     #
     # devcat = "UNKNOWN"
@@ -567,9 +555,7 @@ def node_iter(self, nodetype=""):
 	returns :
 	    Return an iterator over the Node Obj
     """
-    try:
-	self._nodedict
-    except AttributeError:
+    if not self._nodedict :
 	self.load_nodes()
     if nodetype == "node" :
 	k = self._nodedict.keys()
@@ -607,7 +593,7 @@ def _updatenode(self, naddr) :
 	print("_updatenode pre _getXML")
     _nodestat = self._getXMLetree(xurl)
     # del self._nodedict[naddr]["property"]["ST"]
-    for child in list(inode) :
+    for child in list(_nodestat) :
 	if child.tag == "property" : next
 	if child.text :
 	    self._nodedict[naddr][child.tag] = child.text

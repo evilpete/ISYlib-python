@@ -37,14 +37,15 @@ class ISYEvent(object) :
         self.debug = kwargs.get("debug", 0)
         self.connect_list = []
         self._shut_down = 0
-	self.connected = False
-	self.isy = kwargs.get("isy", None) 
+        self.connected = False
+        self.isy = kwargs.get("isy", None) 
 
         self.process_func = kwargs.get("process_func", ISYEvent.print_event)
         self.process_func_arg = kwargs.get("process_func_arg", None)
 
         if self.process_func :
-            assert isinstance(self.process_func, collections.Callable), "process_func Arg must me callable"
+            assert isinstance(self.process_func, collections.Callable), \
+                    "process_func Arg must me callable"
 
         if addr :
             self.connect_list.append(ISYEventConnection(addr, self))
@@ -54,7 +55,8 @@ class ISYEvent(object) :
 
         if func :
             self.process_func = func
-            assert isinstance(self.process_func, collections.Callable), "process_func Arg must me callable"
+            assert isinstance(self.process_func, collections.Callable), \
+                    "process_func Arg must me callable"
         else:
             self.process_func = ISYEvent.print_event
 
@@ -64,21 +66,22 @@ class ISYEvent(object) :
 
 
     def _finish(self)  :
-	print "Finishing... ", self.__class__.__name__
+        print "Finishing... ", self.__class__.__name__
         for s in self.connect_list:
-	    s.disconnect()
+            s.disconnect()
 
-	del self.connect_list[:]
-	if self.isy :
-	    self.isy._isy_event = None
-	print "Finished... ", self.__class__.__name__
+        del self.connect_list[:]
+        if self.isy :
+            self.isy._isy_event = None
+        print "Finished... ", self.__class__.__name__
 
 #    def __del__(self):
-#	print "\n\n\n>>>>>>>>>__del__ ", self.__class__.__name__, "<<<<<<<<<<<<<\n\n\n"
+#       print "\n\n\n>>>>>>>>>__del__ ", \
+#          self.__class__.__name__, "<<<<<<<<<<<<<\n\n\n"
 
     def _stop_event_loop(self) :
-	print self.__class__.__name__
-	self._shut_down = 1
+        print self.__class__.__name__
+        self._shut_down = 1
 
     def subscribe(self, addr):
         """ subscribe to Isy device event stream
@@ -91,15 +94,15 @@ class ISYEvent(object) :
         if self.debug & 0x01 :
             print("subscribe ", addr)
         if addr in self.connect_list :
-            warning.warn("Duplicate addr : {0}.format(addr)", RuntimeWarning)
+            warnings.warn("Duplicate addr : {0}.format(addr)", RuntimeWarning)
             return
 
-	new_conn = ISYEventConnection(addr, self)
+        new_conn = ISYEventConnection(addr, self)
 
-	# see if the other connections are connected
-	# if so connect to avoid an error in select()
-	if self.connected :
-	    new_conn.connect()
+        # see if the other connections are connected
+        # if so connect to avoid an error in select()
+        if self.connected :
+            new_conn.connect()
 
         self.connect_list.append(new_conn)
 
@@ -113,12 +116,13 @@ class ISYEvent(object) :
         """
         remote_ip = socket.gethostbyname(addr)
         if not addr in self.connect_list :
-            warning.warn("address {0}/{1} not subscribed".format(addr, remote_ip),
+            warnings.warn(
+                "address {0}/{1} not subscribed".format(addr, remote_ip),
                 RuntimeWarning)
             return
         isyconn = self.connect_list[self.connect_list.index(addr)]
         isyconn.disconnect()
-	self.connect_list.remove(isyconn)
+        self.connect_list.remove(isyconn)
         del(isyconn)
 
     def _process_event(self, conn_obj) :
@@ -229,14 +233,15 @@ class ISYEvent(object) :
                 ti = time.strftime('%X')
                 # print ddat["Event-sid"]
                 print("%-7s %-4s\t%-22s\t%-12s\t%s\t%s" % \
-                    (ti, ddat["Event-seqnum"], ectrl, node, ddat["action"], evi))
+                    (ti, ddat["Event-seqnum"], \
+                    ectrl, node, ddat["action"], evi))
             #elif  ddat["control"] == "_1" and ddat["action"] in ["6", "7", "3"] :
         #       print ddat["control"], " : ", ddat
         #       print arg
 
             #print ddat
             # print data
-        except :
+        except Exception:
             print("Unexpected error:", sys.exc_info()[0])
             print(ddat)
             # print data
@@ -251,17 +256,17 @@ class ISYEvent(object) :
 
         """
 
-	self.connected = True
+        self.connected = True
         for s in self.connect_list:
             s.connect()
 
         while not self._shut_down  :
-	    if len(self.connect_list) == 0 :
-		break
+            if len(self.connect_list) == 0 :
+                break
             try:
-                r, w, e = select.select(self.connect_list, [], [], poll_interval)
+                r, _, e = select.select(self.connect_list, [], [], poll_interval)
                 for rl in r :
-                    d, x = self._process_event(rl)
+                    d, _ = self._process_event(rl)
                     if ignorelist :
                         if d["control"] in ignorelist :
                             continue
@@ -274,8 +279,8 @@ class ISYEvent(object) :
                 self.reconnect()
             except KeyboardInterrupt :
                 return
-            #except :
-                print("Unexpected Error:", sys.exc_info()[0])
+            #except Exception :
+                #print("Unexpected Error:", sys.exc_info()[0])
                 #traceback.print_stack()
                 #print repr(traceback.extract_stack())
                 #print repr(traceback.format_stack())
@@ -283,11 +288,11 @@ class ISYEvent(object) :
                 pass
 
         if self._shut_down :
-	    self._finish()
+            self._finish()
 
 
     def reconnect(self) :
-	self.connected = True
+        self.connected = True
         for isy_conn in self.connect_list:
             isy_conn.reconnect()
 
@@ -297,20 +302,20 @@ class ISYEvent(object) :
             reads events packets and passes them to processor
 
         """
-        ignorelist=kargs.get("ignorelist", None)
-        poll_interval=kargs.get("poll_interval", 0.5)
+        ignorelist = kargs.get("ignorelist", None)
+        poll_interval = kargs.get("poll_interval", 0.5)
 
         if self.debug & 0x01 :
             print("events_loop ", self.__class__.__name__)
 
-	self.connected = True
+        self.connected = True
         for isystream in self.connect_list:
             isystream.connect()
 
 
         while not self._shut_down  :
             try:
-                r, w, e = select.select(self.connect_list, [], [], poll_interval)
+                r, _, e = select.select(self.connect_list, [], [], poll_interval)
                 for rs in r :
                     d, x = self._process_event(rs)
                     # print "d :", type(d)
@@ -325,13 +330,13 @@ class ISYEvent(object) :
             except IOError as e:
                 print("I/O error({0}): {1}".format(e.errno, e.strerror))
                 self.reconnect()
-#           except :
+#           except Exception :
 #               print "Unexpected error:", sys.exc_info()[0]
             finally:
                 pass
 
         if self._shut_down :
-	    self._finish()
+            self._finish()
 
 class ISYEventConnection(object):
 
@@ -351,8 +356,8 @@ class ISYEventConnection(object):
         return self.isyaddr
 
     def __del__(self):
-	self.disconnect()
-	#print "\n\n\n>>>>>>>>>__del__ ", self.__class__.__name__, "<<<<<<<<<<<<<\n\n\n"
+        self.disconnect()
+        #print "\n\n\n>>>>>>>>>__del__ ", self.__class__.__name__, "<<<<<<<<<<<<<\n\n\n"
 
     def __eq__(self, other):
         if isinstance(other, str) :
@@ -431,6 +436,11 @@ class ISYEventConnection(object):
         if self.debug & 0x01 :
             print("_subscribe : ", self.__class__.__name__)
 
+        if ( not isinstance(self.event_wf, "socket")
+                or not isinstance(self.event_rf, "socket")) :
+            raise RuntimeError(
+		    "{!s} called with invalid socket".format(self.__class__.__name__))
+
         # <ns0:Unsubscribe><SID>uuid:168</SID><flag></flag></ns0:Unsubscribe>
         post_body = "<s:Envelope><s:Body>" \
             "<u:Subscribe xmlns:u=\"urn:udicom:service:X_Insteon_Lighting_Service:1\">" \
@@ -447,7 +457,7 @@ class ISYEventConnection(object):
             + "\r\n\r\n"
 
 
-	post = post_head + post_body
+        post = post_head + post_body
 
         self.event_wf.write(post)
         self.event_wf.flush()

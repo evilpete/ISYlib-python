@@ -5,38 +5,39 @@
 Simple example to send a WoL to a registared system on the ISY
 
 if this script is call without any arg 
-we print a list of registared WoL systems
+we print a list of network resources systems
 
-if we have any args we treat them as registared WoL Id's
-and attempt to send a WoL packet 
 
 """
 
 import sys
 import ISY
 from ISY.IsyExceptionClass import IsyResponseError, IsyValueError
+
+import pprint
  
   
 myisy= ISY.Isy(debug=0)
    
-myisy.load_net_wol()
+myisy.load_net_resource()
 
 if len(sys.argv[1:]) > 0:
     for a in sys.argv[1:] :
 	try :
-	    myisy.net_wol(a)
+	    myisy.net_resource_run(a)
 	except (IsyValueError, IsyResponseError), errormsg :
-	    print "problem sending WOL to {!s} : {!s}".format(a, errormsg)
+	    print "problem calling ISY network resource to {!s} : {!s}".format(a, errormsg)
 	    next
 	else :
-	    print "WOL sent to {!s}".format(a)
+	    print "Net resource sent to {!s}".format(a)
 else :
     pfmt = "{:<5}{:<16} {:<20}"
-    print(pfmt.format("Id", "Name", "Mac"))
+    print(pfmt.format("Id", "Name", "Addr"))
     print(pfmt.format("-" * 4, "-" * 20, "-" * 20))
-    for w in myisy.net_wol_iter():
-       if "id" in w :
-	   print(pfmt.format(w['id'], w['name'], w['mac']))
+    for r in myisy.net_resource_iter():
+       #pprint.pprint(r)
+       if "id" in r :
+	   print(pfmt.format(r['id'], r['name'], r['ControlInfo']['host']))
 
 
 

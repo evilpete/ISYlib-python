@@ -1,2 +1,4 @@
 include docs/*
+include bin/*.py
+include ISY/*.py
 prune Sav
