@@ -297,8 +297,8 @@ def get_node(self, node_id) :
 	self.nodeCdict[nodeid] = IsyScene(self, self._nodegroups[nodeid])
 	return self.nodeCdict[nodeid]
 
-    elif nodeid in self._nodegroups:
-	self.nodeCdict[nodeid] = IsyScene(self, self._nodegroups[nodeid])
+    elif nodeid in self._folderdict:
+	self.nodeCdict[nodeid] = IsyFolder(self, self._folderdict[nodeid])
 	return self.nodeCdict[nodeid]
 
     else :
@@ -317,6 +317,8 @@ def _node_get_id(self, nid):
     else :
 	n = str(nid).strip()
 
+    ##
+
     if n in self._nodedict :
 	# print("_node_get_id : " + n + " nodedict " + n
 	return n
@@ -325,13 +327,17 @@ def _node_get_id(self, nid):
 	# print("_node_get_id : " + n + " node2addr " + self.node2addr[n])
 	return self.node2addr[n]
 
-    if n in self.groups2addr :
-	# print("_node_get_id : " + n + " groups2addr " + self.groups2addr[n])
-	return self.groups2addr[n]
+    ##
 
     if n in self._nodegroups :
 	# print("_node_get_id : " + n + " nodegroups " + n)
 	return n
+
+    if n in self.groups2addr :
+	# print("_node_get_id : " + n + " groups2addr " + self.groups2addr[n])
+	return self.groups2addr[n]
+
+    ##
 
     if n in self.folder2addr :
 	# print("_node_get_id : " + n + " folder2addr " + self.folder2addr[n])
@@ -343,7 +349,7 @@ def _node_get_id(self, nid):
 
 
 	# Fail #
-    print("_node_get_id : " + n + " None")
+    #print("_node_get_id : " + n + " None")
     return None
 
 

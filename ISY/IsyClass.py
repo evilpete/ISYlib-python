@@ -442,10 +442,11 @@ class Isy(IsyUtil):
 	    raise IsyValueError("scene name must be non zero length string")
 
 	if nid == 0 :
-	    id = 50001
-	    while str(id) in self._nodegroups :
+	    id = 30001
+	    nid = str(id)
+	    while nid in self._folderdict or nid in self._nodegroups :
 		id += 1
-	    nid=id
+		nid=str(id)
 	r =  self.call_soap("AddGroup", id=nid, name=sname)
 	#
 	# add code to update self._nodegroups
@@ -472,15 +473,27 @@ class Isy(IsyUtil):
 	""" create new Folder """
 	if fid == 0 :
 	    id = 50001
-	    while str(id) in self._folderdict :
+	    fid = str(id)
+	    while fid in self._folderdict or fid in self._nodegroups :
 		id += 1
-	    fid=id
+		fid = str(id)
 	r = self.call_soap("AddFolder", fid=1234, name=fname)
+	if  isinstance(r, tuple) and r[0] == '200' :
+	    self._folderdict[fid] = dict()
+	    self._folderdict[fid][address] = fid
+	    self._folderdict[fid][folder-flag] = '0'
+	    self._folderdict[fid][name] = 'fname'
+
 	return r
 
-    def folder_del(self,id) :
+    def folder_del(self,fid) :
 	""" delete  Folder """
-	return  self.call_soap("RemoveFolder", id=1234)
+	id = self._node_get_id(fid)
+	if id == None :
+	    raise IsyValueError("Unknown Folder : " + str(fid) )
+	r = self.call_soap("RemoveFolder", id=id)
+	if  isinstance(r, tuple) and r[0] == '200' :
+	    self._folderdict[fid] = dict()
 
     # SetParent(node, nodeType, parent, parentType )
     def folder_add_node(self, nid, nodeType=1, parent="", parentType=3) :
@@ -499,7 +512,6 @@ class Isy(IsyUtil):
 
 	r = self.call_soap("SetParent", node=node, nodeType=1, parent=parentid, parentType=3)
 	return r
-	pass
 
     def folder_del_node(self, nid, nodeType=1, parent="", parentType=3) :
 	""" remove node/scene from folder ( moves to default/main folder ) """
