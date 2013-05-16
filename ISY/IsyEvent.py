@@ -436,8 +436,8 @@ class ISYEventConnection(object):
         if self.debug & 0x01 :
             print("_subscribe : ", self.__class__.__name__)
 
-        if ( not isinstance(self.event_wf, "socket")
-                or not isinstance(self.event_rf, "socket")) :
+        if ( not isinstance(self.event_wf, socket)
+                or not isinstance(self.event_rf, socket)) :
             raise RuntimeError(
 		    "{!s} called with invalid socket".format(self.__class__.__name__))
 

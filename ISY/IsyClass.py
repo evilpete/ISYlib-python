@@ -28,11 +28,11 @@ import collections
 
 
 
-try:
-    from suds.client import Client
-    suds_import = 1
-except ImportError :
-    suds_import = 0
+#try:
+#    from suds.client import Client
+#    suds_import = 1
+#except ImportError :
+#    suds_import = 0
 
 
 
@@ -51,8 +51,9 @@ from ISY.IsyProgramClass import *
 #from ISY.IsyVarClass import IsyVar
 from ISY.IsyExceptionClass import  *
 from ISY.IsyEvent import ISYEvent
+from ISY.IsySoapCmd import SendSoapCmd
 
-import netrc
+# import netrc
 
 # Debug Flags:
 # 0x01 = report loads
@@ -154,13 +155,12 @@ class Isy(IsyUtil):
 
 
         self.debug = kwargs.get("debug", 0)
-        self.usesoap = kwargs.get("usesoap", suds_import)
         self.cachetime = kwargs.get("cachetime", 0)
         self.faststart = kwargs.get("faststart", 1)
         self.eventupdates = kwargs.get("eventupdates", 0)
 	self._isy_event = None
 	self.error_str = ""
-	self.soap_client = None
+	self.soap = None
 	self.callbacks = dict ()
         self._is_pro = True
 
@@ -403,64 +403,111 @@ class Isy(IsyUtil):
     #
     # This is a total have and can be done better
     #
-    def call_soap_method(self, meth_name, *arg):
+    def call_soap(self, cmd, **kwargs):
 	""" Call named Soap API method """
 	# print "call_soap_method: call_method"
 	# print "call_soap_method: ", self.__class__.__name__
 
-	if not self.usesoap :
-	    # raise IsyValueError("Method name missing")
-	    warn("Cant call_method : 'call_soap_method' feature not active",
-                        RuntimeWarning)
-	    return
-
-	if self.soap_client == None :
-	    self.soap_client = self._get_soap_client()
-
-	if not isinstance(meth_name, str) or not len(meth_name) :
+	if not isinstance(cmd, str) or not len(cmd) :
 	    raise IsyValueError("SOAP Method name missing")
 
+	if self.soap == None :
+	    self.soap = ISY.SendSoapCmd(self.addr, userl=self.userl, userp=self.userp)
 
-	meth = getattr(self.soap_client.service, meth_name)
-
-	if not meth :
-            raise IsyPropertyError("Method not found: {!s}".format(meth_name))
-
-
-	try :
-	    res = meth(*arg)
-	except Exception as e:
-	    # print "soap_client", e
-	    res = e
-	    raise IsySUDSError(e)
-	    # print("Unexpected error:", sys.exc_info()[0])
+	res = self.soap.sendcomm(cmd, **kwargs)
 
 	return res
 
-    def _get_soap_client(self) :
 
-	xurl = self.baseurl + '/services.wsdl'
 
-	if self.debug & 0x02 :
-	    print("xurl = " + xurl)
+#    def node_new(self, id, nname) :
+#	""" create new Folder """
+#	return  self.call_soap("AddNode", id=1234, name=nname, type="T", flag="Y")
 
-	
-	if self.debug & 0x06 :
-	    # print "logging.INFO"
-	    logging.getLogger('suds.client').setLevel(logging.INFO )
+    ## scene
+
+    def scene_del(self, sid=None ) :
+	""" delete Scene/Group """
+	sceneid = self._node_get_id(sid)
+	if sceneid == None :
+	    raise IsyValueError("no such Scene : " + str(sid) )
+	#
+	# add code to update self._nodegroups
+	#
+	return  self.call_soap("RemoveGroup", id=sceneid)
+
+    def scene_new(self, nid=0, sname=None) :
+	""" create new Scene/Group """
+	if not isinstance(sname, str) or not len(sname) :
+	    raise IsyValueError("scene name must be non zero length string")
+
+	if nid == 0 :
+	    id = 50001
+	    while str(id) in self._nodegroups :
+		id += 1
+	    nid=id
+	r =  self.call_soap("AddGroup", id=nid, name=sname)
+	#
+	# add code to update self._nodegroups
+	#
+	return nid
+
+    def scene_add_node(self, groupid, nid, nflag=0x10) :
+	nodeid = self._node_get_id(nid)
+	if nodeid == None :
+	    raise IsyValueError("no such Node : " + str(nid) )
+	r = self.call_soap("MoveNode", group=groupid, node=nodeid, flag=nflag)
+	return r
+
+    def scene_del_node(self, groupid, nid) :
+	nodeid = self._node_get_id(nid)
+	if nodeid == None :
+	    raise IsyValueError("no such Node : " + str(nid) )
+	r = self.call_soap("RemoveFromGroup", group=groupid, id=nodeid)
+	return r
+
+    ## folder
+
+    def folder_new(self, fid, fname) :
+	""" create new Folder """
+	if fid == 0 :
+	    id = 50001
+	    while str(id) in self._folderdict :
+		id += 1
+	    fid=id
+	r = self.call_soap("AddFolder", fid=1234, name=fname)
+	return r
+
+    def folder_del(self,id) :
+	""" delete  Folder """
+	return  self.call_soap("RemoveFolder", id=1234)
+
+    # SetParent(node, nodeType, parent, parentType )
+    def folder_add_node(self, nid, nodeType=1, parent="", parentType=3) :
+	""" move node/scene from folder """
+	nodeid = self._node_get_id(nid)
+	if nodeid == None :
+	    raise IsyValueError("no such Node/Scene : " + str(nid) )
+
+	if parent != "" :
+	    fldid = self._node_get_id(fid)
+	    if fldid == None :
+		raise IsyValueError("no such Folder : " + str(parent) )
+	    parentid = fldid
 	else :
-	    # print "logging.CRITICAL"
-	    logging.getLogger('suds.client').setLevel(logging.CRITICAL )
+	    parentid = parent
 
+	r = self.call_soap("SetParent", node=node, nodeType=1, parent=parentid, parentType=3)
+	return r
+	pass
 
-	return Client(xurl, username=self.userl, password=self.userp,
-		faults=False)
-
+    def folder_del_node(self, nid, nodeType=1, parent="", parentType=3) :
+	""" remove node/scene from folder ( moves to default/main folder ) """
+	return self.folder_add_node(self, nid, nodeType=1, parent="", parentType=3)
 
     def reboot(self) :
 	""" Reboot ISY Device """
-	self.call_soap_method("Reboot")
-	#self.client.service.Reboot()
+	return self.call_soap("Reboot")
 
     #
     #  Util Funtions

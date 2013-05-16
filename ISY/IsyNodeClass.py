@@ -51,6 +51,11 @@ __all__ = ['IsyNode', 'IsyNodeFolder', 'IsyScene']
 
 class _IsyNodeBase(IsySubClass):
 
+    _nodetype = (0, "unknown")
+
+    def nodetype(self):
+	return _nodetype
+
     def on(self, val=255) :
         """ Send On command to a node
 
@@ -114,23 +119,26 @@ class _IsyNodeBase(IsySubClass):
                 return obj._get_prop("address") in self._mydict["members"]
         return False
 
+    def member_add(self, node) :
+	r = self.isy.call_soap("SetParent",
+		node=node._get_prop("address"), nodeType=node.nodeType(),
+		parent=self._mydict["address"], parentType=self.nodeType())
+
     def _rename(self, cmd,  newname) :
         if self.debug & 0x01 :
 	    print("rename : ", self.__class__.__name__, " : ", newname)
 	#if not isinstance(newname, str) or len(newname) == 0 :
 	#    print "newname : ", newname
 	#    raise IsyTypeError("rename : name value not str")
-	r = self.isy.call_soap_method(cmd,
-			self._mydict["address"], str(newname) )
+	r = self.isy.call_soap(cmd,
+			id=self._mydict["address"], name=newname )
 
-	if isinstance(r, tuple) and r[0] == 200 :
-	    return True
-	else :
-	    return False
+	return r
 
     # check if scene _contains_ node
     def __contains__(self, other):
             return self.is_member(other)
+
 
     # check if obj _contains_  attib
 #    def __contains__(self, other):
@@ -138,6 +146,34 @@ class _IsyNodeBase(IsySubClass):
 #           return other in self._getlist
 #       else :
 #           return False
+
+    class MemberDicte(dict):
+
+	def __getitem__(self, key):
+	    val = dict.__getitem__(self, key)
+	    print 'GET', key
+	    return val
+
+	def __setitem__(self, key, val):
+	    print 'SET', key, val
+	    dict.__setitem__(self, key, val)
+
+	def __delitem__(self, key):
+	    print 'DEL', key
+	    dict.__delitem__(self, key)
+
+	def __repr__(self):
+	    dictrepr = dict.__repr__(self)
+	    return '%s(%s)' % (type(self).__name__, dictrepr)
+
+	def get(self, key, default_val):
+	    print 'GET', key, default_val
+	    dict.get(self, key, default_val)
+	
+	def update(self, *args, **kwargs):
+	    print 'update', args, kwargs
+	    for k, v in dict(*args, **kwargs).iteritems():
+		self[k] = v
 
 
 
@@ -186,6 +222,7 @@ class IsyNode(_IsyNodeBase):
             'ramprate': 'RR', 'onlevel': 'OL',
             "node-flag": "flag"}
     #_boollist = [ "enabled" ]
+    _nodetype = (1, "node")
 
     def __init__(self, isy, ndict) :
         if isinstance(ndict, dict):
@@ -410,6 +447,7 @@ class IsyScene(_IsyNodeBase):
     _setlist = []
     _propalias = {'id': 'address', 'addr': 'address',
                     "group-flag": "flag"}
+    nodetype = (2, "scene")
 
     # status property
     # obj mathod for getting/setting a  Scene's value
@@ -419,6 +457,7 @@ class IsyScene(_IsyNodeBase):
         return self._set_prop("ST", new_value)
 
     status = property(None, set_status)
+
 
     def _gettype(self):
         return "scene"
@@ -446,6 +485,17 @@ class IsyScene(_IsyNodeBase):
     def rename(self, newname) :
 	""" rename node/scene/folder """
 	return  self._rename("RenameGroup",  newname)
+
+    def member_del(self, node) :
+	r = self.isy.call_soap("RemoveFromGroup",
+		node=node._get_prop("address"),
+		group=self._mydict["address"])
+
+    def member_add(self, node, flag=16) :
+	r = self.isy.call_soap("MoveNode",
+		node=node._get_prop("address"),
+		group=self._mydict["address"],
+		flag=16)
 
     def member_iter(self, flag=0):
 	""" iter though members
@@ -480,13 +530,24 @@ class IsyNodeFolder(_IsyNodeBase):
     _getlist = ['address', 'name', 'flag']
     _setlist = []
     _propalias = {'id': 'address', 'addr': 'address', "folder-flag": "flag"}
+    _nodetype = (3, "folder")
 
     def _gettype(self):
         return "folder"
     type = property(_gettype)
 
+    def member_add(self, node) :
+	r = self.isy.call_soap("SetParent",
+		node=node._get_prop("address"), nodeType=node.nodeType(),
+		parent=self._mydict["address"], parentType=self.nodeType())
+
+    def member_add(self, node) :
+	r = self.isy.call_soap("SetParent",
+		node=node._get_prop("address"), nodeType=node.nodeType())
+
     def rename(self, newname) :
 	return self._rename("RenameFolder",  newname)
+
 
     def __iter__(self):
         return self.member_iter()
