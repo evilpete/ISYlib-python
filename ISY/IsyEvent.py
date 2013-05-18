@@ -193,7 +193,7 @@ class ISYEvent(object) :
             lists are created for duplicate tag
 
             arg: a ETree obj
-            returns: a dict obj
+            returns: a dict() obj
 
         """
         d = dict()

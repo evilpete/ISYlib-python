@@ -561,15 +561,41 @@ class IsyNodeFolder(_IsyNodeBase):
     type = property(_gettype)
 
     def member_add(self, node) :
+	""" add Node/Scene or Folder to Folder Obj
+
+		 Args:
+		    node = address, name or Node/Scene/Folder Obj
+
+	      sets Parent for node/scene/folder to current Obj Folder
+
+	    calls SOAP SetParent()
+	"""
 	r = self.isy.call_soap("SetParent",
 		node=node._get_prop("address"), nodeType=node.nodeType(),
 		parent=self._mydict["address"], parentType=self.nodeType())
 
-    def member_add(self, node) :
+    def member_del(self, node) :
+	""" del Node/Scene or Folder to Folder Obj
+
+		 Args:
+		    node = address, name or Node/Scene/Folder Obj
+
+	      del node/scene/folder to current Obj Folder
+	      (and moves to base folder)
+
+	    calls SOAP SetParent()
+	"""
 	r = self.isy.call_soap("SetParent",
 		node=node._get_prop("address"), nodeType=node.nodeType())
 
     def rename(self, newname) :
+	""" renames current Obj Folder
+
+	    args :
+		name = new folder name
+
+	    calls SOAP RenameFolder()
+	"""
 	return self._rename("RenameFolder",  newname)
 
 

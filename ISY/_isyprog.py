@@ -1,12 +1,12 @@
-
-from ISY.IsyExceptionClass import IsyInvalidCmdError, IsyResponseError
-from ISY.IsyProgramClass import IsyProgram
-
 """
 This is a subfile for IsyClass.py
 
 These funtions are accessable via the Isy class opj
 """
+
+from ISY.IsyExceptionClass import IsyInvalidCmdError, IsyResponseError
+from ISY.IsyProgramClass import IsyProgram
+
 
 ##
 ## ISY Programs Code

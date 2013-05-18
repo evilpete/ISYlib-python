@@ -1,3 +1,8 @@
+"""
+This is a data file for IsyEvent.py
+ 
+"""
+
 
 __all__ = [] # EVENT_CTRL, LOG_USERID
 

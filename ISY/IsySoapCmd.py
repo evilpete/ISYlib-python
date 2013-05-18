@@ -1,3 +1,18 @@
+
+
+""" Support for making simple SOAP calls 
+
+Very simple, with out Soap Library dependencies
+
+Classes
+-------
+
+SendSoapCmd()
+
+
+"""
+
+
 # import sys
 # import os
 # import traceback
@@ -15,15 +30,13 @@ try:
 except ImportError:
     fcntl = None
 
-""" Support for making simple SOAP calls 
+__all__ = [ 'SendSoapCmd' ]
 
-Very simple, with out Soap Library dependencies
+class SendSoapCmd(object):
+    """
 
-Classes
--------
-
-SendSoapCmd()
     Constructs and Handles call operations 
+
     args:
 	addr : ISY addr
     named args:
@@ -31,21 +44,16 @@ SendSoapCmd()
 	userp : ISY pass
 	keepalive : keep connection open for sequental calls
 
+    Methods
+    ---------
 
+    sendcomm("command", arg1, arg2, arg3, ....)
+	Generates SOAP command call
 
-Functions
----------
+    closesock():
+	close network connection (for use with keep alive)
 
-sendcomm("command", arg1, arg2, arg3, ....)
-    Generates SOAP command call
-
-closesock():
-    close network connection (for use with keep alive)
-"""
-
-__all__ = [ 'SendSoapCmd' ]
-
-class SendSoapCmd(object):
+    """
 
     def __init__(self, addr, **kwargs) :
         self.soap_rf = None

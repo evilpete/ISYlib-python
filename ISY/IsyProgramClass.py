@@ -25,6 +25,12 @@ class IsyProgram(IsySubClass):
 
 
         funtions:
+	    get_prog_enable() : 
+	    set_prog_enable() : 
+	    get_prog_runatstart() :
+	    set_prog_runatstart() :
+	    send_command() :
+
             get_prog_ts() :     get timestamp
             get_prog_type() :   get Var type
             get_prog_init() :   get  inital value for Var

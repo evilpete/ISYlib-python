@@ -1,11 +1,12 @@
-from ISY.IsyUtilClass import et2d
-from ISY.IsyExceptionClass import IsyResponseError, IsyValueError
 
 """
 This is a subfile for IsyClass.py
 
 These funtions are accessable via the Isy class opj
 """
+
+from ISY.IsyUtilClass import et2d
+from ISY.IsyExceptionClass import IsyResponseError, IsyValueError
 
 ##
 ## networking resources

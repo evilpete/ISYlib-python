@@ -1,13 +1,14 @@
-from ISY.IsyVarClass import IsyVar
-from ISY.IsyExceptionClass import IsyValueError, IsyResponseError, IsyPropertyError
-
-from warnings import warn 
-
 """
 This is a subfile for IsyClass.py
 
 These funtions are accessable via the Isy class opj
 """
+
+from ISY.IsyVarClass import IsyVar
+from ISY.IsyExceptionClass import IsyValueError, IsyResponseError, IsyPropertyError
+
+from warnings import warn 
+
 
 # import pprint
 

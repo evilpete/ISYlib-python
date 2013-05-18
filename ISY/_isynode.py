@@ -1,14 +1,14 @@
+"""
+This is a subfile for IsyClass.py
+
+These funtions are accessable via the Isy class opj
+"""
 from ISY.IsyNodeClass import IsyNode, IsyScene #, IsyNodeFolder, _IsyNodeBase
 from ISY.IsyUtilClass import IsySubClass
 from ISY.IsyExceptionClass import IsyPropertyError, IsyResponseError
 import warnings
 # import string
 
-"""
-This is a subfile for IsyClass.py
-
-These funtions are accessable via the Isy class opj
-"""
 
 ##
 ## Node funtions
