@@ -216,7 +216,7 @@ class IsyNode(_IsyNodeBase):
             'ELK_ID',
             'name', 'pnode', 'flag',
             'OL', 'RR', 'ST', 'type']
-    _setlist = ['RR', 'OL', 'status', 'ramprate', 'onlevel']
+    _setlist = ['RR', 'OL', 'status', 'ramprate', 'onlevel', 'enable']
     _propalias = {'status': 'ST', 'value': 'ST', 'val': 'ST',
             'id': 'address', 'addr': 'address',
             'ramprate': 'RR', 'onlevel': 'OL',
@@ -314,7 +314,11 @@ class IsyNode(_IsyNodeBase):
 		raise IsyPropertyError("_set_prop : " \
 		    "Invalid property Attribute " + prop)
 
-        if prop in ['OL', 'RR'] :
+        if prop == 'enable' :
+	    self._mydict[prop] = bool(new_value)
+	    self.isy.node_enable(self._mydict["address"], bool(new_value))
+
+        elif prop in ['OL', 'RR'] :
             if not str(new_value).isdigit :
                 raise IsyTypeError("Set Property : Bad Value : node=%s prop=%s val=%s" %
                             self._mydict["address"], prop, str(new_value))
@@ -335,6 +339,21 @@ class IsyNode(_IsyNodeBase):
         else :
             #print "_set_prop AttributeError"
             raise AttributeError("no Attribute " + prop)
+
+
+    # enable node
+    def get_enable(self):
+        """ enable/disable a node """
+        return self._get_prop("enable")
+
+    def set_enable(self, new_bool):
+        """ Get/Set RampRate property of Node """
+        return self._set_prop("enable", new_value)
+
+    enable = property(get_enable, set_enable)
+
+
+
 
     # ramprate property
     # obj mathod for getting/setting a Node's value

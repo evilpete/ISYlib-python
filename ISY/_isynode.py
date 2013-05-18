@@ -617,6 +617,32 @@ def _updatenode(self, naddr) :
         self._nodedict[naddr]["property"]["time"] = time.gmtime()
 
 
+#
+# Send command to Node/Scene
+#
+def node_enable(self, naddr, enable=True) :
+    """ enable/disable node """
+    if self.debug & 0x04 :
+	print("node_enable", naddr, cmd)
+    node_id = self._node_get_id(naddr)
+
+    if not node_id :
+	raise LookupError("node_comm: unknown node : " + str(naddr) )
+    # print("naddr : ", naddr, " : ", node_id)
+
+    if enable :
+	op = "enable"
+    else :
+	op = "disable"
+
+    xurl = "/rest/nodes/{!s:}/{!s:}".format(naddr, op) 
+    if self.debug & 0x02 : print("xurl = " + xurl)
+    resp = self._getXMLetree(xurl)
+    self._printXML(resp)
+    if resp == None or resp.attrib["succeeded"] != 'true' :
+	raise IsyResponseError(
+		"Node Cmd/Property Set error : node=%s prop=%s " %
+		naddr, prop )
 
 # Do nothing
 # (syntax check)
