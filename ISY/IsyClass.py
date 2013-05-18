@@ -404,7 +404,14 @@ class Isy(IsyUtil):
     # This is a total have and can be done better
     #
     def call_soap(self, cmd, **kwargs):
-	""" Call named Soap API method """
+	""" wrapper funtion for making SOAP API calls
+
+		args:
+		    cmd = name of soap command
+
+		named arg
+		    [depends on command called]
+	"""
 	# print "call_soap_method: call_method"
 	# print "call_soap_method: ", self.__class__.__name__
 
@@ -427,7 +434,13 @@ class Isy(IsyUtil):
     ## scene
 
     def scene_del(self, sid=None ) :
-	""" delete Scene/Group """
+	""" delete Scene/Group 
+
+		args: 
+		    id : Scene address, name or Folder Obj
+
+	    calls SOAP RemoveGroup()
+	"""
 	sceneid = self._node_get_id(sid)
 	if sceneid == None :
 	    raise IsyValueError("no such Scene : " + str(sid) )
@@ -437,7 +450,16 @@ class Isy(IsyUtil):
 	return  self.call_soap("RemoveGroup", id=sceneid)
 
     def scene_new(self, nid=0, sname=None) :
-	""" create new Scene/Group """
+	""" new Scene/Group
+
+		args: 
+		    id = a unique (unused) Group ID
+		    name = name for new Scene/Group
+
+	    ***No error is given if Scene/Group ID is already in use***
+
+	    calls SOAP AddGroup()
+	"""
 	if not isinstance(sname, str) or not len(sname) :
 	    raise IsyValueError("scene name must be non zero length string")
 
@@ -454,6 +476,18 @@ class Isy(IsyUtil):
 	return nid
 
     def scene_add_node(self, groupid, nid, nflag=0x10) :
+	""" add node to Scene/Group
+
+		args: 
+		    group = a unique (unused) scene_id ID
+		    node = id, name or Node Obj
+		    flag = set to 0x10 if node it a controler for Scene/Group
+
+	    Add new Node to Scene/Group 
+
+
+	    calls SOAP MoveNode()
+	"""
 	nodeid = self._node_get_id(nid)
 	if nodeid == None :
 	    raise IsyValueError("no such Node : " + str(nid) )
@@ -461,6 +495,14 @@ class Isy(IsyUtil):
 	return r
 
     def scene_del_node(self, groupid, nid) :
+	""" Remove Node from Scene/Group
+
+		args:
+		    group = address, name or Scene Obj
+		    id = address, name or Node Obj
+
+	    calls SOAP RemoveFromGroup()
+	"""
 	nodeid = self._node_get_id(nid)
 	if nodeid == None :
 	    raise IsyValueError("no such Node : " + str(nid) )
@@ -470,7 +512,18 @@ class Isy(IsyUtil):
     ## folder
 
     def folder_new(self, fid, fname) :
-	""" create new Folder """
+	""" new Folder
+
+		args: 
+		    folder_id = a unique (unused) folder ID
+		    folder name = name for new folder
+
+	    create new Folder 
+
+	    returns error if folder ID is already in use
+
+	    calls SOAP AddFolder()
+	"""
 	if fid == 0 :
 	    id = 50001
 	    fid = str(id)
@@ -487,7 +540,12 @@ class Isy(IsyUtil):
 	return r
 
     def folder_del(self,fid) :
-	""" delete  Folder """
+	""" delete folder
+		args: 
+		    fid : folder address, name or Folder Obj
+
+	    calls SOAP RemoveFolder()
+	"""
 	id = self._node_get_id(fid)
 	if id == None :
 	    raise IsyValueError("Unknown Folder : " + str(fid) )
@@ -497,7 +555,18 @@ class Isy(IsyUtil):
 
     # SetParent(node, nodeType, parent, parentType )
     def folder_add_node(self, nid, nodeType=1, parent="", parentType=3) :
-	""" move node/scene from folder """
+	""" move node/scene from folder 
+
+	    Named args:
+		node
+		nodeType
+		parent
+		parentType
+
+	    sets Parent for node/scene 
+
+	    calls SOAP SetParent()
+	"""
 	nodeid = self._node_get_id(nid)
 	if nodeid == None :
 	    raise IsyValueError("no such Node/Scene : " + str(nid) )
@@ -513,12 +582,25 @@ class Isy(IsyUtil):
 	r = self.call_soap("SetParent", node=node, nodeType=1, parent=parentid, parentType=3)
 	return r
 
-    def folder_del_node(self, nid, nodeType=1, parent="", parentType=3) :
-	""" remove node/scene from folder ( moves to default/main folder ) """
+    def folder_del_node(self, nid, nodeType=1) :
+	""" remove node from folder
+
+	    Named args:
+		node
+		nodeType
+
+	    remove node/scene from folder ( moves to default/main folder )
+
+	    calls SOAP SetParent()
+	"""
 	return self.folder_add_node(self, nid, nodeType=1, parent="", parentType=3)
 
     def reboot(self) :
-	""" Reboot ISY Device """
+	""" Reboot ISY Device
+		args: none
+
+	    calls SOAP Reboot() 
+	"""
 	return self.call_soap("Reboot")
 
     #
@@ -553,6 +635,7 @@ class Isy(IsyUtil):
 	    self.load_node_types()
 
     def _savedict(self) :
+	""" internal debug command """
 
         self._preload()
 
@@ -669,13 +752,28 @@ class Isy(IsyUtil):
     ## Logs
     ##
     def load_log_type(self):
-        pass
+        """ load log type tables
+
+	    args: None
+
+	**not implemented **
+	"""
+	pass
 
     def load_log_id(self):
+        """ load log id tables
+
+	**not implemented **
+	"""
         pass
 
     def log_reset(self, errorlog = 0 ):
-        """ clear log lines in ISY """ 
+        """ clear log lines in ISY
+
+	    args:
+		errorlog = flag clear error
+
+	""" 
         self.log_query(errorlog, 1)
 
     def log_iter(self, error = 0 ):
@@ -706,7 +804,10 @@ class Isy(IsyUtil):
         return data.splitlines()
 
     def log_format_line(self, line) :
-        """ format a ISY log line into a more human readable form """
+        """ format a ISY log line into a more human readable form
+
+	** not implemented **
+	"""
         pass
 
 
@@ -774,6 +875,14 @@ class Isy(IsyUtil):
 # Returns the state of subscriptions
 
     def subscriptions(self) :
+	"""  get event subscriptions list and states
+
+	    args: none
+
+	Returns the state of subscriptions
+
+	calls : /rest/subscriptions
+	"""
 	xurl = "/rest/subscriptions"
         if self.debug & 0x02 : print("xurl = " + xurl)
 	resp = self._getXMLetree(xurl)
@@ -781,6 +890,14 @@ class Isy(IsyUtil):
 	return et2d(resp)
 
     def network(self) :
+	""" network configuration
+
+	    args: none
+
+	Returns network configuration
+	calls /rest/network
+	"""
+
 	xurl = "/rest/network"
         if self.debug & 0x02 : print("xurl = " + xurl)
 	resp = self._getXMLetree(xurl)
@@ -788,6 +905,12 @@ class Isy(IsyUtil):
 	return et2d(resp)
 
     def sys(self) :
+	""" system configuration
+
+	    args: none
+
+	calls : /rest/sys
+	"""  
 	xurl = "/rest/sys"
         if self.debug & 0x02 : print("xurl = " + xurl)
 	resp = self._getXMLetree(xurl)
@@ -795,12 +918,27 @@ class Isy(IsyUtil):
 	return et2d(resp)
 
     def time(self) :
+	"""  system time of ISY
+
+	    args: none
+
+	calls : /rest/time
+	"""
 	xurl = "/rest/time"
 	resp = self._getXMLetree(xurl)
 	self._printXML(resp)
 	return et2d(resp)
 
     def batch( self, on=-1) :
+	""" Batch mode 
+
+	    args values:
+		1 = Turn Batch mode on
+		0 = Turn Batch mode off
+		-1 or None = Return Batch mode status
+
+	calls /rest/batteryPoweredWrites/
+	"""
 	xurl = "/rest/batteryPoweredWrites/"
 
 	if on == 0 :
@@ -819,6 +957,16 @@ class Isy(IsyUtil):
 
     #/rest/batterypoweredwrites
     def batterypoweredwrites(self, on=-1) :
+	""" Battery Powered Writes
+
+	    args values:
+		1 = Turn Batch mode on
+		0 = Turn Batch mode off
+		-1 or None = Return Batch mode status
+
+	returns status of Battery Powered device operations
+	calls /rest/batteryPoweredWrites/
+	"""
 	xurl = "rest/batteryPoweredWrites/"
 
 	if on == 0 :
@@ -834,9 +982,16 @@ class Isy(IsyUtil):
 
     def electricity(self):
 	""" 
-	Returns electricity module info and specifically Energy Monitor,
-	Open ADR and Flex Your Power status
+	electricity status
+
+	    args: none
+
+	Returns electricity module info, "Energy Monitor",
+	"Open ADR" and "Flex Your Power" status
+
 	Only applicable to 994 Z Series.
+
+	calls: /rest/electricity
 	"""
 
 	xurl = "/rest/electricity"
@@ -851,9 +1006,20 @@ class Isy(IsyUtil):
     ## Callback functions
     ##
     def callback_set(self, nid, func, *args):
-	"""set a callback funtion for Nodes
-	funtion will be called when  there is a change event for
-	specified node
+	"""set a callback function for a Node
+
+	    args:
+		node id
+		referance to a function
+		* arg list
+
+	Sets up a callback function that will be called whenever there
+	is a change event for the specified node
+
+	Only one callback per node is supported, If a callback funtion is already
+	registared for node_id it will be replaced
+
+	requires IsyClass option "eventupdates" to to set
 	"""
 
 	if not isinstance(func, collections.Callable) :
@@ -867,8 +1033,13 @@ class Isy(IsyUtil):
 	self.callbacks[nodeid] = (func, args)
 
     def callback_get(self, nid):
-	"""get a callback funtion for Nodes, if exists.
-	    no none exist then value None is returned
+	"""get a callback funtion for a Nodes
+
+	    args:
+		node id
+
+	returns referance to registared callback function for a node
+	no none exist then value "None" is returned
 	"""
 
 	nodeid = self._node_get_id(nid)
@@ -879,8 +1050,15 @@ class Isy(IsyUtil):
 	return None
 
     def callback_del(self, nid):
-	"""delete a callback funtion for a Node, if exists.
-	     no error is raised if callback does not exist
+	"""delete a callback funtion
+
+	    args:
+		node id
+
+
+	    delete a callback funtion for a Node, if exists.
+
+	    no error is raised if callback does not exist
 	"""
 	nodeid = self._node_get_id(nid)
 	if nodeid != None and nodeid in self.callbacks :
@@ -954,6 +1132,7 @@ class Isy(IsyUtil):
 
 
 def log_time_offset() :
+    """  calculates  time format offset used in ISY event logs to localtime format """
     lc_time = time.localtime()
     gm_time = time.gmtime()
     return ((lc_time[3] ) - (gm_time[3] - gm_time[8])) * 60 * 60

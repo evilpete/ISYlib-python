@@ -21,8 +21,6 @@ class IsyVar(IsySubClass):
             set_var_init(new_value) :   set inital value for Var
             get_var_value() :   get current value
             set_var_value(new_value) :  set new value for Var
-            get_var_id() :      get unique for Var used by ISY
-            get_var_name() :    get name of var
 
     """
 
@@ -98,26 +96,39 @@ class IsyVar(IsySubClass):
     #
     # Type conversion
     def __str__(self): return str(self._mydict["val"])
+    # Type conversion
     def __long__(self): return long(self._mydict["val"])
+    # Type conversion
     def __float__(self): return float(self._mydict["val"])
+    # Type conversion
     def __int__(self): return int(self._mydict["val"])
+    # Type conversion
     def __bool__(self) : return bool( self._mydict["val"]) != 0
 
+    # mathematical operator
     def __abs__(self): return abs(self._mydict["val"])
 
-    # 
+    #  comparison functions 
     def __lt__(self, n): return self._mydict["val"] <  self.__cast(n)
+    #  comparison functions 
     def __le__(self, n): return self._mydict["val"] <= self.__cast(n)
+    #  comparison functions 
     def __eq__(self, n): return self._mydict["val"] == self.__cast(n)
+    #  comparison functions 
     def __ne__(self, n): return self._mydict["val"] != self.__cast(n)
+    #  comparison functions 
     def __gt__(self, n): return self._mydict["val"] >  self.__cast(n)
+    #  comparison functions 
     def __ge__(self, n): return self._mydict["val"] >= self.__cast(n)
+    #  comparison functions 
 
+    #  comparison functions 
     def __cmp__(self, n): return cmp(self._mydict["val"], self.__cast(n))
 
 
+    # mathematical operator
     def __add__(self, n):
-	print "__add__"
+	#print "__add__"
         if isinstance(n, self.__class__):
             return (self._mydict["val"] + n._mydict["val"])
         elif isinstance(n, type(self._mydict["val"])):
@@ -127,18 +138,21 @@ class IsyVar(IsySubClass):
 
     __radd__ = __add__
 
+    # mathematical operator
     def __iadd__(self, n):
         if isinstance(n, self.__class__): self._mydict["val"] += n._mydict["val"]
         else: self._mydict["val"] += int(n)
 	self.isy._var_set_value(self._mydict['id'], self._mydict["val"])
         return self
 
+    # mathematical operator
     def __sub__(self, n):
         if isinstance(n, self.__class__):
             return (self._mydict["val"] - n._mydict["val"])
         elif isinstance(n, type(self._mydict["val"])):
             return (self._mydict["val"] - int(n))
 
+    # mathematical operator
     def __isub__(self, n):
         if isinstance(n, self.__class__): self._mydict["val"] -= n._mydict["val"]
         else: self._mydict["val"] -= int(n)
@@ -146,42 +160,59 @@ class IsyVar(IsySubClass):
         return self
 
     # Mult &  div
-    #
+
+    # mathematical operator
     def __mul__(self, n): return (self._mydict["val"]*n)
     __rmul__ = __mul__
 
     def __imul__(self, n):
+
+    # mathematical operator
 	self._mydict["val"] *= n
 	self.isy._var_set_value(self._mydict['id'], self._mydict["val"])
         return self
 
     def __floordiv__(self, n): return self._mydict["val"] // self.__cast(n)
 
+    # mathematical operator
+
     def __ifloordiv__(self, n):
+
+    # mathematical operator
 	self._mydict["val"] //= n
 	self.isy._var_set_value(self._mydict['id'], self._mydict["val"])
         return self
 
     def __truediv__(self, n): return (self._mydict["val"] / self.__cast(n))
+
+    # mathematical operator
     __div__ = __truediv__
 
     def __itruediv__(self, n):
+
+    # mathematical operator
 	self._mydict["val"] /= self.__cast(n)
 	self.isy._var_set_value(self._mydict['id'], self._mydict["val"])
 	return self
     __idiv__ = __itruediv__
 
     def __imod__(self, n):
+
+    # mathematical operator
 	self._mydict["val"] %= self.__cast(n) 
 	self.isy._var_set_value(self._mydict['id'], self._mydict["val"])
         return self
 
     def __ipow__(self, n):
+
+    # mathematical operator
 	self._mydict["val"] **= self.__cast(n) 
 	self.isy._var_set_value(self._mydict['id'], self._mydict["val"])
         return self
 
     def __neg__(self): return - self._mydict["val"]
+
+    # mathematical operator
 
     # logic opts
     def __and__(self, n): return self._mydict["val"] & self.__cast(n)

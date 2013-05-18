@@ -1,9 +1,11 @@
 
 """
+This is a subfile for IsyClass.py
 
 ZigBee Support 
 
 Only applicable to ISY994 Z Series.
+
 
 for now these are just empty hooks will I get my ZigBee Net working
 to test against

@@ -2,6 +2,11 @@
 from ISY.IsyExceptionClass import IsyInvalidCmdError, IsyResponseError
 from ISY.IsyProgramClass import IsyProgram
 
+"""
+This is a subfile for IsyClass.py
+
+These funtions are accessable via the Isy class opj
+"""
 
 ##
 ## ISY Programs Code
@@ -44,6 +49,15 @@ def load_prog(self):
 
 def get_prog(self, pname) :
     """ get prog class obj """
+    """ Get a Program object for given program name or ID
+
+	args:
+	    pname : program name of id
+
+	return:
+	    An IsyProgram class object representing the requested program
+
+    """
     if self.debug & 0x01 :
 	print("get_prog :" + pname)
     if not self._progdict :
@@ -101,9 +115,26 @@ prog_valid_comm = ['run', 'runThen', 'runElse',
 		'enableRunAtStartup', 'disableRunAtStartup']
 
 def prog_cmd_list(self) :
+    """ get list of valid commands for prog_comm() """
     return prog_valid_comm[:]
 
 def prog_comm(self, paddr, cmd) :
+    """ Send program command
+
+        args:
+	    paddr = program name, address or program obj
+            cmd = name of command
+	    
+        raise:
+            LookupError :  if node name or Id is invalid
+            IsyPropertyError :  if property invalid
+            TypeError :  if property valid
+
+	Valid Commands : 'run', 'runThen', 'runElse', 'stop', 'enable', 'disable', 'enableRunAtStartup', 'disableRunAtStartup'
+
+    calls  /rest/programs/<pgm-id>/<pgm-cmd>
+    """
+
     prog_id = self._prog_get_id(paddr)
 
     #print("self.controls :", self.controls)
@@ -120,7 +151,7 @@ def prog_comm(self, paddr, cmd) :
     self._prog_comm(prog_id, cmd)
 
 def _prog_comm(self, prog_id, cmd) :
-    """ send command to a program without name to ID overhead """
+    """ called by prog_comm() after argument validation """
     # /rest/programs/<pgm-id>/<pgm-cmd>
     xurl = "/rest/programs/" + prog_id + "/" + cmd 
 

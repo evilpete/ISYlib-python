@@ -4,6 +4,12 @@ from ISY.IsyExceptionClass import IsyPropertyError, IsyResponseError
 import warnings
 # import string
 
+"""
+This is a subfile for IsyClass.py
+
+These funtions are accessable via the Isy class opj
+"""
+
 ##
 ## Node funtions
 ##
@@ -102,7 +108,7 @@ def _gen_member_list(self) :
 
 
 def _gen_folder_list(self, nodeinfo) :
-    """ generate folder dictionary for load_node """
+    """ generate folder dictionary for load_node() """
     # self._folderlist = dict ()
     self.folder2addr = dict ()
     for fold in nodeinfo.iter('folder'):
@@ -131,7 +137,7 @@ def _gen_folder_list(self, nodeinfo) :
     #self._printdict(self.folder2addr)
 
 def _gen_nodegroups(self, nodeinfo) :
-    """ generate scene / group dictionary for load_node """
+    """ generate scene / group dictionary for load_node() """
     # self._nodegroups = dict ()
     self.groups2addr = dict ()
     for grp in nodeinfo.iter('group'):
@@ -179,7 +185,7 @@ def _gen_nodegroups(self, nodeinfo) :
 
 
 def _gen_nodedict(self, nodeinfo) :
-    """ generate node dictionary for load_node """
+    """ generate node dictionary for load_node() """
     self.node2addr = dict()
     for inode in nodeinfo.iter('node'):
 	# self._printinfo(inode, "\n\n inode")
@@ -359,6 +365,16 @@ def _node_get_id(self, nid):
 # Get property for a node
 #
 def node_get_prop(self, naddr, prop_id) :
+    """ Get node property 
+        args:
+	    naddr = name, address or node obj
+            prop_id = name of property
+ 
+        raise:
+            LookupError :  if node name or Id is invalid
+            IsyPropertyError :  if property invalid
+    """
+
     #<isQueryAble>true</isQueryAble>
     if self.debug & 0x01 :
 	print("node_get_prop")
@@ -388,7 +404,19 @@ def node_get_prop(self, naddr, prop_id) :
 # Set property for a node
 #
 def node_set_prop(self, naddr, prop, val) :
-    """ calls /rest/nodes/<node-id>/set/<property>/<value> """
+    """ Set node property 
+        args:
+	    naddr = name, address or node obj
+            prop = name of property
+	    val = new value to assign 
+ 
+        raise:
+            LookupError :  if node name or Id is invalid
+            IsyPropertyError :  if property invalid
+            TypeError :  if property valid
+
+    calls /rest/nodes/<node-id>/set/<property>/<value>
+    """
     if self.debug & 0x01 :
 	print("node_set_prop")
 
@@ -422,7 +450,7 @@ def node_set_prop(self, naddr, prop, val) :
 
 # to  replace _node_set_prop and _node_comm
 def _node_send(self, naddr, action,  prop, *args) :
-    """ node_set_prop after argument validation """
+    """ called by node_comm() or  node_set_prop() after argument validation """
     #print("_node_send : node=%s prop=%s val=%s" % str(naddr), prop, val)
     # print ("_node_send : node=" + str(naddr) + " prop=" + prop + " val=" + val )
     xurl = "/rest/nodes/{!s:}/{!s:}/{!s:}/{!s:}".format(naddr, action, prop, "/".join(str(x) for x in args) )
@@ -451,7 +479,20 @@ def _node_send(self, naddr, action,  prop, *args) :
 # Send command to Node/Scene
 #
 def node_comm(self, naddr, cmd, *args) :
-    """ send command to a node or scene """
+    """ Send node command 
+
+        args:
+	    naddr = name, address or node obj
+            cmd = name of command
+	    value = optional value argument for cmd
+	    
+        raise:
+            LookupError :  if node name or Id is invalid
+            IsyPropertyError :  if property invalid
+            TypeError :  if property valid
+
+    calls /rest/nodes/<node-id>/cmd/<cmd>>/<cmd value>
+    """
     if self.debug & 0x04 :
 	print("node_comm", naddr, cmd)
     node_id = self._node_get_id(naddr)
@@ -621,7 +662,19 @@ def _updatenode(self, naddr) :
 # Send command to Node/Scene
 #
 def node_enable(self, naddr, enable=True) :
-    """ enable/disable node """
+    """ enable/disable node
+
+        args:
+	    naddr = name, address or node obj
+            enable = bool ( True=enable / False=disable)
+	    
+        raise:
+            LookupError :  if node name or Id is invalid
+            IsyResponseError :  if Error in ISY responce
+
+    calls /rest/nodes/<node-id>/enable
+    calls /rest/nodes/<node-id>/disable
+    """
     if self.debug & 0x04 :
 	print("node_enable", naddr, cmd)
     node_id = self._node_get_id(naddr)

@@ -3,6 +3,12 @@ from ISY.IsyExceptionClass import IsyValueError, IsyResponseError, IsyPropertyEr
 
 from warnings import warn 
 
+"""
+This is a subfile for IsyClass.py
+
+These funtions are accessable via the Isy class opj
+"""
+
 # import pprint
 
 ##

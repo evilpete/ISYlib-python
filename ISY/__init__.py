@@ -91,7 +91,7 @@ from ISY.IsyProgramClass import IsyProgram
 from ISY.IsyExceptionClass import IsyError
 
 __revision__ = "$Id$"
-__version__ = '0.1.20130331'
+__version__ = '0.1.20130518'
 __author__ = 'Peter Shipley <peter.shipley@gmail.com>'
 
 

@@ -1,6 +1,12 @@
 from ISY.IsyUtilClass import et2d
 from ISY.IsyExceptionClass import IsyResponseError, IsyValueError
 
+"""
+This is a subfile for IsyClass.py
+
+These funtions are accessable via the Isy class opj
+"""
+
 ##
 ## networking resources
 ##
@@ -27,6 +33,10 @@ def _load_networking(self, resource_id):
     return(net_dict, name2id)
 
 def load_net_resource(self):
+    """ Load node WOL and  Net Resource config infomation
+
+	args: none
+    """
     (self.net_resource, self.name2net_res) = self._load_networking("resources")
     #self._printdict(self.net_resource)
     #self._printdict(self.name2net_res)
@@ -44,6 +54,12 @@ def _net_resource_get_id(self, name):
     return None
 
 def net_resource_run(self, rrid):
+    """ Calls and executes net resource
+
+	args:
+	    rrid : network resource ID
+    calls : /rest/networking/resources/<rrid>
+    """
 
     rid = self._net_resource_get_id(rrid)
 
@@ -64,7 +80,10 @@ def net_resource_run(self, rrid):
 def net_resource_names(self):
     """
     method to retrieve a list of networking resource names
-    returns List of names or None
+
+	args: none
+
+	returns List of names or None
     """
     if not self.net_resource :
 	self.load_net_resource()
@@ -73,7 +92,10 @@ def net_resource_names(self):
 
     
 def net_resource_iter(self):
-    """ iterate threw net_resource data """ 
+    """ iterate net_resource data
+
+	args: none
+    """ 
     if not self.net_resource :
 	self.load_net_resource()
     for k, v in self.net_resource.items() :
@@ -94,8 +116,11 @@ def load_net_wol(self) :
 
 
 def net_wol(self, wid) :
-    """
-	Send Wake On LAN to registared wol ID
+    """ Send Wake On LAN to registared wol ID
+
+	args:
+	    wid : WOL resource ID
+    calls : /rest/networking/wol/<wol_id>
     """
 
     wol_id = self._net_wol_get_id(wid)
@@ -132,8 +157,10 @@ def _net_wol_get_id(self, name) :
 
 
 def net_wol_names(self) :
-    """
-    method to retrieve a list of WOL names
+    """ method to retrieve a list of WOL names
+
+	args: none
+
     returns List of WOL names and IDs or None
     """
     if not self.wolinfo :
@@ -142,7 +169,10 @@ def net_wol_names(self) :
 
 
 def net_wol_iter(self):
-    """ Iterate though Wol Ids values """
+    """ Iterate though Wol Ids values
+
+	args: none
+    """
     if not self.wolinfo :
 	self.load_wol()
 

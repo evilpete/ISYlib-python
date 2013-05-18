@@ -42,8 +42,8 @@ def et2d(et) :
 
 
 	arg: ETree Element  obj
-	returns: a dict obj
 
+	returns: a dict obj
     """
     d = dict()
     if not isinstance(et, ET.Element) :
@@ -58,7 +58,7 @@ def et2d(et) :
 		if type(d[child.tag]) != list :
 		    t = d[child.tag]
 		    d[child.tag] = [t]
-	    if list(child) :
+	    if list(child) or child.attrib :
 		if child.tag in d :
 		    d[child.tag].append(et2d(child))
 		else :
@@ -82,7 +82,7 @@ class IsyUtil(object):
 
 
     def _printXML(self, xml):
-        """ Pretty Print XML """
+        """ Pretty Print XML, for internal debug"""
         print("_printXML start")
         ET.dump(xml)
 
@@ -114,7 +114,7 @@ class IsyUtil(object):
 		return None
 
     def _printdict(self, d):
-        """ Pretty Print dictionary """
+        """ Pretty Print dictionary, for internal debug"""
         print("===START===")
         pprint(d)
         print("===END===")
@@ -217,21 +217,21 @@ class IsySubClass(IsyUtil):
 #       pass
 
 
-    def get_prop_list(self, l):
-        """ Get a list of properties
-
-            args:
-                prop_list : a list of property names
-
-            returns
-                a list of property values
-
-            if I property does not exist a value of None is used instead
-            of raising a Attribute error
-
-        """
-        pass
-
+#    def get_prop_list(self, l):
+#        """ Get a list of properties
+#
+#            args:
+#                prop_list : a list of property names
+#
+#            returns
+#                a list of property values
+#
+#            if a property does not exist a value of None is used
+#	   ( instead of raising a Attribute error)
+#
+#        """
+#        pass
+#
 
     def _getaddr(self):
         """  Address or ID of Node (readonly) """
@@ -306,9 +306,10 @@ class IsySubClass(IsyUtil):
 
     # This allows for 
     def __eq__(self, other):
-        print("IsyUtil __eq__")
-        print("self", self)
-        print("other", other)
+	""" smarter test for compairing Obj value """
+        #print("IsyUtil __eq__")
+        #print("self", self)
+        #print("other", other)
         if isinstance(other, str) :
             return self._get_prop("id") == other
         if type(self) != type(other) :

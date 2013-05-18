@@ -1,5 +1,11 @@
 import time
 
+"""
+This is a subfile for IsyClass.py
+
+These funtions are accessable via the Isy class opj
+"""
+
 ##
 ## Climate funtions
 ##

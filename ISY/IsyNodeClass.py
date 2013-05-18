@@ -147,33 +147,34 @@ class _IsyNodeBase(IsySubClass):
 #       else :
 #           return False
 
-    class MemberDicte(dict):
 
-	def __getitem__(self, key):
-	    val = dict.__getitem__(self, key)
-	    print 'GET', key
-	    return val
-
-	def __setitem__(self, key, val):
-	    print 'SET', key, val
-	    dict.__setitem__(self, key, val)
-
-	def __delitem__(self, key):
-	    print 'DEL', key
-	    dict.__delitem__(self, key)
-
-	def __repr__(self):
-	    dictrepr = dict.__repr__(self)
-	    return '%s(%s)' % (type(self).__name__, dictrepr)
-
-	def get(self, key, default_val):
-	    print 'GET', key, default_val
-	    dict.get(self, key, default_val)
-	
-	def update(self, *args, **kwargs):
-	    print 'update', args, kwargs
-	    for k, v in dict(*args, **kwargs).iteritems():
-		self[k] = v
+#    class MemberDicte(dict):
+#
+#	def __getitem__(self, key):
+#	    val = dict.__getitem__(self, key)
+#	    print 'GET', key
+#	    return val
+#
+#	def __setitem__(self, key, val):
+#	    print 'SET', key, val
+#	    dict.__setitem__(self, key, val)
+#
+#	def __delitem__(self, key):
+#	    print 'DEL', key
+#	    dict.__delitem__(self, key)
+#
+#	def __repr__(self):
+#	    dictrepr = dict.__repr__(self)
+#	    return '%s(%s)' % (type(self).__name__, dictrepr)
+#
+#	def get(self, key, default_val):
+#	    print 'GET', key, default_val
+#	    dict.get(self, key, default_val)
+#	
+#	def update(self, *args, **kwargs):
+#	    print 'update', args, kwargs
+#	    for k, v in dict(*args, **kwargs).iteritems():
+#		self[k] = v
 
 
 
@@ -343,14 +344,18 @@ class IsyNode(_IsyNodeBase):
 
     # enable node
     def get_enable(self):
-        """ enable/disable a node """
+        """ get enable/disable status a node """
         return self._get_prop("enable")
 
     def set_enable(self, new_bool):
-        """ Get/Set RampRate property of Node """
+        """ Set enable status a node
+
+	    args:
+		enable bool
+	"""
         return self._set_prop("enable", new_value)
 
-    enable = property(get_enable, set_enable)
+    enable = property(get_enable, set_enable, None, "enable/disable a node")
 
 
 
