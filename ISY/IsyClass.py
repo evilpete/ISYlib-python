@@ -13,7 +13,6 @@
 # import base64
 import re
 import os
-from pprint import pprint
 import sys
 #import string
 import pprint
@@ -39,8 +38,9 @@ import collections
 
 if sys.hexversion < 0x3000000 :
     import urllib2 as URL
-    from urllib2 import URLError, HTTPError
     # HTTPPasswordMgrWithDefaultRealm = URL.HTTPPasswordMgrWithDefaultRealm
+    # Request, build_opener, request, HTTPBasicAuthHandler, HTTPPasswordMgrWithDefaultRealm, URLError, HTTPError
+
 else :
     import urllib as URL
     from urllib.request import HTTPPasswordMgrWithDefaultRealm
@@ -139,6 +139,7 @@ class Isy(IsyUtil):
         _password_mgr = URL.HTTPPasswordMgrWithDefaultRealm()
         _handler = URL.HTTPBasicAuthHandler(_password_mgr)
         _opener = URL.build_opener(_handler)
+
 	# URL.HTTPHandler(debuglevel=1) 
     else:
         _password_mgr = URL.request.HTTPPasswordMgrWithDefaultRealm()
@@ -192,7 +193,7 @@ class Isy(IsyUtil):
 
         if self.addr == None :
 	    warn("No ISY address : guessing \"isy\"")
-	    self.addr == "isy"
+	    self.addr = "isy"
 
 #	print "\n\taddr", "=>", self.addr, "\n\n"
 
@@ -226,7 +227,7 @@ class Isy(IsyUtil):
 	if self.faststart < 2 :
 	    try:
 		self.load_conf()
-	    except URLError as e:
+	    except URL.URLError as e:
 		print("Unexpected error:", sys.exc_info()[0])
 		print 'Problem connecting with ISY device'
 		raise IsyCommunicationError(e)
@@ -266,7 +267,7 @@ class Isy(IsyUtil):
 	#st = time.time()
         #print("start preload")
 
-        self._preload(reload=0)
+        self._preload(rload=0)
 
 	#sp = time.time()
         #print("start complete")
@@ -419,7 +420,7 @@ class Isy(IsyUtil):
 	    raise IsyValueError("SOAP Method name missing")
 
 	if self.soap == None :
-	    self.soap = ISY.SendSoapCmd(self.addr, userl=self.userl, userp=self.userp)
+	    self.soap = SendSoapCmd(self.addr, userl=self.userl, userp=self.userp)
 
 	res = self.soap.sendcomm(cmd, **kwargs)
 
@@ -435,8 +436,9 @@ class Isy(IsyUtil):
 
 	    calls SOAP RenameNode()
 	"""
-	id = self._node_get_id(nid)
-	r = self.call_soap("RenameNode", id=id, name=nname)
+	nid = self._node_get_id(nid)
+	return self.call_soap("RenameNode", id=nid, name=nname)
+
 
 #    def node_new(self, id, nname) :
 #	""" create new Folder """
@@ -454,8 +456,8 @@ class Isy(IsyUtil):
 
 	    calls SOAP RenameGroup()
 	"""
-	id = self._node_get_id(fid)
-	r = self.call_soap("RenameGroup", id=id, name=fname)
+	fid = self._node_get_id(fid)
+	return self.call_soap("RenameGroup", id=fid, name=fname)
 
     def scene_del(self, sid=None ) :
 	""" delete Scene/Group 
@@ -488,12 +490,12 @@ class Isy(IsyUtil):
 	    raise IsyValueError("scene name must be non zero length string")
 
 	if nid == 0 :
-	    id = 30001
-	    nid = str(id)
-	    while nid in self._folderdict or nid in self._nodegroups :
-		id += 1
-		nid=str(id)
-	r =  self.call_soap("AddGroup", id=nid, name=sname)
+	    iid = 30001
+	    nid = str(iid)
+	    while nid in self._folderlist or nid in self._nodegroups :
+		iid += 1
+		nid=str(iid)
+	self.call_soap("AddGroup", id=nid, name=sname)
 	#
 	# add code to update self._nodegroups
 	#
@@ -544,8 +546,9 @@ class Isy(IsyUtil):
 
 	    calls SOAP RenameFolder()
 	"""
-	id = self._node_get_id(fid)
-	r = self.call_soap("RenameFolder", id=id, name=fname)
+	fid = self._node_get_id(fid)
+	r = self.call_soap("RenameFolder", id=fid, name=fname)
+	return r
 
     def folder_new(self, fid, fname) :
 	""" new Folder
@@ -561,17 +564,17 @@ class Isy(IsyUtil):
 	    calls SOAP AddFolder()
 	"""
 	if fid == 0 :
-	    id = 50001
-	    fid = str(id)
-	    while fid in self._folderdict or fid in self._nodegroups :
-		id += 1
-		fid = str(id)
+	    iid = 50001
+	    fid = str(iid)
+	    while fid in self._folderlist or fid in self._nodegroups :
+		iid += 1
+		fid = str(iid)
 	r = self.call_soap("AddFolder", fid=1234, name=fname)
 	if  isinstance(r, tuple) and r[0] == '200' :
-	    self._folderdict[fid] = dict()
-	    self._folderdict[fid][address] = fid
-	    self._folderdict[fid][folder-flag] = '0'
-	    self._folderdict[fid][name] = 'fname'
+	    self._folderlist[fid] = dict()
+	    self._folderlist[fid]['address'] = fid
+	    self._folderlist[fid]['folder-flag'] = '0'
+	    self._folderlist[fid]['name'] = 'fname'
 
 	return r
 
@@ -582,12 +585,12 @@ class Isy(IsyUtil):
 
 	    calls SOAP RemoveFolder()
 	"""
-	id = self._node_get_id(fid)
-	if id == None :
+	fid = self._node_get_id(fid)
+	if fid == None :
 	    raise IsyValueError("Unknown Folder : " + str(fid) )
-	r = self.call_soap("RemoveFolder", id=id)
+	r = self.call_soap("RemoveFolder", id=fid)
 	if  isinstance(r, tuple) and r[0] == '200' :
-	    self._folderdict[fid] = dict()
+	    self._folderlist[fid] = dict()
 
     # SetParent(node, nodeType, parent, parentType )
     def folder_add_node(self, nid, nodeType=1, parent="", parentType=3) :
@@ -608,14 +611,14 @@ class Isy(IsyUtil):
 	    raise IsyValueError("no such Node/Scene : " + str(nid) )
 
 	if parent != "" :
-	    fldid = self._node_get_id(fid)
+	    fldid = self._node_get_id(parent)
 	    if fldid == None :
 		raise IsyValueError("no such Folder : " + str(parent) )
 	    parentid = fldid
 	else :
 	    parentid = parent
 
-	r = self.call_soap("SetParent", node=node, nodeType=1, parent=parentid, parentType=3)
+	r = self.call_soap("SetParent", node=nodeid, nodeType=1, parent=parentid, parentType=3)
 	return r
 
     def folder_del_node(self, nid, nodeType=1) :
@@ -629,7 +632,7 @@ class Isy(IsyUtil):
 
 	    calls SOAP SetParent()
 	"""
-	return self.folder_add_node(self, nid, nodeType=1, parent="", parentType=3)
+	return self.folder_add_node(nid, nodeType=1, parent="", parentType=3)
 
     def reboot(self) :
 	""" Reboot ISY Device
@@ -642,7 +645,7 @@ class Isy(IsyUtil):
     #
     #  Util Funtions
     #
-    def _preload(self, rload=0): #mask=0, 
+    def _preload(self, rload=0):
 	""" Internal function
 
 	    preload all data tables from ISY device into cache

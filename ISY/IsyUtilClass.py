@@ -2,7 +2,7 @@
 #from StringIO import StringIO
 import xml.etree.ElementTree as ET
 from xml.etree.ElementTree import  iselement
-from ISY.IsyExceptionClass import *
+from ISY.IsyExceptionClass import IsyPropertyError, IsyValueError
 # import base64
 import sys
 if sys.hexversion < 0x3000000 :
@@ -85,6 +85,9 @@ class IsyUtil(object):
         """ Pretty Print XML, for internal debug"""
         print("_printXML start")
         ET.dump(xml)
+
+#    def _set_prop(self *arg) :
+#	pass
 
     def _getXMLetree(self, xmlpath, noquote=0, timeout=10):
         """ take a URL path, download XLM and return parsed Etree """
@@ -251,16 +254,16 @@ class IsySubClass(IsyUtil):
         """
         return self._get_prop(prop)
 
-    def __setitem__(self, prop):
+    def __setitem__(self, prop, val):
         """ Internal method 
 
             allows Objects properties to be accessed/set in a dict style
 
         """
-        return self._set_prop(prop)
+        return self._set_prop(prop, val)
 
     def __delitem__(self, prop):
-        raise IsyProperyError("__delitem__ : can't delete propery :  " + str(prop) )
+        raise IsyPropertyError("__delitem__ : can't delete propery :  " + str(prop) )
 
 
     def __iter__(self):

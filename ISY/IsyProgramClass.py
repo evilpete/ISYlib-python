@@ -120,7 +120,7 @@ class IsyProgram(IsySubClass):
 #    status = property(get_prog_status)
 
     def send_command(self, cmd):
-        self.prog_comm(self._mydict['id'], cmd)
+        self.isy.prog_comm(self._mydict['id'], cmd)
 
 #
 # Do nothing

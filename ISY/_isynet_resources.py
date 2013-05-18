@@ -13,7 +13,7 @@ from ISY.IsyExceptionClass import IsyResponseError, IsyValueError
 ##
 def _load_networking(self, resource_id):
     if self.debug & 0x01 :
-	print("load_wol called")
+	print("_load_networking {!s} called".resource_id)
     xurl = "/rest/networking/{!s}".format(resource_id)
     if self.debug & 0x02 :
 	print("_load_networking : xurl = " + xurl)
@@ -73,7 +73,7 @@ def net_resource_run(self, rrid):
 	print("wol : xurl = " + xurl)
     resp = self._getXMLetree(xurl)
     # self._printXML(resp)
-    if None or  resp.attrib["succeeded"] != 'true' :
+    if resp == None or  resp.attrib["succeeded"] != 'true' :
 	raise IsyResponseError("ISY network resources error : rid=" + str(rid))
 
 
@@ -145,7 +145,7 @@ def net_wol(self, wid) :
 def _net_wol_get_id(self, name) :
     """ wol name to wol ID """
     if not self.wolinfo :
-	self.load_wol()
+	self._load_networking("wol")()
 
     # name = str(name).upper()
     if name in self.wolinfo :
@@ -165,7 +165,7 @@ def net_wol_names(self) :
     returns List of WOL names and IDs or None
     """
     if not self.wolinfo :
-	self.load_wol()
+	self._load_networking("wol")
     return self.name2wol.keys()
 
 
@@ -175,7 +175,7 @@ def net_wol_iter(self):
 	args: none
     """
     if not self.wolinfo :
-	self.load_wol()
+	self._load_networking("wol")
 
     for k, v in self.wolinfo.items() :
 	yield v

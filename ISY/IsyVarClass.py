@@ -179,7 +179,7 @@ class IsyVar(IsySubClass):
     def __ifloordiv__(self, n):
 
     # mathematical operator
-	self._mydict["val"] //= n
+	self._mydict["val"] = self._mydict["val"] // n
 	self.isy._var_set_value(self._mydict['id'], self._mydict["val"])
         return self
 
@@ -203,12 +203,11 @@ class IsyVar(IsySubClass):
 	self.isy._var_set_value(self._mydict['id'], self._mydict["val"])
         return self
 
-    def __ipow__(self, n):
-
+#   def __ipow__(self, n):
     # mathematical operator
-	self._mydict["val"] **= self.__cast(n) 
-	self.isy._var_set_value(self._mydict['id'], self._mydict["val"])
-        return self
+#	self._mydict["val"] **= self.__cast(n) 
+#	self.isy._var_set_value(self._mydict['id'], self._mydict["val"])
+#        return self
 
     def __neg__(self): return - self._mydict["val"]
 
@@ -254,7 +253,7 @@ class IsyVar(IsySubClass):
     #def __format__(self, spec): return int(self._mydict["val"]).__format__(spec)
 
     def __repr__(self):
-        return "<%s %s at 0x%x>" % (self.__class__.__name__, self.addr, id(self))
+        return "<%s %s at 0x%x>" % (self.__class__.__name__, self.isy.addr, id(self))
 
 #
 # Do nothing

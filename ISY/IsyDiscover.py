@@ -67,7 +67,7 @@ def isy_discover(**kwargs):
         print("isy_discover_timeout CALL")
         raise UpnpLimitExpired("Timed Out")
 
-    def isy_timeout(signum, frame):
+    def isy_timeout(signum, frame) :
         print("isy_timeout CALL")
         print('Signal handler called with signal', signum)
 

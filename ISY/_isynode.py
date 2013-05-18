@@ -3,7 +3,7 @@ This is a subfile for IsyClass.py
 
 These funtions are accessable via the Isy class opj
 """
-from ISY.IsyNodeClass import IsyNode, IsyScene #, IsyNodeFolder, _IsyNodeBase
+from ISY.IsyNodeClass import IsyNode, IsyScene, IsyNodeFolder#, _IsyNodeBase
 from ISY.IsyUtilClass import IsySubClass
 from ISY.IsyExceptionClass import IsyPropertyError, IsyResponseError
 import warnings
@@ -103,7 +103,7 @@ def _gen_member_list(self) :
 	    # 'parent': '16 6C D2 1', 'parent-type': '1',
 	    # 'parent': '12743', 'parent-type': '3',
 	    # if n.pnode == n.parent and n.pnode == n.address
-		next
+		# next
 
 
 
@@ -303,8 +303,8 @@ def get_node(self, node_id) :
 	self.nodeCdict[nodeid] = IsyScene(self, self._nodegroups[nodeid])
 	return self.nodeCdict[nodeid]
 
-    elif nodeid in self._folderdict:
-	self.nodeCdict[nodeid] = IsyFolder(self, self._folderdict[nodeid])
+    elif nodeid in self._folderlist:
+	self.nodeCdict[nodeid] = IsyNodeFolder(self, self._folderlist[nodeid])
 	return self.nodeCdict[nodeid]
 
     else :
@@ -349,8 +349,8 @@ def _node_get_id(self, nid):
 	# print("_node_get_id : " + n + " folder2addr " + self.folder2addr[n])
 	return self.folder2addr[n]
 
-    if n in self._folderdict :
-	# print("_node_get_id : " + n + " folderdict " + n)
+    if n in self._folderlist :
+	# print("_node_get_id : " + n + " _folderlist " + n)
 	return n
 
 
@@ -641,7 +641,8 @@ def _updatenode(self, naddr) :
     _nodestat = self._getXMLetree(xurl)
     # del self._nodedict[naddr]["property"]["ST"]
     for child in list(_nodestat) :
-	if child.tag == "property" : next
+	if child.tag == "property" :
+	    next
 	if child.text :
 	    self._nodedict[naddr][child.tag] = child.text
 	if child.attrib :
@@ -655,7 +656,7 @@ def _updatenode(self, naddr) :
             if "id" in tprop :
                 self._nodedict[naddr]["property"][tprop["id"]].update(tprop)
 
-        self._nodedict[naddr]["property"]["time"] = time.gmtime()
+        #self._nodedict[naddr]["property"]["time"] = time.gmtime()
 
 
 #

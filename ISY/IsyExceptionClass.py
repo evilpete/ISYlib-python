@@ -44,7 +44,7 @@ SubClasses :
     def __getitem__(self, ix):
         """Avoids weird error messages if someone does exception[ix] by
         mistake, since Exception has __getitem__ defined."""
-        raise AttributeError("__getitem__")
+        raise AttributeError("__getitem__({0})".format(ix))
 
 
 class IsyCommunicationError(IsyError, URLError):
