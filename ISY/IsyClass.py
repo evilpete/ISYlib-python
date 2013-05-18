@@ -426,12 +426,36 @@ class Isy(IsyUtil):
 	return res
 
 
+    def node_rename(self, nid, nname) :
+	""" rename Node
+
+		args: 
+		    id = Node ID
+		    name = new Node name
+
+	    calls SOAP RenameNode()
+	"""
+	id = self._node_get_id(nid)
+	r = self.call_soap("RenameNode", id=id, name=nname)
 
 #    def node_new(self, id, nname) :
 #	""" create new Folder """
 #	return  self.call_soap("AddNode", id=1234, name=nname, type="T", flag="Y")
 
     ## scene
+
+    def scene_rename(self, fid, fname) :
+	""" rename Scene/Group
+
+		args: 
+		    id = a Scene/Group id
+		    name = new name 
+
+
+	    calls SOAP RenameGroup()
+	"""
+	id = self._node_get_id(fid)
+	r = self.call_soap("RenameGroup", id=id, name=fname)
 
     def scene_del(self, sid=None ) :
 	""" delete Scene/Group 
@@ -510,6 +534,18 @@ class Isy(IsyUtil):
 	return r
 
     ## folder
+
+    def folder_rename(self, fid, fname) :
+	""" rename Folder
+
+		args: 
+		    id = folder ID
+		    name = new folder name
+
+	    calls SOAP RenameFolder()
+	"""
+	id = self._node_get_id(fid)
+	r = self.call_soap("RenameFolder", id=id, name=fname)
 
     def folder_new(self, fid, fname) :
 	""" new Folder
