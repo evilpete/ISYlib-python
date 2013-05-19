@@ -40,14 +40,13 @@ from ISY.IsyUtilClass import IsyUtil, IsySubClass, val2bool
 from ISY.IsyExceptionClass import *
 # from IsyClass import *
 # from IsyNodeClass import *
-#from IsyProgramClass import *
+# from IsyProgramClass import *
 # from IsyVarClass import *
 
 __all__ = ['IsyNode', 'IsyNodeFolder', 'IsyScene']
 
 
-
-
+# library_using_super
 
 class _IsyNodeBase(IsySubClass):
 
