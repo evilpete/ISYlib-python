@@ -60,7 +60,6 @@ This package provides the following classes :
     Represents a variables that are avalible in the ISY device
 
 
- 
 Additional support functions
     - isy_discover - use Upnp to discover IP addr or ISY device
 

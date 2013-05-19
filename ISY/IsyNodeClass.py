@@ -228,24 +228,13 @@ class IsyNode(_IsyNodeBase):
 
 	self._nodetype = (1, "node")
 
-        if isinstance(ndict, dict):
-            self._mydict = ndict
-        else :
-            print("error : class IsyNode called without ndict")
-            raise IsyTypeError("IsyNode: called without ndict")
 
-        if isinstance(isy, IsyUtil):
-            self.isy = isy
-            self.debug = isy.debug
-        else :
-            print("error : class IsyNode called without isyUtilClass")
-            raise IsyTypeError("IsyNode: isy is wrong class")
-        # only update if not a scene
+	super(self.__class__, self).__init__(isy, ndict)
 
-        if not self.isy.eventupdates :
-            #update only nodes
-            if "node-flag" in self._mydict :
-                self.update()
+#        if not self.isy.eventupdates :
+#            #update only nodes
+#            if "node-flag" in self._mydict :
+#                self.update()
 
 	self._hash = node_id_to_int(self._mydict["address"])
 
@@ -270,7 +259,7 @@ class IsyNode(_IsyNodeBase):
             prop = self._propalias[prop]
 
         if not prop in self._getlist :
-            raise IsyPropertyError("no property Attribute " + prop)
+            raise IsyPropertyError("no property Attribute {!s}".format(prop))
 
         # check if we have a property
 
@@ -563,7 +552,7 @@ class IsyNodeFolder(_IsyNodeBase):
 
     def __init__(self, *args):
 	self._nodetype = (3, "folder")
-	super(IsyScene, self).__init__(*args)
+	super(IsyNodeFolder, self).__init__(*args)
 
     def _gettype(self):
         return "folder"

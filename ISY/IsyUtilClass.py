@@ -178,18 +178,18 @@ class IsySubClass(IsyUtil):
 
     def __init__(self, isy, objdict) :
         """ INIT """
+
         if isinstance(objdict, dict):
-            self._mydict = objdict
+	    self._mydict = objdict
         else :
-            # print("error : class IsySubClass called without objdict")
-            raise IsyValueError("IsySubClass: called without objdict")
+	    raise IsyValueError("{!s}: called without objdict".format(self.__class__.__name__))
 
         if isinstance(isy, IsyUtil):
             self.isy = isy
             self.debug = isy.debug
         else :
             # print("error : class " + self.__class__.__name__ + " called without Isy")
-            raise TypeError("IsySubClass: isy arg is wrong class")
+            raise TypeError("IsySubClass: isy arg is not a ISY family class")
 
         if self.debug & 0x04 :
             print("IsySubClass: ",)
