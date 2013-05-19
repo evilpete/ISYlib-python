@@ -88,6 +88,9 @@ class _IsyNodeBase(IsySubClass):
         self.isy._node_send(self._mydict["address"], "cmd", "BEEP")
 
 
+    def members_list(self) :
+	pass
+
     def member_iter(self, flag=0):
         return self.members_list()
 

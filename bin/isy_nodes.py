@@ -21,7 +21,9 @@ def list_nodes(isy) :
             print(pfmt.format(nod.name, nod.address, 
 		    nod.formatted, nod.enabled, ))
 
+
 if __name__ == '__main__' :
-    MYISY = ISY.Isy( )
-    list_nodes(MYISY)
+    myisy = ISY.Isy( debug=0x80 )
+    list_nodes(myisy)
+    exit(0)
 

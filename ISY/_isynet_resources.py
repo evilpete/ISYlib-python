@@ -145,7 +145,7 @@ def net_wol(self, wid) :
 def _net_wol_get_id(self, name) :
     """ wol name to wol ID """
     if not self.wolinfo :
-	self._load_networking("wol")()
+	self.load_net_wol()
 
     # name = str(name).upper()
     if name in self.wolinfo :
@@ -165,7 +165,7 @@ def net_wol_names(self) :
     returns List of WOL names and IDs or None
     """
     if not self.wolinfo :
-	self._load_networking("wol")
+	self.load_net_wol()
     return self.name2wol.keys()
 
 
@@ -175,7 +175,7 @@ def net_wol_iter(self):
 	args: none
     """
     if not self.wolinfo :
-	self._load_networking("wol")
+	self.load_net_wol()
 
     for k, v in self.wolinfo.items() :
 	yield v

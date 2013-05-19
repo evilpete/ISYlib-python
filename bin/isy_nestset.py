@@ -4,6 +4,8 @@
     and set vars in a ISY home automation device 
 
     See also : https://github.com/smbaker/pynest
+	       https://github.com/evilpete/ISYlib-python
+
 """
 
 import nest
@@ -62,7 +64,10 @@ def main() :
 
     # faststart=1 don't load node data ( we not going to use it )
     myisy= ISY.Isy(debug=0, faststart=1)
-    myisy.load_vars()
+
+
+    # not really needed but will speed up the first call
+    #myisy.load_vars()
 
     auto_args = ( "nest_temp=current_temperature",
 		"nest_humidity=current_humidity",

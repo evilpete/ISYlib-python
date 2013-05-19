@@ -1,6 +1,6 @@
 #!/usr/local/bin/python2.7
 """list ISY vars demo app
- 
+
 Usage: %(program)s [options] [localhost:localport [remotehost:remoteport]]
  
 Options:
@@ -8,6 +8,7 @@ Options:
     --list
 
 """
+#this is Ugly code and should be cleaned up
 
 import ISY
 import sys

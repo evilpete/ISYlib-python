@@ -1,2 +1,7 @@
 
-v<version>, <date> -- Initial release.
+0.1.4	added Calls to Soap interface to supplement rest interface
+	added enable/disable support for nodes
+
+0.1.3	added  event stream processing ( keep library state cache updated in near real time ) 
+
+<version> -- Initial release.

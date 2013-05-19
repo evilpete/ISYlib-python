@@ -267,6 +267,12 @@ class IsySubClass(IsyUtil):
         raise IsyPropertyError("__delitem__ : can't delete propery :  " + str(prop) )
 
 
+    def __del__(self):
+	if self.debug & 0x80 :
+	    print "__del__ ", self.__repr__()
+	if hasattr(self, "_mydict") :
+	    self._mydict.clear() 
+
     def __iter__(self):
         """ Internal method 
 

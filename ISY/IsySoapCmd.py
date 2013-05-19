@@ -2,13 +2,35 @@
 
 """ Support for making simple SOAP calls 
 
-Very simple, with out Soap Library dependencies
+Very simple, without Soap Library dependencies
+
 
 Classes
 -------
 
 SendSoapCmd()
 
+
+Methods
+-------
+
+sendcomm(CommandName, **kwargs)
+    takes a command name and a list of keyword arguments. 
+    each keyword is converted into a xml element
+     
+     Eg:
+
+	 SendSoapCmd("CommandString",  foo=1, bar=two)
+
+     calls:
+
+	<?xml version="1.0" encoding="UTF-8"?>
+	    <s:Envelope><s:Body>
+		<u:CommandString xmlns:u=\"urn:udi-com:service:X_Insteon_Lighting_Service:1>
+		    <foo>1</foo>
+		    <bar>two</bar>
+		 </u:CommandString>
+	     </s:Body></s:Envelope>
 
 """
 
@@ -142,6 +164,10 @@ class SendSoapCmd(object):
 	return cmdsoap
 
     def sendcomm(self, cmd, **kwargs):
+	"""
+	takes a command name and a list of keyword arguments. 
+	each keyword is converted into a xml element
+	"""
 
         if self.debug & 0x01 :
             print "sendcomm : ", self.__class__.__name__

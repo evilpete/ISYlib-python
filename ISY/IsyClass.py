@@ -63,7 +63,7 @@ from ISY.IsySoapCmd import SendSoapCmd
 # 0x10 = report changes to nodes
 # 0x20 =
 # 0x40 =
-# 0x80 =
+# 0x80 = print __del__()
 #
 
 # EventUpdate Mask:
@@ -229,7 +229,8 @@ class Isy(IsyUtil):
 		self.load_conf()
 	    except URL.URLError as e:
 		print("Unexpected error:", sys.exc_info()[0])
-		print 'Problem connecting with ISY device'
+		print 'Problem connecting with ISY device :', self.addr
+		print e
 		raise IsyCommunicationError(e)
 
 
@@ -1144,10 +1145,33 @@ class Isy(IsyUtil):
         return self.node_iter()
 
     def __del__(self):
+
+	if self.debug & 0x80 :
+	    print "__del__ ", self.__repr__()
+
         #if isinstance(self._isy_event, ISYEvent) :
 	#    #ISYEvent._stop_event_loop()
 	if hasattr(self._isy_event, "_shut_down") :
 	    self._isy_event._shut_down = 1
+
+	self.nodeCdict.clear()
+	self.varCdict.clear()
+	self.progCdict.clear()
+	self.folderCdict.clear()
+
+	# the reasion for his is that 
+	#for k in self.nodeCdict.keys() :
+	#    del self.nodeCdict[k]
+	#for k in self.varCdict.keys() :
+	#    del self.varCdict[k]
+	#for k in self.progCdict.keys() :
+	#    del self.progCdict[k]
+	#for k in self.folderCdict.keys() :
+	#    del self.folderCdict[k]
+
+	if self.soap :
+	    self.soap.closesock()
+	    del self.soap
 
 
     def __repr__(self):

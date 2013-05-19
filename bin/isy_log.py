@@ -11,15 +11,13 @@ opt_debug = 0
 opt_error = 0
 opt_errorlog = 0
 opt_nonames = 1
+opt_addr = None
 
 time_const=2208988800;
 
 
-def main():
+def main(isy):
 
-    parseargs()
-
-    myisy = Isy( debug=opt_debug )
 
     nodefmt="%-18s";
     commfmt="%-10s";
@@ -39,7 +37,7 @@ def main():
 
     # print "{0} {1} {2} {3} {4} {5}".format(*header)
     print fmt.format(*header)
-    for log_line in myisy.log_iter(error = opt_errorlog) :
+    for log_line in isy.log_iter(error = opt_errorlog) :
 	col = str(log_line).split("\t")
 
 	newtime = int(col[3]) - time_const - time_offset
@@ -59,8 +57,8 @@ def main():
 def parseargs():
     try:
         opts, args = getopt.getopt(
-            sys.argv[1:], "hed:",
-            ['help', 'error', 'debug'])
+            sys.argv[1:], "ahed:",
+            ['help', 'error', 'debug', 'addr'])
     except getopt.error, e:
         usage(1, e)
  
@@ -69,6 +67,8 @@ def parseargs():
             usage(0)
         elif opt in ('-n', '--nonames'):
             opt_nonames = 1
+        elif opt in ('-a', '--addr'):
+            opt_addr = arg
         elif opt in ('-e', '--error'):
             opt_errorlog = 1
         elif opt in ('-d', '--debug'):
@@ -82,6 +82,8 @@ def usage(code, msg=''):
     sys.exit(code)
 
 if __name__ == '__main__' :
-    main()
+    parseargs()
+    myisy = Isy( addr=opt_addr, debug=opt_debug )
+    main(myisy)
     exit(0)
 
