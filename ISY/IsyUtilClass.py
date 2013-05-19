@@ -77,7 +77,8 @@ def et2d(et) :
 #
 class IsyUtil(object):
     def __init__(self) :
-        self.debug = 0
+	self.debug = 0
+	self.baseurl = "" # never used 
         # self.pp = pprint.PrettyPrinter(indent=4)
 
 
@@ -86,8 +87,8 @@ class IsyUtil(object):
         print("_printXML start")
         ET.dump(xml)
 
-#    def _set_prop(self *arg) :
-#	pass
+    def _set_prop(self, *arg) :
+	pass
 
     def _getXMLetree(self, xmlpath, noquote=0, timeout=10):
         """ take a URL path, download XLM and return parsed Etree """

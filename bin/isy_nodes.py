@@ -16,10 +16,10 @@ def list_nodes(isy) :
     print(pfmt.format("---------", "-------", "------", "------"))
     for nod in isy :
         if nod.type == "scene" :
-            print(pfmt.format(nod.name, nod.address, "-", "-"))
+            print(pfmt.format(nod.name, nod.address, "-", "-", ))
         else :
             print(pfmt.format(nod.name, nod.address, 
-		    nod.formatted, nod.enabled))
+		    nod.formatted, nod.enabled, ))
 
 if __name__ == '__main__' :
     MYISY = ISY.Isy( )
