@@ -67,9 +67,9 @@ def isy_discover(**kwargs):
         print("isy_discover_timeout CALL")
         raise UpnpLimitExpired("Timed Out")
 
-    def isy_timeout(signum, frame) :
-        print("isy_timeout CALL")
-        print('Signal handler called with signal', signum)
+#    def isy_timeout(signum, frame) :
+#        print("isy_timeout CALL")
+#        print('Signal handler called with signal', signum)
 
     def isy_upnp(ddata):
 
@@ -158,8 +158,8 @@ def isy_discover(**kwargs):
             print("return data.upnp_urls = ", ddata.upnp_urls)
 
     result = {}
-    result_tags = ["UDN", "URLBase", "SCPDURL",
-                "controlURL", "eventSubURL"]
+#    result_tags = ["UDN", "URLBase", "SCPDURL",
+#                "controlURL", "eventSubURL"]
 
 
     for s in ddata.upnp_urls :

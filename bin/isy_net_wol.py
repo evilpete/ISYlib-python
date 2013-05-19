@@ -27,7 +27,7 @@ if len(sys.argv[1:]) > 0:
 	    myisy.net_wol(a)
 	except (IsyValueError, IsyResponseError), errormsg :
 	    print "problem sending WOL to {!s} : {!s}".format(a, errormsg)
-	    next
+	    continue
 	else :
 	    print "WOL sent to {!s}".format(a)
 else :

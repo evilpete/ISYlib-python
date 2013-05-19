@@ -436,10 +436,10 @@ class ISYEventConnection(object):
         if self.debug & 0x01 :
             print("_subscribe : ", self.__class__.__name__)
 
-        if ( not isinstance(self.event_wf, socket)
-                or not isinstance(self.event_rf, socket)) :
-            raise RuntimeError(
-		    "{!s} called with invalid socket".format(self.__class__.__name__))
+#        if ( not isinstance(self.event_wf, socket)
+#                or not isinstance(self.event_rf, socket)) :
+#            raise RuntimeError(
+#		    "{!s} called with invalid socket".format(self.__class__.__name__))
 
         # <ns0:Unsubscribe><SID>uuid:168</SID><flag></flag></ns0:Unsubscribe>
         post_body = "<s:Envelope><s:Body>" \

@@ -14,7 +14,7 @@ import sys
 import ISY
 from ISY.IsyExceptionClass import IsyResponseError, IsyValueError
 
-import pprint
+# import pprint
  
   
 myisy= ISY.Isy(debug=0)
@@ -27,7 +27,7 @@ if len(sys.argv[1:]) > 0:
 	    myisy.net_resource_run(a)
 	except (IsyValueError, IsyResponseError), errormsg :
 	    print "problem calling ISY network resource to {!s} : {!s}".format(a, errormsg)
-	    next
+	    continue
 	else :
 	    print "Net resource sent to {!s}".format(a)
 else :

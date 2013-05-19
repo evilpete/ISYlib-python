@@ -642,7 +642,7 @@ def _updatenode(self, naddr) :
     # del self._nodedict[naddr]["property"]["ST"]
     for child in list(_nodestat) :
 	if child.tag == "property" :
-	    next
+	    continue
 	if child.text :
 	    self._nodedict[naddr][child.tag] = child.text
 	if child.attrib :

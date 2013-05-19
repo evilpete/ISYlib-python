@@ -618,7 +618,7 @@ class Isy(IsyUtil):
 	else :
 	    parentid = parent
 
-	r = self.call_soap("SetParent", node=nodeid, nodeType=1, parent=parentid, parentType=3)
+	r = self.call_soap("SetParent", node=nodeid, nodeType=nodeType, parent=parentid, parentType=parentType)
 	return r
 
     def folder_del_node(self, nid, nodeType=1) :
@@ -632,7 +632,8 @@ class Isy(IsyUtil):
 
 	    calls SOAP SetParent()
 	"""
-	return self.folder_add_node(nid, nodeType=1, parent="", parentType=3)
+	return self.folder_add_node(nid, nodeType=nodeType, \
+		parent="", parentType=3)
 
     def reboot(self) :
 	""" Reboot ISY Device

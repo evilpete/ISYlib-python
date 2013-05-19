@@ -3,7 +3,7 @@
 
 
 import ISY
-import pprint
+#import pprint
  
   
 myisy= ISY.Isy(debug=2)

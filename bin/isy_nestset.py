@@ -11,7 +11,7 @@ import sys
 import os
 from warnings import warn
 
-import time
+# import time
 # import pprint
 from optparse import OptionParser
 
@@ -38,7 +38,7 @@ def main() :
     (opts, args) = parser.parse_args()
 
     if (len(args)==0) or (args[0]=="help"):
-        help()
+        help_txt()
         sys.exit(-1)
 
     if (not opts.uuser) or (not opts.upass):
@@ -78,12 +78,12 @@ def main() :
 	# check we got two value names
 	if (not isy_var) or (not src_var):
 	    warn("Invalid arg  : {0}".format(var_arg), RuntimeWarning)
-	    next
+	    continue
 
 	# check if net value name is valid
 	if src_var not in nest_values:
 	    warn("Invalid Nest Value : {0}".format(isy_var), RuntimeWarning)
-	    next
+	    continue
 
 	# convert temperature to F
 	# we can't convert in place since the value may be used twice
@@ -99,12 +99,12 @@ def main() :
 
 	except IsyPropertyError :
 	    warn("Invalid Isy Var : {0}".format(isy_var), RuntimeWarning)
-	    next
+	    continue
 	except (IsyValueError , ValueError):
 	    print "invalid value :", nest_values[src_var]
 	    warn("Invalid value for ISY var: {0}".format(set_value),
 		    RuntimeWarning)
-	    next
+	    continue
 	except :
 	    print("Unexpected error:", sys.exc_info()[0])
 	    warn("Unexpected error: {0}".format(sys.exc_info()[0]),
@@ -150,7 +150,7 @@ def create_parser():
 
    return parser
 
-def help():
+def help_txt():
     print "syntax: isy_nestset [options] isyvar=nestvar .... "
     print "options:"
     print "   --user <username>      ... username on nest.com"
