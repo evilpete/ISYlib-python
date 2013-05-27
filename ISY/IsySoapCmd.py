@@ -41,7 +41,7 @@ sendcomm(CommandName, **kwargs)
 #import warnings
 import socket
 
-from ISY.IsyExceptionClass import IsySUDSError
+from ISY.IsyExceptionClass import IsySoapError
 
 import base64
 
@@ -203,11 +203,11 @@ class SendSoapCmd(object):
 	if self.debug & 0x20 : print "++ ", l,
         if (l[:5] != 'HTTP/') :
 	    print "l = ", l
-            raise IsySUDSError(l)
+            raise IsySoapError(l)
 
 	hresponse = l.split(' ')[1]
         #if (l.split(' ')[1] != "200") :
-        #    raise IsySUDSError(l)
+        #    raise IsySoapError(l)
 
         while 1 :
             l = self.soap_rf.readline()

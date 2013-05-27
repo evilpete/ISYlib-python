@@ -78,7 +78,7 @@ from ISY.IsySoapCmd import SendSoapCmd
 # 0x80 =
 #
 
-pro_models = [ 1100, 1110, 1040, 1050 ]
+_pro_models = [ 1100, 1110, 1040, 1050 ]
 
 __all__ = ['Isy']
 
@@ -552,13 +552,12 @@ class Isy(IsyUtil):
 	return r
 
     def folder_new(self, fid, fname) :
-	""" new Folder
+	""" create new Folder
 
 		args: 
 		    folder_id = a unique (unused) folder ID
 		    folder name = name for new folder
 
-	    create new Folder 
 
 	    returns error if folder ID is already in use
 
@@ -643,6 +642,120 @@ class Isy(IsyUtil):
 	    calls SOAP Reboot() 
 	"""
 	return self.call_soap("Reboot")
+
+     #
+     # User commands
+     #
+
+    def user_fsstat(self) :
+	""" ISY Filesystem Status
+
+	    calls SOAP GetFSStat()
+	"""
+	r = self.call_soap("GetFSStat")
+	if ( rp[0] == 200) :
+	    return et2d( ET.fromstring(r[1]))
+	else :
+	    raise IsySoapError("user_fsstat : GetFSStat")
+     
+
+    def user_dir(self, name="", pattern="") :
+	""" Get User Folder/Directory Listing
+
+	    Named args:
+		name
+		pattern
+
+	    call SOAP GetUserDirectory()
+	"""
+	r = self.call_soap("GetUserDirectory", name=name, pattern=pattern)
+	if ( rp[0] == 200) :
+	    return et2d( ET.fromstring(r[1]))
+	else :
+	    raise IsySoapError("user_dir : GetUserDirectory")
+
+    def user_mkdir(self, name=None) :
+	""" Make new User Folder/Directory
+
+	    Named args:
+		name
+
+	    call SOAP MakeUserDirectory()
+	"""
+	if name == None :
+	    raise IsyValueError("user_mkdir : invalid dir name")
+	r = self.call_soap("MakeUserDirectory", name=name)
+	if ( rp[0] == 200) :
+	    return et2d( ET.fromstring(r[1]))
+	else :
+	    raise IsySoapError("user_mkdir : MakeUserDirectory")
+
+    def user_rmdir(self, name=None) :
+	""" Remove User Folder/Directory
+
+	    Named args:
+		name
+
+	    call SOAP RemoveUserDirectory()
+	"""
+	if name == None :
+	    raise IsyValueError("user_rmdir : invalid dir name")
+	r = self.call_soap("RemoveUserDirectory", name=name)
+	if ( rp[0] == 200) :
+	    return et2d( ET.fromstring(r[1]))
+	else :
+	    raise IsySoapError("user_rmdir : RemoveUserDirectory")
+
+
+    def user_mv(self, oldn=None, newn=None) :
+	""" Move/Rename User Object (File or Directory)
+
+	    Named args:
+		oldn
+		newn
+
+	    call SOAP MoveUserObject()
+	"""
+	if newn == None or newn == None :
+	    raise IsyValueError("user_mv : invalid name")
+	r = self.call_soap("MoveUserObject", name=oldn, newName=newn)
+	if ( rp[0] == 200)  :
+	    return et2d( ET.fromstring(r[1]))
+	else :
+	    raise IsySoapError("user_mv : MoveUserObject")
+
+    def user_rm(self, name=None) :
+	""" Remove User File
+
+	    Named args:
+		name
+
+	    call SOAP RemoveUserFile()
+	"""
+	if name == None :
+	    raise IsyValueError("user_mkdir : invalid name")
+	r = self.call_soap("RemoveUserFile", name=name)
+	if ( rp[0] == 200) :
+	    return et2d( ET.fromstring(r[1]))
+	else :
+	    raise IsySoapError("user_rm: RemoveUserFile")
+
+    def user_getfile(self, name=None) :
+	""" Get User File
+
+	    Named args:
+		name
+
+	    call SOAP GetUserFile()
+	"""
+	if name == None :
+	    raise IsyValueError("user_mkdir : invalid name")
+	r = self.call_soap("GetUserFile", name=name)
+	if ( rp[0] == 200) :
+	    return et2d( ET.fromstring(r[1]))
+	else :
+	    raise IsySoapError("user_rm: GetUserFile")
+
 
     #
     #  Util Funtions
