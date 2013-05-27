@@ -1,5 +1,8 @@
 #!/usr/local/bin/python
 
+"""Simple Python lib discovering ISY devices with Upnp  """
+
+
 #
 # THIS IS BAD CODE
 # DOES NOT PROPERLY HANDLE XML namespace FOR Upnp

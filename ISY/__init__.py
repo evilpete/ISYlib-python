@@ -85,13 +85,15 @@ Exception Classes :
 
 """
 
-# from ISY.IsyUtilClass import IsyUtil
+    # from ISY.IsyUtilClass import IsyUtil
+    #
 from ISY.IsyClass import Isy
 from ISY.IsyDiscover import isy_discover
 from ISY.IsyNodeClass import IsyNode, IsyScene, IsyNodeFolder
 from ISY.IsyVarClass import IsyVar
 from ISY.IsyProgramClass import IsyProgram
 from ISY.IsyExceptionClass import IsyError
+#
 
 __revision__ = "$Id$"
 __version__ = '0.1.20130518'

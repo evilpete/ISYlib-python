@@ -3,6 +3,7 @@ from ISY.IsyClass import  *
 #fromm ISY.IsyNodeClass import *
 # fromm ISY.IsyVarClass import *
  
+""" Obj Class Isy Program entries """
 
 
 __all__ = ['IsyProgram']

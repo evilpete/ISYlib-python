@@ -1,7 +1,6 @@
 """
 
-Devices controled my the ISY are representd at "nodes" on the ISY device and
-with Node Objects in the API
+Devices controlled my the ISY are represented as "nodes" on the ISY device and with Node Objects in the API
 
 There are three types of Node Object:
 

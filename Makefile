@@ -12,7 +12,7 @@ all:
 
 t: style
 
-FILES= ISY/IsyClass.py ISY/IsyExceptionClass.py ISY/IsyNodeClass.py ISY/IsyProgramClass.py ISY/IsyUtilClass.py ISY/IsyVarClass.py ISY/__init__.py ISY/IsyDiscover.py ISY/IsyEventData.py ISY/IsyEvent.py ISY/_isyclimate.py ISY/_isynode.py ISY/_isyvar.py ISY/_isynet_resources.py ISY/IsySoapCmd.py
+FILES= ISY/IsyClass.py ISY/IsyExceptionClass.py ISY/IsyNodeClass.py ISY/IsyProgramClass.py ISY/IsyUtilClass.py ISY/IsyVarClass.py ISY/IsyDiscover.py ISY/IsyEventData.py ISY/IsyEvent.py ISY/_isyclimate.py ISY/_isynode.py ISY/_isyvar.py ISY/_isynet_resources.py ISY/IsySoapCmd.py ISY/__init__.py
 
 BINFILES= bin/isy_find.py bin/isy_nodes.py bin/isy_log.py  bin/isy_progs.py bin/isy_showevents.py bin/isy_var.py bin/isy_nestset.py bin/isy_net_wol.py bin/isy_net_res.py
 
@@ -36,7 +36,7 @@ style: ISY.py syntax
 list: ${FILES}
 	for targ in ${FILES} ; do  \
 	    echo $$targ ; \
-	    egrep -h '^ *class |^ *def |^    ##' $$targ ;\
+	    egrep -h '^ *class |^ *def |^    ##|^def ' $$targ ;\
 	done
 
 doc: 

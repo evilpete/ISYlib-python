@@ -1,3 +1,4 @@
+""" Obj Class Isy veriable entries """
 
 
 from ISY.IsyExceptionClass import *

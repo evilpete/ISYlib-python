@@ -6,6 +6,8 @@ This is a data file for IsyEvent.py
 
 __all__ = [] # EVENT_CTRL, LOG_USERID
 
+    ## EVENT_CTRL ##
+
 EVENT_CTRL  = {
         "_0" : "Heartbeat", 
         "_1" : "Trigger", 
