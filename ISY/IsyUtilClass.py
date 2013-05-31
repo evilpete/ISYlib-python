@@ -117,6 +117,99 @@ class IsyUtil(object):
 	    else :
 		return None
 
+    def _gensoap(self, cmd, **kwargs) :
+
+	if len(kwargs) == -1 :
+	    cmdsoap = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" \
+		+ "<e:Envelope><s:Body>" \
+		+ "<u:{0!s}/>".format(cmd) \
+		+ "</s:Body></e:Envelope>"
+	else :
+	    cmdsoap =  "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" \
+		+ "<s:Envelope><s:Body>" \
+		+ "<u:{0!s} ".format(cmd) \
+		+ "xmlns:u=\"urn:udi-com:service:X_Insteon_Lighting_Service:1\">"
+
+	    for k, v in kwargs.items() :
+		cmdsoap += "<{0}>{1!s}</{0}>".format(k, v)
+	 
+	    cmdsoap += "</u:{0!s}>".format(cmd) \
+		    + "</s:Body></s:Envelope>"
+
+	# print "cmdsoap = \n", cmdsoap
+	return cmdsoap
+
+    def soapcomm(self, cmd, **kwargs):
+	"""
+	takes a command name and a list of keyword arguments. 
+	each keyword is converted into a xml element
+	"""
+
+        if self.debug & 0x01 :
+            print "sendcomm : ", self.__class__.__name__
+
+	if not isinstance(cmd, str) or not len(cmd) :
+	     raise IsyValueError("SOAP Method name missing")
+
+	soap_cmd = self._gensoap(cmd, **kwargs)
+
+	xurl = self.baseurl + "/services"
+	req = URL.Request(xurl, soap_cmd, {'Content-Type': 'application/xml; charset="utf-8"'})
+
+	try :
+	    res = self._opener.open(req, None)
+	    data = res.read()
+	    # print("res.getcode() ", res.getcode(), len(data))
+	    res.close()
+	except URL.HTTPError, e:       
+            raise IsySoapError("{!s} : {!s}".format(self.__class__.__name__, e.code))
+	else :
+	    return data
+
+    # Need to merge with sendcomm
+    def sendfile(self, src=None, filename="", data=None, load="n"):
+	"""
+	upload file
+	"""
+
+        if self.debug & 0x01 :
+            print "sendfile : ", self.__class__.__name__
+
+	if filename[0] != '/' :
+	    filename = "/USER/WEB/" + filename
+	elif not str(st).upper().startswith("/USER/WEB/") :
+            raise IsyValueError("sendfile: invalid dst filename : {!s}".format(st))
+
+	if not len(data) :
+	    if not src :
+		src = filename
+
+	    # if self.debug & 0x20 :
+	    print "using file {!s} as data src".format(src)
+
+	    with open(src, 'r') as content_file:
+		data = content_file.read()
+	else :
+	    # if self.debug & 0x20 :
+	    print "using provided data as data src"
+		 
+
+
+	xurl = self.baseurl + "/file/upload/" + filename + "?load=" + load
+	req = URL.Request(xurl, data, {'Content-Type': 'application/xml; charset="utf-8"'})
+
+	try :
+	    res = self._opener.open(req, None)
+	    data = res.read()
+	    # print("res.getcode() ", res.getcode(), len(data))
+	    res.close()
+	except URL.HTTPError, e:       
+            raise IsySoapError("{!s} : {!s}".format(self.__class__.__name__, e.code))
+	else :
+	    return data
+		  
+
+
     def _printdict(self, d):
         """ Pretty Print dictionary, for internal debug"""
         print("===START===")

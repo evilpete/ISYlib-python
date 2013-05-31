@@ -19,6 +19,8 @@ import pprint
 import time
 from warnings import warn
 import logging
+import xml.etree.ElementTree as ET
+
 
 #logging.basicConfig(level=logging.INFO)
 
@@ -51,7 +53,6 @@ from ISY.IsyProgramClass import *
 #from ISY.IsyVarClass import IsyVar
 from ISY.IsyExceptionClass import  *
 from ISY.IsyEvent import ISYEvent
-from ISY.IsySoapCmd import SendSoapCmd
 
 # import netrc
 
@@ -61,7 +62,7 @@ from ISY.IsySoapCmd import SendSoapCmd
 # 0x04 = report func call
 # 0x08 = Dump loaded data
 # 0x10 = report changes to nodes
-# 0x20 =
+# 0x20 = report soap web
 # 0x40 =
 # 0x80 = print __del__()
 #
@@ -161,7 +162,6 @@ class Isy(IsyUtil):
         self.eventupdates = kwargs.get("eventupdates", 0)
 	self._isy_event = None
 	self.error_str = ""
-	self.soap = None
 	self.callbacks = dict ()
         self._is_pro = True
 
@@ -400,33 +400,6 @@ class Isy(IsyUtil):
                 return str ( (int(v)*100) // 255)
 
 
-    #
-    # Soap Calls
-    #
-    # This is a total have and can be done better
-    #
-    def call_soap(self, cmd, **kwargs):
-	""" wrapper funtion for making SOAP API calls
-
-		args:
-		    cmd = name of soap command
-
-		named arg
-		    [depends on command called]
-	"""
-	# print "call_soap_method: call_method"
-	# print "call_soap_method: ", self.__class__.__name__
-
-	if not isinstance(cmd, str) or not len(cmd) :
-	    raise IsyValueError("SOAP Method name missing")
-
-	if self.soap == None :
-	    self.soap = SendSoapCmd(self.addr, userl=self.userl, userp=self.userp)
-
-	res = self.soap.sendcomm(cmd, **kwargs)
-
-	return res
-
 
     def node_rename(self, nid, nname) :
 	""" rename Node
@@ -438,12 +411,12 @@ class Isy(IsyUtil):
 	    calls SOAP RenameNode()
 	"""
 	nid = self._node_get_id(nid)
-	return self.call_soap("RenameNode", id=nid, name=nname)
+	return self.soapcomm("RenameNode", id=nid, name=nname)
 
 
 #    def node_new(self, id, nname) :
 #	""" create new Folder """
-#	return  self.call_soap("AddNode", id=1234, name=nname, type="T", flag="Y")
+#	return  self.soapcomm("AddNode", id=1234, name=nname, type="T", flag="Y")
 
     ## scene
 
@@ -458,7 +431,7 @@ class Isy(IsyUtil):
 	    calls SOAP RenameGroup()
 	"""
 	fid = self._node_get_id(fid)
-	return self.call_soap("RenameGroup", id=fid, name=fname)
+	return self.soapcomm("RenameGroup", id=fid, name=fname)
 
     def scene_del(self, sid=None ) :
 	""" delete Scene/Group 
@@ -474,7 +447,7 @@ class Isy(IsyUtil):
 	#
 	# add code to update self._nodegroups
 	#
-	return  self.call_soap("RemoveGroup", id=sceneid)
+	return  self.soapcomm("RemoveGroup", id=sceneid)
 
     def scene_new(self, nid=0, sname=None) :
 	""" new Scene/Group
@@ -496,7 +469,7 @@ class Isy(IsyUtil):
 	    while nid in self._folderlist or nid in self._nodegroups :
 		iid += 1
 		nid=str(iid)
-	self.call_soap("AddGroup", id=nid, name=sname)
+	self.soapcomm("AddGroup", id=nid, name=sname)
 	#
 	# add code to update self._nodegroups
 	#
@@ -518,7 +491,7 @@ class Isy(IsyUtil):
 	nodeid = self._node_get_id(nid)
 	if nodeid == None :
 	    raise IsyValueError("no such Node : " + str(nid) )
-	r = self.call_soap("MoveNode", group=groupid, node=nodeid, flag=nflag)
+	r = self.soapcomm("MoveNode", group=groupid, node=nodeid, flag=nflag)
 	return r
 
     def scene_del_node(self, groupid, nid) :
@@ -533,7 +506,7 @@ class Isy(IsyUtil):
 	nodeid = self._node_get_id(nid)
 	if nodeid == None :
 	    raise IsyValueError("no such Node : " + str(nid) )
-	r = self.call_soap("RemoveFromGroup", group=groupid, id=nodeid)
+	r = self.soapcomm("RemoveFromGroup", group=groupid, id=nodeid)
 	return r
 
     ## folder
@@ -548,7 +521,7 @@ class Isy(IsyUtil):
 	    calls SOAP RenameFolder()
 	"""
 	fid = self._node_get_id(fid)
-	r = self.call_soap("RenameFolder", id=fid, name=fname)
+	r = self.soapcomm("RenameFolder", id=fid, name=fname)
 	return r
 
     def folder_new(self, fid, fname) :
@@ -569,7 +542,7 @@ class Isy(IsyUtil):
 	    while fid in self._folderlist or fid in self._nodegroups :
 		iid += 1
 		fid = str(iid)
-	r = self.call_soap("AddFolder", fid=1234, name=fname)
+	r = self.soapcomm("AddFolder", fid=1234, name=fname)
 	if  isinstance(r, tuple) and r[0] == '200' :
 	    self._folderlist[fid] = dict()
 	    self._folderlist[fid]['address'] = fid
@@ -588,7 +561,7 @@ class Isy(IsyUtil):
 	fid = self._node_get_id(fid)
 	if fid == None :
 	    raise IsyValueError("Unknown Folder : " + str(fid) )
-	r = self.call_soap("RemoveFolder", id=fid)
+	r = self.soapcomm("RemoveFolder", id=fid)
 	if  isinstance(r, tuple) and r[0] == '200' :
 	    self._folderlist[fid] = dict()
 
@@ -618,7 +591,7 @@ class Isy(IsyUtil):
 	else :
 	    parentid = parent
 
-	r = self.call_soap("SetParent", node=nodeid, nodeType=nodeType, parent=parentid, parentType=parentType)
+	r = self.soapcomm("SetParent", node=nodeid, nodeType=nodeType, parent=parentid, parentType=parentType)
 	return r
 
     def folder_del_node(self, nid, nodeType=1) :
@@ -641,7 +614,7 @@ class Isy(IsyUtil):
 
 	    calls SOAP Reboot() 
 	"""
-	return self.call_soap("Reboot")
+	return self.soapcomm("Reboot")
 
      #
      # User commands
@@ -652,11 +625,8 @@ class Isy(IsyUtil):
 
 	    calls SOAP GetFSStat()
 	"""
-	r = self.call_soap("GetFSStat")
-	if ( rp[0] == 200) :
-	    return et2d( ET.fromstring(r[1]))
-	else :
-	    raise IsySoapError("user_fsstat : GetFSStat")
+	r = self.soapcomm("GetFSStat")
+	return et2d( ET.fromstring(r))
      
 
     def user_dir(self, name="", pattern="") :
@@ -668,11 +638,8 @@ class Isy(IsyUtil):
 
 	    call SOAP GetUserDirectory()
 	"""
-	r = self.call_soap("GetUserDirectory", name=name, pattern=pattern)
-	if ( rp[0] == 200) :
-	    return et2d( ET.fromstring(r[1]))
-	else :
-	    raise IsySoapError("user_dir : GetUserDirectory")
+	r = self.soapcomm("GetUserDirectory", name=name, pattern=pattern)
+	return et2d( ET.fromstring(r))
 
     def user_mkdir(self, name=None) :
 	""" Make new User Folder/Directory
@@ -684,11 +651,8 @@ class Isy(IsyUtil):
 	"""
 	if name == None :
 	    raise IsyValueError("user_mkdir : invalid dir name")
-	r = self.call_soap("MakeUserDirectory", name=name)
-	if ( rp[0] == 200) :
-	    return et2d( ET.fromstring(r[1]))
-	else :
-	    raise IsySoapError("user_mkdir : MakeUserDirectory")
+	r = self.soapcomm("MakeUserDirectory", name=name)
+	return et2d( ET.fromstring(r))
 
     def user_rmdir(self, name=None) :
 	""" Remove User Folder/Directory
@@ -700,11 +664,8 @@ class Isy(IsyUtil):
 	"""
 	if name == None :
 	    raise IsyValueError("user_rmdir : invalid dir name")
-	r = self.call_soap("RemoveUserDirectory", name=name)
-	if ( rp[0] == 200) :
-	    return et2d( ET.fromstring(r[1]))
-	else :
-	    raise IsySoapError("user_rmdir : RemoveUserDirectory")
+	r = self.soapcomm("RemoveUserDirectory", name=name)
+	return et2d( ET.fromstring(r))
 
 
     def user_mv(self, oldn=None, newn=None) :
@@ -718,8 +679,8 @@ class Isy(IsyUtil):
 	"""
 	if newn == None or newn == None :
 	    raise IsyValueError("user_mv : invalid name")
-	r = self.call_soap("MoveUserObject", name=oldn, newName=newn)
-	if ( rp[0] == 200)  :
+	r = self.soapcomm("MoveUserObject", name=oldn, newName=newn)
+	if ( r[0] == 200)  :
 	    return et2d( ET.fromstring(r[1]))
 	else :
 	    raise IsySoapError("user_mv : MoveUserObject")
@@ -734,11 +695,8 @@ class Isy(IsyUtil):
 	"""
 	if name == None :
 	    raise IsyValueError("user_mkdir : invalid name")
-	r = self.call_soap("RemoveUserFile", name=name)
-	if ( rp[0] == 200) :
-	    return et2d( ET.fromstring(r[1]))
-	else :
-	    raise IsySoapError("user_rm: RemoveUserFile")
+	r = self.soapcomm("RemoveUserFile", name=name)
+	return(r)
 
     def user_getfile(self, name=None) :
 	""" Get User File
@@ -748,14 +706,36 @@ class Isy(IsyUtil):
 
 	    call SOAP GetUserFile()
 	"""
-	if name == None :
-	    raise IsyValueError("user_mkdir : invalid name")
-	r = self.call_soap("GetUserFile", name=name)
-	if ( rp[0] == 200) :
-	    return et2d( ET.fromstring(r[1]))
+	if not len(name) :
+	    raise IsyValueError("user_getfile : invalid name")
+	if name[0] != "/" :
+	    name = "/USER/WEB/" + name
+
+	r = self.soapcomm("GetUserFile", name=name)
+	if ( r[0] == 200) :
+	    return r[1]
 	else :
 	    raise IsySoapError("user_rm: GetUserFile")
 
+
+    def user_uploadfile(self, srcfile="", name=None, data="") :
+	""" upload User File
+
+	    Named args:
+		name : name of file after upload
+		data : date to upload 
+		srcfile : file containing data to upload
+
+	    srcfile is use only if data is not set
+	    if both data & srcfile are not set then
+	    the file "name" is used
+
+	    calls /file/upload/...
+	"""
+	if name == None :
+	    raise IsyValueError("user_uploadfile : invalid name")
+	r = self.sendfile(src=srcfile, filename=name, data=data)
+	return r
 
     #
     #  Util Funtions
@@ -1281,10 +1261,6 @@ class Isy(IsyUtil):
 	#    del self.progCdict[k]
 	#for k in self.folderCdict.keys() :
 	#    del self.folderCdict[k]
-
-	if self.soap :
-	    self.soap.closesock()
-	    del self.soap
 
 
     def __repr__(self):
