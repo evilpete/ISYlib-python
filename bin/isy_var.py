@@ -33,7 +33,9 @@ def list_vars(myisy) :
         print fmt.format( var.id, var.name, var.value, var.init, var.ts )
 
 def usage(code, msg=''):
-    print >> sys.stderr, __doc__ % globals()
+    print >> sys.stderr, __doc__ 
+    print "globals ", globals()
+    # % globals()
     if msg:
         print >> sys.stderr, msg
     sys.exit(code)

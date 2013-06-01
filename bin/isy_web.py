@@ -2,22 +2,35 @@
 
 """
 
-Simple example to Lisst, Upload and download user webserver files from ISY
+Simple example to List, Upload and download user webserver files from ISY
 
-if this script is call without any arg 
-we print a list of files
 
-if we have any args we treat them as registared WoL Id's
-and attempt to send a WoL packet 
+    {0} COMMAND [arg1 [arg2] ... ]
+
+
+where command can be one owhere command can be one of :
+    SEND : send / upload a file
+    MKDIR : make directory
+    RMDIR : remove / delete a directory
+    RM : remove / delete a file
+    DELETE : same as rm
+    MV : move / rename a file or directory
+    GET : get (download) a file
+    DF : display free disk space
+    LS : list files and directories
+    LIST : same as ls
+    DIR : same as ls
 
 """
 
 import os
 import sys
 import ISY
+from ISY.IsyClass import Isy, IsyGetArg
 from ISY.IsyExceptionClass import IsyResponseError, IsyValueError
 import pprint;
- 
+
+__doc__ = __doc__.format( os.path.basename(sys.argv[0])) 
 def main(isy):
 
     # print "sys.argv[1:] = {!s}".format( len(sys.argv[1:]) )
@@ -41,46 +54,59 @@ def main(isy):
 
 	    res = isy.user_uploadfile(srcfile=srcfile, name=dstfile)
 	    print "res = ", res
-	elif cmd == "MKDIR" :
+	elif cmd in [ "MKDIR", "MD" ] :
 	    if ( len(sys.argv) > 1 ) :
 		dstfile = sys.argv.pop(1)
-		isy.user_mkdir(name=dstfile);
+		r = isy.user_mkdir(name=dstfile);
+		print "r = ", r
 	    else :
 		print "Missing Arg"
-	elif cmd == "RMDIR" :
+	elif cmd in ["RMDIR" , "RD"] :
 	    if ( len(sys.argv) > 1 ) :
 		dstdir = sys.argv.pop(1)
-		isy.user_rmdir(name=dstdir);
+		r = isy.user_rmdir(name=dstdir);
+		print "r = ",r
 	    else :
 		print "Missing Arg"
-	elif cmd == "RM" :
+	elif cmd in [ "RM", "DEL", "DELETE"] :
 	    if ( len(sys.argv) > 1 ) :
 		dstdir = sys.argv.pop(1)
-		isy.user_rm(name=dstdir);
+		r = isy.user_rm(name=dstdir);
+		print "r = ", r
 	    else :
 		print "Missing Arg"
-	elif cmd == "MV" :
+	elif cmd in  ["MV", "RENAME"] :
 	    if ( len(sys.argv) > 1 ) :
 		old = sys.argv.pop(1)
 		new = sys.argv.pop(1)
-		isy.user_mv(name=old, newName=new);
+		r = isy.user_mv(name=old, newName=new);
+		print "r = ",r
 	    else :
 		print "Missing Arg"
 	elif cmd == "GET" :
 	    if ( len(sys.argv) >= 1 ) :
 		name = sys.argv.pop(1)
-		isy.user_getfile(name=name);
+		r = isy.user_getfile(name=name);
+		print "r = ", r
 	    else :
 		print "Missing Arg"
+	elif cmd == "DF" :
+	    print_fsstat(isy)
 	elif cmd in ["LS", "LIST", "DIR"] :
 	    print_listing_sort(isy) 
 	    print_fsstat(isy)
+	elif cmd == "HELP" :
+	    help()
+	    exit(0)
 	else :
 	    print "unknown command : {!s}".format(cmd)
+	    help()
+	    exit(0)
 
 
 def print_listing_sort(isy) :
     """ print sorted file list """
+    mytotal = 0
     mylist = dict()
     flist = isy.user_dir()
     # pprint.pprint(flist)
@@ -101,13 +127,15 @@ def print_listing_sort(isy) :
 			mylist[dir] = [ ]
 
 		    mylist[dir].append( "\t{!s}\t{!s}".format(
-			l["file-size"], l["file-name"]))
+			sizeof_fmt(int(l["file-size"])), l["file-name"]))
+		    mytotal += int(l["file-size"])
 	    else :
 		dir = os.path.dirname(v["file-name"]) 
 		if dir not in mylist :
-			mylist[dir] = [ ]
+		    mylist[dir] = [ ]
 		mylist[dir].append( "\t{!s}\t{!s}".format(
-			v["file-size"], v["file-name"]))
+			sizeof_fmt(int(v["file-size"])), v["file-name"]))
+		mytotal += int(l["file-size"])
 	else :
 	    print "unknown list type : ", k
     #
@@ -115,6 +143,8 @@ def print_listing_sort(isy) :
 	print key, ":"
 	for l in mylist[key] :
 	    print l
+    print "Total:\t{:.1f}K".format( (float(mytotal) / 1024) )
+    print "Total:\t{!s}".format( sizeof_fmt(mytotal) )
 
 def print_listing(isy) :
 #
@@ -140,29 +170,34 @@ def print_listing(isy) :
 	else :
 	    print "unknown list type : ", k
 
+def sizeof_fmt(num):
+    if num < 1024.0:
+	return num
+    for x in ['','KB','MB','GB','TB']:
+	if num < 1024.0:
+	    return "{:3.1f} {!s}".format(num, x)
+	num /= 1024.0
+
 def print_fsstat(isy) :
     #
     flist = isy.user_fsstat()
     # pprint.pprint(flist)
-    print "free={:.2f}K  used={:.2f}K reserved={:.2f}K total={:.2f}M".format(
-	( float(flist["free"]) / (1024**2)),
-	( float(flist["used"]) / (1024**2)),
-	( float(flist["reserved"]) / (1024**2)),
-	( float(flist["total"]) / (1024**2)),
+    print "free={!s}  used={!s} reserved={!s} total={!s}".format(
+	sizeof_fmt(int(flist["free"])),
+	sizeof_fmt(int(flist["used"])),
+	sizeof_fmt(int(flist["reserved"])),
+	sizeof_fmt(int(flist["total"])),
 	)
 
-
-# {'bad': '0',
-# 'free': '870971802',
-# 'reserved': '98748006',
-# 'total': '987480064',
-# 'used': '17760256'}
-# {'dir': {'dir-name': '/USER/WEB'},
-# 'file': {'file-name': '/USER/WEB/X10.HTM', 'file-size': '324'}}
-
-
+def help():
+    print >> sys.stderr, __doc__
+ 
 
 if __name__=="__main__":
+
+    r = IsyGetArg(sys.argv)
+
     myisy= ISY.Isy(debug=0x20,faststart=2,eventupdates=0)
+	# addr=r[0], userl=r[1], userp=r[2] )
     main(myisy)
     exit(0)

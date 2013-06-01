@@ -87,7 +87,7 @@ Exception Classes :
 
     # from ISY.IsyUtilClass import IsyUtil
     #
-from ISY.IsyClass import Isy
+from ISY.IsyClass import Isy, IsyGetArg
 from ISY.IsyDiscover import isy_discover
 from ISY.IsyNodeClass import IsyNode, IsyScene, IsyNodeFolder
 from ISY.IsyVarClass import IsyVar
@@ -102,7 +102,7 @@ __author__ = 'Peter Shipley <peter.shipley@gmail.com>'
 
 #__all__ = ['IsyUtil', 'Isy',  'IsyNode', 'IsyProgram', 'IsyVar']
 __all__ = ['Isy', 'IsyUtil', 'IsyUtilClass', 'IsyClass',  'IsyNode', 'IsyVar',
-	    'isy_discover']
+	    'isy_discover', 'IsyGetArg']
 #__all__ = ['IsyUtil', 'Isy']
 
 

@@ -81,7 +81,7 @@ from ISY.IsyEvent import ISYEvent
 
 _pro_models = [ 1100, 1110, 1040, 1050 ]
 
-__all__ = ['Isy']
+__all__ = ['Isy', 'IsyGetArg']
 
 
 
@@ -155,6 +155,7 @@ class Isy(IsyUtil):
 	self.userp = kwargs.get("userp", os.getenv('ISY_PASS', "admin"))
         self.addr = kwargs.get("addr", os.getenv('ISY_ADDR', None))
 
+	# print "AUTH: ", self.addr, self.userl, self.userp
 
         self.debug = kwargs.get("debug", 0)
         self.cachetime = kwargs.get("cachetime", 0)
@@ -639,6 +640,7 @@ class Isy(IsyUtil):
 	    call SOAP GetUserDirectory()
 	"""
 	r = self.soapcomm("GetUserDirectory", name=name, pattern=pattern)
+	# print "GetUserDirectory : ", r
 	return et2d( ET.fromstring(r))
 
     def user_mkdir(self, name=None) :
@@ -664,11 +666,12 @@ class Isy(IsyUtil):
 	"""
 	if name == None :
 	    raise IsyValueError("user_rmdir : invalid dir name")
+	name = name.rstrip('/')
 	r = self.soapcomm("RemoveUserDirectory", name=name)
 	return et2d( ET.fromstring(r))
 
 
-    def user_mv(self, oldn=None, newn=None) :
+    def user_mv(self, name=None, newName=None) :
 	""" Move/Rename User Object (File or Directory)
 
 	    Named args:
@@ -677,13 +680,10 @@ class Isy(IsyUtil):
 
 	    call SOAP MoveUserObject()
 	"""
-	if newn == None or newn == None :
+	if name == None or newName == None :
 	    raise IsyValueError("user_mv : invalid name")
-	r = self.soapcomm("MoveUserObject", name=oldn, newName=newn)
-	if ( r[0] == 200)  :
-	    return et2d( ET.fromstring(r[1]))
-	else :
-	    raise IsySoapError("user_mv : MoveUserObject")
+	r = self.soapcomm("MoveUserObject", name=name, newName=newName)
+	return r
 
     def user_rm(self, name=None) :
 	""" Remove User File
@@ -1283,6 +1283,42 @@ class Isy(IsyUtil):
         fi.close()
 
 
+def IsyGetArg(lineargs) :
+    """
+	takes argv and extracts name/pass/ipaddr options
+    """
+    if self.debug & 0x80 :
+	print "IsyGetArg ", lineargs
+    addr=""
+    upass=""
+    uname=""
+
+    i = 0
+    while i < len(lineargs) :
+
+	#print "len = ", len(lineargs)
+	#print "lineargs =", lineargs
+	#print "check :", i, ":", lineargs[i], 
+
+	if lineargs[i] in [ '--address', '-address', '-a' ] :
+	    lineargs.pop(i)
+	    addr = lineargs.pop(i)
+	    continue
+
+	elif lineargs[i] in [ '--pass', '-pass', '-p' ] :
+	    lineargs.pop(i)
+	    upass = lineargs.pop(i)
+	    continue
+
+	elif lineargs[i] in [ '--user', '-user', '-u' ] :
+	    lineargs.pop(i)
+	    uname = lineargs.pop(i)
+	    continue
+
+	i += 1
+
+    return(addr, uname, upass)
+ 
 
 def log_time_offset() :
     """  calculates  time format offset used in ISY event logs to localtime format """

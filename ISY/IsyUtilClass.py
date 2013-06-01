@@ -2,7 +2,7 @@
 #from StringIO import StringIO
 import xml.etree.ElementTree as ET
 from xml.etree.ElementTree import  iselement
-from ISY.IsyExceptionClass import IsyPropertyError, IsyValueError
+from ISY.IsyExceptionClass import IsyPropertyError, IsyValueError, IsySoapError
 # import base64
 import sys
 if sys.hexversion < 0x3000000 :
@@ -154,19 +154,24 @@ class IsyUtil(object):
 	soap_cmd = self._gensoap(cmd, **kwargs)
 
 	xurl = self.baseurl + "/services"
+	#print "xurl = ", xurl
+	#print "soap_cmd = ", soap_cmd
+
 	req = URL.Request(xurl, soap_cmd, {'Content-Type': 'application/xml; charset="utf-8"'})
 
+	data = ""
 	try :
 	    res = self._opener.open(req, None)
 	    data = res.read()
 	    # print("res.getcode() ", res.getcode(), len(data))
 	    res.close()
 	except URL.HTTPError, e:       
+	    print "e = ", e
+	    print "data = ", data
             raise IsySoapError("{!s} : {!s}".format(self.__class__.__name__, e.code))
 	else :
 	    return data
 
-    # Need to merge with sendcomm
     def sendfile(self, src=None, filename="", data=None, load="n"):
 	"""
 	upload file
@@ -177,7 +182,7 @@ class IsyUtil(object):
 
 	if filename[0] != '/' :
 	    filename = "/USER/WEB/" + filename
-	elif not str(st).upper().startswith("/USER/WEB/") :
+	elif not str(filename).upper().startswith("/USER/WEB/") :
             raise IsyValueError("sendfile: invalid dst filename : {!s}".format(st))
 
 	if not len(data) :
