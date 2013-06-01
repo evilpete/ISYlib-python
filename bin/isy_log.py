@@ -1,4 +1,6 @@
 #!/usr/local/bin/python2.7
+__author__ = "Peter Shipley"
+
 
 from ISY.IsyClass import Isy, log_time_offset
 from ISY.IsyEventData import LOG_USERID, LOG_TYPES

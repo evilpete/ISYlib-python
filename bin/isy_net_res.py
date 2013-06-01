@@ -10,6 +10,8 @@ we print a list of network resources systems
 
 """
 
+__author__ = "Peter Shipley"
+
 import sys
 import ISY
 from ISY.IsyExceptionClass import IsyResponseError, IsyValueError

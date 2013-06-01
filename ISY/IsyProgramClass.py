@@ -1,10 +1,13 @@
+""" Obj Class Isy Program entries """
+
+__author__ = 'Peter Shipley <peter.shipley@gmail.com>'
+__copyright__ = "Copyright (C) 2013 Peter Shipley"
+__license__ = "BSD"
+
 from ISY.IsyUtilClass import IsyUtil, IsySubClass, val2bool
 from ISY.IsyClass import  *
 #fromm ISY.IsyNodeClass import *
 # fromm ISY.IsyVarClass import *
- 
-""" Obj Class Isy Program entries """
-
 
 __all__ = ['IsyProgram']
 

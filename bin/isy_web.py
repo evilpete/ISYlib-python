@@ -21,7 +21,11 @@ where command can be one owhere command can be one of :
     LIST : same as ls
     DIR : same as ls
 
+All non-absolute remote filenames are assumed to be relative to /USER/WEB
+
 """
+
+__author__ = "Peter Shipley"
 
 import os
 import sys
@@ -60,36 +64,48 @@ def main(isy):
 		r = isy.user_mkdir(name=dstfile);
 		print "r = ", r
 	    else :
-		print "Missing Arg"
+		print "Missing Arg:\n\t{!s} <dirname>".format(cmd)
 	elif cmd in ["RMDIR" , "RD"] :
 	    if ( len(sys.argv) > 1 ) :
 		dstdir = sys.argv.pop(1)
 		r = isy.user_rmdir(name=dstdir);
 		print "r = ",r
 	    else :
-		print "Missing Arg"
+		print "Missing Arg:\n\t{!s} <dirname>".format(cmd)
 	elif cmd in [ "RM", "DEL", "DELETE"] :
 	    if ( len(sys.argv) > 1 ) :
 		dstdir = sys.argv.pop(1)
 		r = isy.user_rm(name=dstdir);
 		print "r = ", r
 	    else :
-		print "Missing Arg"
+		print "Missing Arg:\n\t{!s} <filename>".format(cmd)
 	elif cmd in  ["MV", "RENAME"] :
-	    if ( len(sys.argv) > 1 ) :
+	    if ( len(sys.argv) > 2 ) :
 		old = sys.argv.pop(1)
 		new = sys.argv.pop(1)
 		r = isy.user_mv(name=old, newName=new);
 		print "r = ",r
 	    else :
-		print "Missing Arg"
+		print "Missing Arg:\n\t{!s} <filename> <filename>".format(cmd)
 	elif cmd == "GET" :
-	    if ( len(sys.argv) >= 1 ) :
-		name = sys.argv.pop(1)
-		r = isy.user_getfile(name=name);
-		print "r = ", r
+	    if ( len(sys.argv) < 1 ) :
+		print "Missing Arg:\n\t{!s} <remote_filename> [local_filename>".format(cmd)
+		exit(0)
+
+	    name = sys.argv.pop(1)
+
+	    if ( len(sys.argv) > 1 ) :
+		destfile = sys.argv.pop(1)
+	    elif str(name).upper().startswith("/USER/WEB/") :
+		dstfile = os.path.basename(name)
 	    else :
-		print "Missing Arg"
+		dstfile = name
+
+	    r = isy.user_getfile(name=name);
+	    with open(dstfile, 'w') as fi:
+		fi.write(r)
+	    print "{!s} bytes written to {!s}".format(len(r), dstfile)
+
 	elif cmd == "DF" :
 	    print_fsstat(isy)
 	elif cmd in ["LS", "LIST", "DIR"] :

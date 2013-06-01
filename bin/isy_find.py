@@ -1,4 +1,7 @@
 #!/usr/local/bin/python2.7
+__author__ = "Peter Shipley"
+__license__ = "BSD"
+
 
 # Simple example 
 #

@@ -1,6 +1,3 @@
-import sys
-if sys.hexversion < 0x20703f0 :
-    sys.stderr.write("You need python 2.7 or later to run this script\n")
 
 """API for the Universal Device's ISY 
 
@@ -85,6 +82,16 @@ Exception Classes :
 
 """
 
+import sys
+if sys.hexversion < 0x20703f0 :
+    sys.stderr.write("You need python 2.7 or later to run this script\n")
+
+__revision__ = "$Id$"
+__version__ = '0.1.20130528'
+__author__ = 'Peter Shipley <peter.shipley@gmail.com>'
+__copyright__ = "Copyright (C) 2013 Peter Shipley"     
+__license__ = "BSD"
+
     # from ISY.IsyUtilClass import IsyUtil
     #
 from ISY.IsyClass import Isy, IsyGetArg
@@ -95,9 +102,7 @@ from ISY.IsyProgramClass import IsyProgram
 from ISY.IsyExceptionClass import IsyError
 #
 
-__revision__ = "$Id$"
-__version__ = '0.1.20130518'
-__author__ = 'Peter Shipley <peter.shipley@gmail.com>'
+
 
 
 #__all__ = ['IsyUtil', 'Isy',  'IsyNode', 'IsyProgram', 'IsyVar']

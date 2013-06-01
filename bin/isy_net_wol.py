@@ -11,6 +11,8 @@ if we have any args we treat them as registared WoL Id's
 and attempt to send a WoL packet 
 
 """
+__author__ = "Peter Shipley"
+
 
 import sys
 import ISY

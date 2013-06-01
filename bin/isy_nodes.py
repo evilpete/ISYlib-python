@@ -4,6 +4,8 @@
     to obtain and print status of every node
 """
 
+__author__ = "Peter Shipley"
+
 import ISY
 
 

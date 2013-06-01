@@ -7,6 +7,8 @@
 	       https://github.com/evilpete/ISYlib-python
 
 """
+__author__ = "Peter Shipley"
+
 
 import nest
 import sys

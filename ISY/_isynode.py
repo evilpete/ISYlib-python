@@ -3,6 +3,12 @@ This is a subfile for IsyClass.py
 
 These funtions are accessable via the Isy class opj
 """
+
+__author__ = 'Peter Shipley <peter.shipley@gmail.com>'
+__copyright__ = "Copyright (C) 2013 Peter Shipley"
+__license__ = "BSD"
+
+
 from ISY.IsyNodeClass import IsyNode, IsyScene, IsyNodeFolder#, _IsyNodeBase
 from ISY.IsyUtilClass import IsySubClass
 from ISY.IsyExceptionClass import IsyPropertyError, IsyResponseError

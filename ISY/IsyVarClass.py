@@ -1,5 +1,9 @@
 """ Obj Class Isy veriable entries """
 
+__author__ = 'Peter Shipley <peter.shipley@gmail.com>'
+__copyright__ = "Copyright (C) 2013 Peter Shipley"
+__license__ = "BSD"
+
 
 from ISY.IsyExceptionClass import *
 from ISY.IsyUtilClass import IsySubClass

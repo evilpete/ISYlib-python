@@ -5,6 +5,10 @@
  and well as a method of setting or querying vars
  
 """
+__author__ = 'Peter Shipley <peter.shipley@gmail.com>'
+__copyright__ = "Copyright (C) 2013 Peter Shipley"
+__license__ = "BSD"
+
 
 
 #from xml.dom.minidom import parse, parseString
@@ -617,10 +621,9 @@ class Isy(IsyUtil):
 	"""
 	return self.soapcomm("Reboot")
 
-     #
-     # User commands
-     #
-
+    #
+    # User web  commands
+    #
     def user_fsstat(self) :
 	""" ISY Filesystem Status
 
@@ -653,6 +656,8 @@ class Isy(IsyUtil):
 	"""
 	if name == None :
 	    raise IsyValueError("user_mkdir : invalid dir name")
+	if name[0] != "/" :
+	    name = "/USER/WEB/" + name
 	r = self.soapcomm("MakeUserDirectory", name=name)
 	return et2d( ET.fromstring(r))
 
@@ -667,6 +672,8 @@ class Isy(IsyUtil):
 	if name == None :
 	    raise IsyValueError("user_rmdir : invalid dir name")
 	name = name.rstrip('/')
+	if name[0] != "/" :
+	    name = "/USER/WEB/" + name
 	r = self.soapcomm("RemoveUserDirectory", name=name)
 	return et2d( ET.fromstring(r))
 
@@ -682,6 +689,10 @@ class Isy(IsyUtil):
 	"""
 	if name == None or newName == None :
 	    raise IsyValueError("user_mv : invalid name")
+	if name[0] != "/" :
+	    name = "/USER/WEB/" + name
+	if newName[0] != "/" :
+	    newName = "/USER/WEB/" + newName
 	r = self.soapcomm("MoveUserObject", name=name, newName=newName)
 	return r
 
@@ -695,6 +706,8 @@ class Isy(IsyUtil):
 	"""
 	if name == None :
 	    raise IsyValueError("user_mkdir : invalid name")
+	if name[0] != "/" :
+	    name = "/USER/WEB/" + name
 	r = self.soapcomm("RemoveUserFile", name=name)
 	return(r)
 
@@ -712,10 +725,7 @@ class Isy(IsyUtil):
 	    name = "/USER/WEB/" + name
 
 	r = self.soapcomm("GetUserFile", name=name)
-	if ( r[0] == 200) :
-	    return r[1]
-	else :
-	    raise IsySoapError("user_rm: GetUserFile")
+	return r
 
 
     def user_uploadfile(self, srcfile="", name=None, data="") :
@@ -1278,17 +1288,16 @@ class Isy(IsyUtil):
 
     def _writedict(self, d, filen):
         """ Pretty Print dict to file  """
-        fi = open(filen, 'w')
-        pprint.pprint(d, fi)
-        fi.close()
+	with open(filen, 'w') as fi:
+	    pprint.pprint(d, fi)
+
 
 
 def IsyGetArg(lineargs) :
     """
 	takes argv and extracts name/pass/ipaddr options
     """
-    if self.debug & 0x80 :
-	print "IsyGetArg ", lineargs
+    # print "IsyGetArg ", lineargs
     addr=""
     upass=""
     uname=""

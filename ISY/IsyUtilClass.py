@@ -1,3 +1,8 @@
+
+__author__ = 'Peter Shipley <peter.shipley@gmail.com>'
+__copyright__ = "Copyright (C) 2013 Peter Shipley"
+__license__ = "BSD"
+
 # from xml.dom.minidom import parse, parseString
 #from StringIO import StringIO
 import xml.etree.ElementTree as ET
@@ -209,6 +214,7 @@ class IsyUtil(object):
 	    # print("res.getcode() ", res.getcode(), len(data))
 	    res.close()
 	except URL.HTTPError, e:       
+	    print e.read()
             raise IsySoapError("{!s} : {!s}".format(self.__class__.__name__, e.code))
 	else :
 	    return data

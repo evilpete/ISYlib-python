@@ -1,4 +1,6 @@
 #!/usr/local/bin/python2.7
+__author__ = "Peter Shipley"
+
 
 import os
 

@@ -35,6 +35,11 @@ IsyNodeFolders are just for organizing
 
 
 """
+
+__author__ = 'Peter Shipley <peter.shipley@gmail.com>'
+__copyright__ = "Copyright (C) 2013 Peter Shipley"
+__license__ = "BSD"
+
 from ISY.IsyUtilClass import IsyUtil, IsySubClass, val2bool 
 from ISY.IsyExceptionClass import *
 # from IsyClass import *

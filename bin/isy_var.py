@@ -10,6 +10,8 @@ Options:
 """
 #this is Ugly code and should be cleaned up
 
+__author__ = "Peter Shipley"
+
 import ISY
 import sys
 
