@@ -46,6 +46,8 @@ doc:
 lint: 
 	pylint -d W0312,C0111,C0301,C0103 ${FILES}  
 
+clean:
+	rm bin/*.pyc ISY/*.pyc
 
 #checkall: ${PLIB} ${PROGS}
 #	for targ in $? ; do \

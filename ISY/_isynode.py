@@ -33,11 +33,11 @@ def load_nodes(self) :
     if not hasattr(self, '_nodegroups') or not isinstance(self._nodegroups, dict):
 	self._nodegroups  = dict ()
 
-    if not hasattr(self, 'folderlist') or not isinstance(self._folderlist, dict):
+    if not hasattr(self, '_folderlist') or not isinstance(self._folderlist, dict):
 	self._folderlist  = dict ()
 
     # self.nodeCdict = dict ()
-    # self.node2addr = dict ()
+    # self._node2addr = dict ()
     if self.debug & 0x01 :
 	print("load_nodes pre _getXML")
     nodeinfo = self._getXMLetree("/rest/nodes")
@@ -45,7 +45,7 @@ def load_nodes(self) :
     self._gen_folder_list(nodeinfo)
     self._gen_nodegroups(nodeinfo)
     # self._printdict(self._nodedict)
-    # print("load_nodes self.node2addr : ", len(self.node2addr))
+    # print("load_nodes self._node2addr : ", len(self._node2addr))
     self._gen_member_list()
 
 def _gen_member_list(self) :
@@ -116,7 +116,7 @@ def _gen_member_list(self) :
 def _gen_folder_list(self, nodeinfo) :
     """ generate folder dictionary for load_node() """
     # self._folderlist = dict ()
-    self.folder2addr = dict ()
+    # self._folder2addr = dict ()
     for fold in nodeinfo.iter('folder'):
 
 	xelm = fold.find('address')
@@ -140,12 +140,12 @@ def _gen_folder_list(self, nodeinfo) :
 	# self._folderlist[fprop["address"]] = fprop
 	self.folder2addr[fprop["name"]] = fprop["address"]
     #self._printdict(self._folderlist)
-    #self._printdict(self.folder2addr)
+    #self._printdict(self._folder2addr)
 
 def _gen_nodegroups(self, nodeinfo) :
     """ generate scene / group dictionary for load_node() """
     # self._nodegroups = dict ()
-    self.groups2addr = dict ()
+    self._groups2addr = dict ()
     for grp in nodeinfo.iter('group'):
 
 	xelm = grp.find('address')
@@ -180,11 +180,11 @@ def _gen_nodegroups(self, nodeinfo) :
 	if "address" in gprop :
 	    # self._nodegroups[gprop["address"]] = gprop
 	    if "name" in gprop :
-		if gprop["name"] in self.groups2addr :
+		if gprop["name"] in self._groups2addr :
 		    warnings.warn("Duplicate group name (0) : (1) (2)".format(gprop["name"], \
-			    str(gprop["address"]), self.groups2addr[gprop["name"]]), RuntimeWarning)
+			    str(gprop["address"]), self._groups2addr[gprop["name"]]), RuntimeWarning)
 		else :
-		    self.groups2addr[gprop["name"]] = str(gprop["address"])
+		    self._groups2addr[gprop["name"]] = str(gprop["address"])
 	else :
 	    # should raise an exception ?
 	    self._printinfo(grp, "Error : no address in group :")
@@ -192,7 +192,7 @@ def _gen_nodegroups(self, nodeinfo) :
 
 def _gen_nodedict(self, nodeinfo) :
     """ generate node dictionary for load_node() """
-    self.node2addr = dict()
+    self._node2addr = dict()
     for inode in nodeinfo.iter('node'):
 	# self._printinfo(inode, "\n\n inode")
 
@@ -232,12 +232,12 @@ def _gen_nodedict(self, nodeinfo) :
 	if "address" in idict :
 	    # self._nodedict[idict["address"]] = idict
 	    if "name" in idict :
-		if idict["name"] in self.node2addr :
+		if idict["name"] in self._node2addr :
 		    warn_mess = "Duplicate Node name (0) : (1) (2)".format(idict["name"], \
-			    idict["address"], self.node2addr[idict["name"]])
+			    idict["address"], self._node2addr[idict["name"]])
 		    warnings.warn(warn_mess, RuntimeWarning)
 		else :
-		    self.node2addr[idict["name"]] = idict["address"]
+		    self._node2addr[idict["name"]] = idict["address"]
 
 	else :
 	    # should raise an exception
@@ -254,17 +254,17 @@ def node_names(self) :
     """  access method for node names
 	returns a dict of ( Node names : Node address )
     """
-    if not self.node2addr :
+    if not self._node2addr :
 	self.load_nodes()
-    return self.node2addr[:]
+    return self._node2addr[:]
 
 def scene_names(self) :
     """ access method for scene names
 	returns a dict of ( Node names : Node address )
     """
-    if not self.groups2addr :
+    if not self._groups2addr :
 	self.load_nodes()
-    return self.groups2addr[:]
+    return self._groups2addr[:]
 
 def node_addrs(self) :
     """ access method for node addresses
@@ -335,9 +335,9 @@ def _node_get_id(self, nid):
 	# print("_node_get_id : " + n + " nodedict " + n
 	return n
 
-    if n in self.node2addr :
-	# print("_node_get_id : " + n + " node2addr " + self.node2addr[n])
-	return self.node2addr[n]
+    if n in self._node2addr :
+	# print("_node_get_id : " + n + " _node2addr " + self._node2addr[n])
+	return self._node2addr[n]
 
     ##
 
@@ -345,15 +345,15 @@ def _node_get_id(self, nid):
 	# print("_node_get_id : " + n + " nodegroups " + n)
 	return n
 
-    if n in self.groups2addr :
-	# print("_node_get_id : " + n + " groups2addr " + self.groups2addr[n])
-	return self.groups2addr[n]
+    if n in self._groups2addr :
+	# print("_node_get_id : " + n + " _groups2addr " + self._groups2addr[n])
+	return self._groups2addr[n]
 
     ##
 
-    if n in self.folder2addr :
-	# print("_node_get_id : " + n + " folder2addr " + self.folder2addr[n])
-	return self.folder2addr[n]
+    if n in self._folder2addr :
+	# print("_node_get_id : " + n + " _folder2addr " + self._folder2addr[n])
+	return self._folder2addr[n]
 
     if n in self._folderlist :
 	# print("_node_get_id : " + n + " _folderlist " + n)
@@ -556,28 +556,28 @@ def load_node_types(self) :
     if self.debug & 0x01 :
 	print("load_node_types called")
     typeinfo = self._getXMLetree("/WEB/cat.xml")
-    if not hasattr(self, 'nodeCategory') or not isinstance(self.nodeCategory, dict):
-	self.nodeCategory = dict ()
+    if not hasattr(self, '_nodeCategory') or not isinstance(self._nodeCategory, dict):
+	self._nodeCategory = dict ()
     for ncat in typeinfo.iter('nodeCategory'):
-	if not ncat.attrib["id"] in self.nodeCategory :
-	    self.nodeCategory[ncat.attrib["id"]] = dict ()
-	self.nodeCategory[ncat.attrib["id"]]["name"] = ncat.attrib["name"]
+	if not ncat.attrib["id"] in self._nodeCategory :
+	    self._nodeCategory[ncat.attrib["id"]] = dict ()
+	self._nodeCategory[ncat.attrib["id"]]["name"] = ncat.attrib["name"]
     typeinfo = self._getXMLetree("/WEB/1_fam.xml")
     for ncat in typeinfo.iter('nodeCategory'):
 	for subcat in ncat.iter('nodeSubCategory'):
 	    ## FIX
-	    if not ncat.attrib["id"] in self.nodeCategory :
-		self.nodeCategory[ncat.attrib["id"]] = dict ()
+	    if not ncat.attrib["id"] in self._nodeCategory :
+		self._nodeCategory[ncat.attrib["id"]] = dict ()
 	    # print("ID : ", ncat.attrib["id"], " : ", subcat.attrib["id"])
 	    # print("ID  name: ", subcat.attrib["name"])
-	    self.nodeCategory[ncat.attrib["id"]][subcat.attrib["id"]] = subcat.attrib["name"]
+	    self._nodeCategory[ncat.attrib["id"]][subcat.attrib["id"]] = subcat.attrib["name"]
 	    #self._printinfo(subcat, "subcat :")
-    # print("nodeCategory : ", self.nodeCategory)
-    # self._printdict(self.nodeCategory)
+    # print("nodeCategory : ", self._nodeCategory)
+    # self._printdict(self._nodeCategory)
 
 def node_get_type(self, typid) :
     """ Take a node's type value and returns a string idnentifying the device """
-    if not self.nodeCategory :
+    if not self._nodeCategory :
 	self.load_node_types()
     #
     # devcat = "UNKNOWN"
@@ -588,10 +588,10 @@ def node_get_type(self, typid) :
     if len(a) >= 2 :
 	devcat = a[0]
 	subcat = a[1]
-	if self.nodeCategory[a[0]] :
-	    devcat = self.nodeCategory[a[0]]["name"]
-	    if self.nodeCategory[a[0]][a[1]] :
-		subcat = self.nodeCategory[a[0]][a[1]].replace('DEV_CAT_', '')
+	if self._nodeCategory[a[0]] :
+	    devcat = self._nodeCategory[a[0]]["name"]
+	    if self._nodeCategory[a[0]][a[1]] :
+		subcat = self._nodeCategory[a[0]][a[1]].replace('DEV_CAT_', '')
     else :
 	devcat = typid
 	subcat = ""

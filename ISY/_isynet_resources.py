@@ -38,16 +38,16 @@ def load_net_resource(self):
 
 	args: none
     """
-    (self.net_resource, self.name2net_res) = self._load_networking("resources")
-    #self._printdict(self.net_resource)
+    (self._net_resource, self.name2net_res) = self._load_networking("resources")
+    #self._printdict(self._net_resource)
     #self._printdict(self.name2net_res)
 
 
 def _net_resource_get_id(self, name):
-    if not self.net_resource :
+    if not self._net_resource :
 	self.load_net_resource()
 
-    if name in self.net_resource:
+    if name in self._net_resource:
 	return name
     if name in self.name2net_res :
 	return self.name2net_res[name]
@@ -86,7 +86,7 @@ def net_resource_names(self):
 
 	returns List of names or None
     """
-    if not self.net_resource :
+    if not self._net_resource :
 	self.load_net_resource()
 
     return self.name2net_res.keys()
@@ -97,9 +97,9 @@ def net_resource_iter(self):
 
 	args: none
     """ 
-    if not self.net_resource :
+    if not self._net_resource :
 	self.load_net_resource()
-    for k, v in self.net_resource.items() :
+    for k, v in self._net_resource.items() :
 	yield v
 
 
@@ -112,7 +112,7 @@ def load_net_wol(self) :
 
 	internal function call
     """
-    (self.wolinfo, self.name2wol) = self._load_networking("wol")
+    (self._wolinfo, self.name2wol) = self._load_networking("wol")
 
 
 
@@ -144,11 +144,11 @@ def net_wol(self, wid) :
 
 def _net_wol_get_id(self, name) :
     """ wol name to wol ID """
-    if not self.wolinfo :
+    if not self._wolinfo :
 	self.load_net_wol()
 
     # name = str(name).upper()
-    if name in self.wolinfo :
+    if name in self._wolinfo :
 	return name
 
     if name in self.name2wol :
@@ -164,7 +164,7 @@ def net_wol_names(self) :
 
     returns List of WOL names and IDs or None
     """
-    if not self.wolinfo :
+    if not self._wolinfo :
 	self.load_net_wol()
     return self.name2wol.keys()
 
@@ -174,10 +174,10 @@ def net_wol_iter(self):
 
 	args: none
     """
-    if not self.wolinfo :
+    if not self._wolinfo :
 	self.load_net_wol()
 
-    for k, v in self.wolinfo.items() :
+    for k, v in self._wolinfo.items() :
 	yield v
 
 

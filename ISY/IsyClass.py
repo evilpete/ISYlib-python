@@ -119,6 +119,7 @@ class Isy(IsyUtil):
 
     """
 
+    # import functions
     from ISY._isyclimate import load_clim, clim_get_val, clim_query, clim_iter
     from ISY._isyvar  import load_vars, var_set_value, _var_set_value, \
 		var_get_value, var_addrs, get_var, _var_get_id, \
@@ -159,6 +160,8 @@ class Isy(IsyUtil):
 	self.userp = kwargs.get("userp", os.getenv('ISY_PASS', "admin"))
         self.addr = kwargs.get("addr", os.getenv('ISY_ADDR', None))
 
+	# (self.userl, self.userp, self.addr) = authtuple
+
 	# print "AUTH: ", self.addr, self.userl, self.userp
 
         self.debug = kwargs.get("debug", 0)
@@ -175,15 +178,16 @@ class Isy(IsyUtil):
 	self.controls = None
 	self.name2control = None
 	self._folderlist = None
+	self._folder2addr = None
 	self._progdict = None      
 	self._nodedict = None
 	self._nodegroups = None
-	self.groups2addr = None
-	self.node2addr = None
-	self.nodeCategory = None
+	self._groups2addr = None
+	self._node2addr = None
+	self._nodeCategory = None
 	self._vardict = None        
-	self.wolinfo = None
-	self.net_resource = None
+	self._wolinfo = None
+	self._net_resource = None
 	self.climateinfo  = None
 
         if self.addr == None :
@@ -772,10 +776,10 @@ class Isy(IsyUtil):
 	if rload or  not hasattr(self, "_progdict") :
 	    self.load_prog()
 
-	# if rload or  not hasattr(self, "wolinfo") :
+	# if rload or  not hasattr(self, "_wolinfo") :
 	    #self.load_wol()
 
-	if rload or  not hasattr(self, "nodeCategory") :
+	if rload or  not hasattr(self, "_nodeCategory") :
 	    self.load_node_types()
 
     def _savedict(self) :
@@ -783,7 +787,7 @@ class Isy(IsyUtil):
 
         self._preload()
 
-        # self._writedict(self.wolinfo, "wolinfo.txt")
+        # self._writedict(self._wolinfo, "wolinfo.txt")
 
         self._writedict(self._nodedict, "nodedict.txt")
 
@@ -799,7 +803,7 @@ class Isy(IsyUtil):
 
         self._writedict(self._progdict, "progdict.txt")
 
-        self._writedict(self.nodeCategory, "nodeCategory.txt")
+        self._writedict(self._nodeCategory, "nodeCategory.txt")
 
 
 
@@ -1309,22 +1313,29 @@ def IsyGetArg(lineargs) :
 	#print "lineargs =", lineargs
 	#print "check :", i, ":", lineargs[i], 
 
-	if lineargs[i] in [ '--address', '-address', '-a' ] :
+	if lineargs[i] in [ '--isyaddress', '-isyaddress', '--isyaddr' '-isyaddr' ] :
 	    lineargs.pop(i)
 	    addr = lineargs.pop(i)
 	    continue
 
-	elif lineargs[i] in [ '--pass', '-pass', '-p' ] :
+	elif lineargs[i] in [ '--isypass', '-isypass' ] :
 	    lineargs.pop(i)
 	    upass = lineargs.pop(i)
 	    continue
 
-	elif lineargs[i] in [ '--user', '-user', '-u' ] :
+	elif lineargs[i] in [ '--isyuser', '-isyuser' ] :
 	    lineargs.pop(i)
 	    uname = lineargs.pop(i)
 	    continue
 
 	i += 1
+
+#    if not addr :
+#        addr = os.getenv('ISY_ADDR', "isy")
+#    if not uname :
+#	userl = os.getenv('ISY_USER', "admin")
+#    if not upass :
+#	userp = os.getenv('ISY_PASS', "admin")
 
     return(addr, uname, upass)
  

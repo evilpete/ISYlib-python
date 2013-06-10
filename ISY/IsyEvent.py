@@ -191,7 +191,7 @@ class ISYEvent(object) :
 
 
     def et2d(self, et) :
-        """ Etree to Dict
+	""" Etree to Dict
 
             converts an ETree to a Dict Tree
             lists are created for duplicate tag
@@ -200,28 +200,29 @@ class ISYEvent(object) :
             returns: a dict() obj
 
         """
-        d = dict()
-        children = list(et)
-        if et.attrib :
-            for k, v in list(et.items()) :
-                d[et.tag + "-" + k] =  v
-        if children :
-            for c in children :
-                if c.tag in d :
-                    if type(d[c.tag]) != list :
-                        t = d[c.tag]
-                        d[c.tag] = [t]
-                if list(c) :
-                    if c.tag in d :
-                        d[c.tag].append(self.et2d(c))
-                    else :
-                        d[c.tag] = self.et2d(c)
-                else :
-                    if c.tag in d :
-                        d[c.tag].append(c.text)
-                    else :
-                        d[c.tag] = c.text
-        return d
+	d = dict()
+	children = list(et)
+	if et.attrib :
+	    for k, v in list(et.items()) :
+		d[et.tag + "-" + k] =  v
+	if children :
+	    for child in children :
+		if child.tag in d :
+		    if type(d[child.tag]) != list :
+			t = d[child.tag]
+			d[child.tag] = [t]
+		if list(child) or child.attrib :
+		    if child.tag in d :
+			d[child.tag].append(self.et2d(child))
+		    else :
+			d[child.tag] = self.et2d(child)
+		else :
+		    if child.tag in d :
+			d[child.tag].append(child.text)
+		    else :
+			d[child.tag] = child.text
+	return d
+
 
     @staticmethod
     def print_event(*arg):
