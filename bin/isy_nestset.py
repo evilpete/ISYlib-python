@@ -16,7 +16,7 @@ import os
 from warnings import warn
 
 # import time
-# import pprint
+import pprint
 from optparse import OptionParser
 
 import ISY
@@ -63,6 +63,10 @@ def main() :
     nest_values.update(n.status["structure"][n.structure_id])
     nest_values.update(n.status["shared"][n.serial] )
     nest_values.update(n.status["device"][n.serial] )
+
+    if (args[0]=="dump") :
+	pprint.pprint(nest_values)
+	exit(0)
 
     # faststart=1 don't load node data ( we not going to use it )
     myisy= ISY.Isy(debug=0, faststart=1)
