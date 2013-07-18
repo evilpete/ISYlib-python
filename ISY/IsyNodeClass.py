@@ -126,7 +126,7 @@ class _IsyNodeBase(IsySubClass):
         return False
 
     def member_add(self, node, flag=0) :
-	r = self.isy.call_soap("SetParent",
+	r = self.isy.soapcomm("SetParent",
 		node=node._get_prop("address"), nodeType=node.nodeType(),
 		parent=self._mydict["address"], parentType=self.nodeType())
 
@@ -136,7 +136,7 @@ class _IsyNodeBase(IsySubClass):
 	#if not isinstance(newname, str) or len(newname) == 0 :
 	#    print "newname : ", newname
 	#    raise IsyTypeError("rename : name value not str")
-	r = self.isy.call_soap(cmd,
+	r = self.isy.soapcomm(cmd,
 			id=self._mydict["address"], name=newname )
 
 	return r
@@ -511,12 +511,12 @@ class IsyScene(_IsyNodeBase):
 	return  self._rename("RenameGroup",  newname)
 
     def member_del(self, node) :
-	r = self.isy.call_soap("RemoveFromGroup",
+	r = self.isy.soapcomm("RemoveFromGroup",
 		node=node._get_prop("address"),
 		group=self._mydict["address"])
 
     def member_add(self, node, flag=16) :
-	r = self.isy.call_soap("MoveNode",
+	r = self.isy.soapcomm("MoveNode",
 		node=node._get_prop("address"),
 		group=self._mydict["address"],
 		flag=16)
@@ -574,7 +574,7 @@ class IsyNodeFolder(_IsyNodeBase):
 
 	    calls SOAP SetParent()
 	"""
-	r = self.isy.call_soap("SetParent",
+	r = self.isy.soapcomm("SetParent",
 		node=node._get_prop("address"), nodeType=node.nodeType(),
 		parent=self._mydict["address"], parentType=self.nodeType())
 	return r
@@ -590,7 +590,7 @@ class IsyNodeFolder(_IsyNodeBase):
 
 	    calls SOAP SetParent()
 	"""
-	r = self.isy.call_soap("SetParent",
+	r = self.isy.soapcomm("SetParent",
 		node=node._get_prop("address"), nodeType=node.nodeType())
 	return r
 

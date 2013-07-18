@@ -36,6 +36,9 @@ def load_nodes(self) :
     if not hasattr(self, '_folderlist') or not isinstance(self._folderlist, dict):
 	self._folderlist  = dict ()
 
+    if not hasattr(self, '_folder2addr') or not isinstance(self._folder2addr, dict):
+	self._folder2addr = dict ()
+
     # self.nodeCdict = dict ()
     # self._node2addr = dict ()
     if self.debug & 0x01 :
@@ -138,7 +141,7 @@ def _gen_folder_list(self, nodeinfo) :
 		for k, v in child.items() :
 		    fprop[child.tag + "-" + k] =  v
 	# self._folderlist[fprop["address"]] = fprop
-	self.folder2addr[fprop["name"]] = fprop["address"]
+	self._folder2addr[fprop["name"]] = fprop["address"]
     #self._printdict(self._folderlist)
     #self._printdict(self._folder2addr)
 

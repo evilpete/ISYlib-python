@@ -284,7 +284,7 @@ class Isy(IsyUtil):
 	#print "load in ", ( sp - st )
 
         self._isy_event = ISYEvent()
-        self._isy_event.subscribe(self.addr)
+        self._isy_event.subscribe(addr=self.addr, userp=self.userp, userl=self.userl)
         self._isy_event.set_process_func(self._read_event, self)
         
         self.event_thread = Thread(target=self._isy_event.events_loop, name="event_looper" )

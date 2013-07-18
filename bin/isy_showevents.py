@@ -12,7 +12,12 @@ def main() :
     # you can subscribe to multiple devices
     # server.subscribe('10.1.1.25')
 
-    server.subscribe( os.getenv('ISY_ADDR', '10.1.1.36'))
+    server.subscribe(
+	addr=os.getenv('ISY_ADDR', '10.1.1.36'),
+	userl=os.getenv('ISY_USER', "admin"),
+	userp=os.getenv('ISY_PASS', "admin")
+    )
+
     server.set_process_func(ISYEvent.print_event, "")
 
     try:

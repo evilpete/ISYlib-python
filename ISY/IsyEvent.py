@@ -14,12 +14,14 @@ __license__ = "BSD"
 import time
 
 import sys
-# import os
+import os
 # import traceback
 import warnings
 # import re
+import base64
 import socket
 import select
+
 
 import xml.etree.ElementTree as ET
 
@@ -51,8 +53,13 @@ class ISYEvent(object) :
             assert isinstance(self.process_func, collections.Callable), \
                     "process_func Arg must me callable"
 
+	addr = kwargs.get("addr", None)
+
         if addr :
-            self.connect_list.append(ISYEventConnection(addr, self))
+	    userl = kwargs.get("userl", "admin")
+	    userp = kwargs.get("userp", "admin")
+	    authtuple = (  addr, userl, userp )
+            self.connect_list.append(ISYEventConnection(self, authtuple) )
 
 
     def set_process_func(self, func, arg) :
@@ -70,38 +77,52 @@ class ISYEvent(object) :
 
 
     def _finish(self)  :
-        print "Finishing... ", self.__class__.__name__
+        # print "Finishing... ", self.__class__.__name__
         for s in self.connect_list:
             s.disconnect()
 
         del self.connect_list[:]
         if self.isy :
             self.isy._isy_event = None
-        print "Finished... ", self.__class__.__name__
+        # print "Finished... ", self.__class__.__name__
 
 #    def __del__(self):
 #       print "\n\n\n>>>>>>>>>__del__ ", \
 #          self.__class__.__name__, "<<<<<<<<<<<<<\n\n\n"
 
     def _stop_event_loop(self) :
-        print self.__class__.__name__
+        # print self.__class__.__name__
         self._shut_down = 1
 
-    def subscribe(self, addr):
+    def subscribe(self, **kwargs):
         """ subscribe to Isy device event stream
 
             this function adds an ISY device to the list of devices to
             receive events from
 
-            arg: IP address  or hostname of isydevice
+            named args:
+		addr = IP address  or hostname of isydevice
+		userl = isy admin login
+		userp = isy admin password
         """
         if self.debug & 0x01 :
             print("subscribe ", addr)
+
+	addr  = kwargs.get("addr", None)
+
         if addr in self.connect_list :
-            warnings.warn("Duplicate addr : {0}.format(addr)", RuntimeWarning)
+	    # print "addr :", addr
+	    print "connect_list :", self.connect_list
+	    warnstr = str("Duplicate addr : {0}").format(addr)
+            warnings.warn(warnstr, RuntimeWarning)
             return
 
-        new_conn = ISYEventConnection(addr, self)
+	userl = kwargs.get("userl", "admin")
+	userp = kwargs.get("userp", "admin")
+
+	authtuple = (  addr, userl, userp )
+
+        new_conn = ISYEventConnection(self, authtuple )
 
         # see if the other connections are connected
         # if so connect to avoid an error in select()
@@ -140,7 +161,7 @@ class ISYEvent(object) :
         l = conn_obj.event_rf.readline()
         if len(l) == 0 :
             raise IOError("bad read form socket")
-            # conn_obj._opensock(self.isyaddr)
+            # conn_obj._opensock(self.authtuple[0])
             # conn_obj._subscribe()
         # print "_process_event = ", l
         if (l[:5] != 'POST ') :
@@ -345,20 +366,25 @@ class ISYEvent(object) :
 
 class ISYEventConnection(object):
 
-    def __init__(self, addr, isyevent) :
+    def __init__(self, isyevent, authtuple ) :
         self.event_rf = None
         self.event_wf = None
         self.event_sock = None
-        self.isyaddr = addr
         self.parent = isyevent
         self.error = 0
         self.debug = isyevent.debug
 
+	# print "authtuple : ", type(authtuple), authtuple
+	self.authtuple = authtuple
+
     def __hash__(self):
-        return str.__hash__(self.isyaddr)
+        return str.__hash__(self.authtuple[0])
+
+    def __repr__(self):
+	return "<ISYEventConnection %s at 0x%x>" % (self.authtuple[0], id(self))
 
     def __str__(self):
-        return self.isyaddr
+        return self.authtuple[0]
 
     def __del__(self):
         self.disconnect()
@@ -366,17 +392,17 @@ class ISYEventConnection(object):
 
     def __eq__(self, other):
         if isinstance(other, str) :
-            return self.isyaddr == other
-        if not hasattr(other, "isyaddr") :
+            return self.authtuple[0] == other
+        if not hasattr(other, "authtuple") :
             return False
-        return self.isyaddr == other.isyaddr
+        return self.authtuple == other.authtuple
 
     def fileno(self):
         """ Interface required by select().  """
         return self.event_sock.fileno()
 
     def reconnect(self):
-        # print "--reconnect to self.isyaddr--"
+        # print "--reconnect to self.authtuple[0]--"
         self.error += 1
         self.disconnect()
         self.connect()
@@ -412,11 +438,11 @@ class ISYEventConnection(object):
     def _opensock(self):
 
         if self.debug & 0x01 :
-            print("_opensock ", self.isyaddr)
+            print("_opensock ", self.authtuple[0])
 
         # self.event_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-        server_address = (self.isyaddr, 80)
+        server_address = (self.authtuple[0], 80)
         self.event_sock = socket.create_connection(server_address, 10)
 
         #sn =  sock.getsockname()
@@ -454,9 +480,10 @@ class ISYEventConnection(object):
             "</u:Subscribe></s:Body></s:Envelope>"
             # "\r\n\r\n"
 
+	base64pass = base64.encodestring('%s:%s' % (self.authtuple[1], self.authtuple[2]))[:-1]
         post_head = "POST /services HTTP/1.1\r\n" \
-            + "Host: {0}:80\r\n".format(self.isyaddr) \
-            + "Authorization: Basic YWRtaW46YWRtaW4=\r\n" \
+            + "Host: {0}:80\r\n".format(self.authtuple[0]) \
+            + "Authorization: Basic {0}\r\n".format(base64pass) \
             + "Content-Length: {0}\r\n".format(len(post_body)) \
             + "Content-Type: text/xml; charset=\"utf-8\"\r\n" \
             + "\r\n\r\n"
