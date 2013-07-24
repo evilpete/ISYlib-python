@@ -5,6 +5,10 @@ This is a subfile for IsyClass.py
 These funtions are accessable via the Isy class opj
 """
 
+# author : Peter Shipley <peter.shipley@gmail.com>
+# copyrigh :  Copyright (C) 2013 Peter Shipley
+# license : BSD
+
 from ISY.IsyUtilClass import et2d
 from ISY.IsyExceptionClass import IsyResponseError, IsyValueError
 

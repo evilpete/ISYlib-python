@@ -11,6 +11,10 @@ to test against
 
 """
 
+# author : Peter Shipley <peter.shipley@gmail.com>
+# copyrigh :  Copyright (C) 2013 Peter Shipley
+# license : BSD
+
 def load_zb():
     pass
 

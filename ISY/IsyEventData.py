@@ -2,6 +2,9 @@
 This is a data file for IsyEvent.py
  
 """
+# author : Peter Shipley <peter.shipley@gmail.com>
+# copyrigh :  Copyright (C) 2013 Peter Shipley
+# license : BSD
 
 
 __all__ = [] # EVENT_CTRL, LOG_USERID
