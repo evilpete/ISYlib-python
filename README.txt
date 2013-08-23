@@ -308,6 +308,11 @@ CLASSES
      |      raise:
      |          LookupError :  if var name or Id is invalid
      |  
+     |  getid(self, objaddr)
+     |  
+     |  getobj(self, objaddr)
+     |      access node obj line a dictionary entery
+     |  
      |  load_clim(self)
      |      Load climate data from ISY device
      |      
@@ -486,7 +491,7 @@ CLASSES
      |      access method for node names
      |      returns a dict of ( Node names : Node address )
      |  
-     |  node_rename(self, nid, nname)
+     |  node_rename(self, nodeid, nname)
      |      rename Node
      |      
      |          args: 
@@ -535,6 +540,15 @@ CLASSES
      |          args: none
      |      
      |      calls SOAP Reboot()
+     |  
+     |  rename(self, objid, nname)
+     |      rename 
+     |      
+     |          args: 
+     |              id = Node/Scene/Folder name or ID
+     |              name = new name
+     |      
+     |      calls SOAP RenameNode() / RenameGroup() / RenameFolder()
      |  
      |  scene_add_node(self, groupid, nid, nflag=16)
      |      add node to Scene/Group
