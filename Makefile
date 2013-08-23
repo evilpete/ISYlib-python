@@ -59,6 +59,12 @@ checkin: commit push
 commit: README.txt
 	${GIT} commit -a
 
+diff:
+	${GIT} diff
+
+status:
+	${GIT} status
+
 push:
 	${GIT} push
 

@@ -411,7 +411,40 @@ class Isy(IsyUtil):
 
 
 
-    def node_rename(self, nid, nname) :
+
+
+    #
+    # need to add code to update name2id and *2addr lookup arrays
+    #
+    def rename(self, objid, nname) :
+	""" rename 
+
+		args: 
+		    id = Node/Scene/Folder name or ID
+		    name = new name
+
+	    calls SOAP RenameNode() / RenameGroup() / RenameFolder()
+	"""
+	(idtype, nid) = self.getid(objid)
+	if nid == None :
+	    raise IsyValueError("unknown node/obj : " + objid)
+	if idtype == "node" :
+	    return self.soapcomm("RenameNode", id=nid, name=nname)
+	elif idtype == "group" :
+	    return self.soapcomm("RenameGroup", id=fid, name=nname)
+	elif idtype == "folder" :
+	    return self.soapcomm("RenameFolder", id=fid, name=nname)
+	elif idtype == "var" :
+	    raise IsyValueError("can not rename vars ( yet )")
+	elif idtype == "prog" :
+	    raise IsyValueError("can not rename prog ( yet )")
+	else : 
+	    raise IsyValueError("node/obj " + objid + " not node (" + idtype + ")" )
+
+    #
+    # need to add code to update name2id and *2addr lookup arrays
+    #
+    def node_rename(self, nodeid, nname) :
 	""" rename Node
 
 		args: 
@@ -420,9 +453,8 @@ class Isy(IsyUtil):
 
 	    calls SOAP RenameNode()
 	"""
-	nid = self._node_get_id(nid)
+	(idtype, nid) = self._node_get_id(fid)
 	return self.soapcomm("RenameNode", id=nid, name=nname)
-
 
 #    def node_new(self, id, nname) :
 #	""" create new Folder """
@@ -430,6 +462,9 @@ class Isy(IsyUtil):
 
     ## scene
 
+    #
+    # need to add code to update name2id and *2addr lookup arrays
+    #
     def scene_rename(self, fid, fname) :
 	""" rename Scene/Group
 
@@ -440,9 +475,12 @@ class Isy(IsyUtil):
 
 	    calls SOAP RenameGroup()
 	"""
-	fid = self._node_get_id(fid)
+	(idtype, grid) = self._node_get_id(fid)
 	return self.soapcomm("RenameGroup", id=fid, name=fname)
 
+    #
+    # need to add code to update name2id and *2addr lookup arrays
+    #
     def scene_del(self, sid=None ) :
 	""" delete Scene/Group 
 
@@ -451,7 +489,7 @@ class Isy(IsyUtil):
 
 	    calls SOAP RemoveGroup()
 	"""
-	sceneid = self._node_get_id(sid)
+	(idtype, sceneid) = self._node_get_id(sid)
 	if sceneid == None :
 	    raise IsyValueError("no such Scene : " + str(sid) )
 	#
@@ -459,6 +497,9 @@ class Isy(IsyUtil):
 	#
 	return  self.soapcomm("RemoveGroup", id=sceneid)
 
+    #
+    # need to add code to update name2id and *2addr lookup arrays
+    #
     def scene_new(self, nid=0, sname=None) :
 	""" new Scene/Group
 
@@ -498,7 +539,7 @@ class Isy(IsyUtil):
 
 	    calls SOAP MoveNode()
 	"""
-	nodeid = self._node_get_id(nid)
+	(idtype, nodeid) = self._node_get_id(nid)
 	if nodeid == None :
 	    raise IsyValueError("no such Node : " + str(nid) )
 	r = self.soapcomm("MoveNode", group=groupid, node=nodeid, flag=nflag)
@@ -513,7 +554,7 @@ class Isy(IsyUtil):
 
 	    calls SOAP RemoveFromGroup()
 	"""
-	nodeid = self._node_get_id(nid)
+	(idtype, nodeid) = self._node_get_id(nid)
 	if nodeid == None :
 	    raise IsyValueError("no such Node : " + str(nid) )
 	r = self.soapcomm("RemoveFromGroup", group=groupid, id=nodeid)
@@ -521,6 +562,9 @@ class Isy(IsyUtil):
 
     ## folder
 
+    #
+    # need to add code to update name2id and *2addr lookup arrays
+    #
     def folder_rename(self, fid, fname) :
 	""" rename Folder
 
@@ -530,7 +574,7 @@ class Isy(IsyUtil):
 
 	    calls SOAP RenameFolder()
 	"""
-	fid = self._node_get_id(fid)
+	(idtype, fid) = self._node_get_id(fid)
 	r = self.soapcomm("RenameFolder", id=fid, name=fname)
 	return r
 
@@ -568,7 +612,7 @@ class Isy(IsyUtil):
 
 	    calls SOAP RemoveFolder()
 	"""
-	fid = self._node_get_id(fid)
+	(idtype, fid) = self._node_get_id(fid)
 	if fid == None :
 	    raise IsyValueError("Unknown Folder : " + str(fid) )
 	r = self.soapcomm("RemoveFolder", id=fid)
@@ -589,12 +633,12 @@ class Isy(IsyUtil):
 
 	    calls SOAP SetParent()
 	"""
-	nodeid = self._node_get_id(nid)
+	(idtype, nodeid) = self._node_get_id(nid)
 	if nodeid == None :
 	    raise IsyValueError("no such Node/Scene : " + str(nid) )
 
 	if parent != "" :
-	    fldid = self._node_get_id(parent)
+	    (idtype, fldid) = self._node_get_id(parent)
 	    if fldid == None :
 		raise IsyValueError("no such Folder : " + str(parent) )
 	    parentid = fldid
@@ -1175,7 +1219,7 @@ class Isy(IsyUtil):
 	    raise IsyValueError("callback_set : Invalid Arg, function not callable")
 	    # func.__repr__()
 
-	nodeid = self._node_get_id(nid)
+	(idtype, nodeid) = self._node_get_id(nid)
 	if nodeid == None :
 	    raise LookupError("no such Node : " + str(nodeid) )
 
@@ -1191,7 +1235,7 @@ class Isy(IsyUtil):
 	no none exist then value "None" is returned
 	"""
 
-	nodeid = self._node_get_id(nid)
+	(idtype, nodeid) = self._node_get_id(nid)
 
 	if nodeid != None and nodeid in self.callbacks :
 	    return self.callbacks[nodeid]
@@ -1209,7 +1253,7 @@ class Isy(IsyUtil):
 
 	    no error is raised if callback does not exist
 	"""
-	nodeid = self._node_get_id(nid)
+	(idtype, nodeid) = self._node_get_id(nid)
 	if nodeid != None and nodeid in self.callbacks :
 	    del self.callbacks[nodeid]
 
@@ -1222,6 +1266,26 @@ class Isy(IsyUtil):
             print("   obj.%s = %s" % (attr, getattr(uobj, attr)))
         print("\n\n")
 
+
+    def getid(self, objaddr):
+	return  self._node_get_id(objid)
+
+    def getobj(self, objaddr):
+        """ access node obj line a dictionary entery """
+	(idtype, nid) = self.getid(objid)
+	if nid == None :
+	    raise IsyValueError("unknown node/obj : " + objid)
+        if nid in self.nodeCdict :
+            return self.nodeCdict[nid]
+
+	if idtype in ['node', 'group', 'folder'] :
+            return self.get_node(nid)
+	elif idtype == "var" :
+            return self.get_var(nid)
+	elif idtype == "prog" :
+            return self.get_prog(nid)
+	else :
+	    raise IsyValueError("don't know how to get obj for type : " + idtype)
 
     ##
     ## Special Methods

@@ -325,7 +325,7 @@ def get_node(self, node_id) :
     if self.debug & 0x01 :
 	print("get_node")
 
-    nodeid = self._node_get_id(node_id)
+    (nodetype, nodeid) = self._node_get_id(node_id)
 
     if nodeid in self.nodeCdict :
 	return self.nodeCdict[nodeid]
@@ -346,6 +346,9 @@ def get_node(self, node_id) :
 	print("Isy get_node no node : \"{!s:}\"".format(nodeid))
 	raise LookupError("no node such Node : " + str(nodeid) )
 
+    # should never ger here
+    return None
+
 
 def _node_get_id(self, nid):
     """ node/scene/Folder name to node/scene/folder ID """
@@ -362,36 +365,36 @@ def _node_get_id(self, nid):
 
     if n in self._nodedict :
 	# print("_node_get_id : " + n + " nodedict " + n
-	return n
+	return  ("node", n)
 
     if n in self._node2addr :
 	# print("_node_get_id : " + n + " _node2addr " + self._node2addr[n])
-	return self._node2addr[n]
+	return  ("node", self._node2addr[n])
 
     ##
 
     if n in self._nodegroups :
 	# print("_node_get_id : " + n + " nodegroups " + n)
-	return n
+	return  ("group", n)
 
     if n in self._groups2addr :
 	# print("_node_get_id : " + n + " _groups2addr " + self._groups2addr[n])
-	return self._groups2addr[n]
+	return ("group", self._groups2addr[n])
 
     ##
 
     if n in self._folder2addr :
 	# print("_node_get_id : " + n + " _folder2addr " + self._folder2addr[n])
-	return self._folder2addr[n]
+	return  ("folder", self._folder2addr[n])
 
     if n in self._folderlist :
 	# print("_node_get_id : " + n + " _folderlist " + n)
-	return n
+	return  ("folder", n)
 
 
 	# Fail #
     #print("_node_get_id : " + n + " None")
-    return None
+    return(None, None)
 
 
 
@@ -414,7 +417,7 @@ def node_get_prop(self, naddr, prop_id) :
     if self.debug & 0x01 :
 	print("node_get_prop")
 
-    node_id = self._node_get_id(naddr)
+    (nodetype, node_id) = self._node_get_id(naddr)
     if not node_id :
 	raise LookupError("node_get_prop: unknown node : " + str(naddr) )
 
@@ -455,7 +458,7 @@ def node_set_prop(self, naddr, prop, val) :
     if self.debug & 0x01 :
 	print("node_set_prop")
 
-    node_id = self._node_get_id(naddr)
+    (nodetype, node_id) = self._node_get_id(naddr)
     if not node_id :
 	raise LookupError("node_set_prop: unknown node : " + str(naddr) )
 
@@ -530,7 +533,7 @@ def node_comm(self, naddr, cmd, *args) :
     """
     if self.debug & 0x04 :
 	print("node_comm", naddr, cmd)
-    node_id = self._node_get_id(naddr)
+    (nodetype, node_id) = self._node_get_id(naddr)
     cmd_id = self._get_control_id(cmd)
 
     #print("self.controls :", self.controls)
@@ -713,7 +716,7 @@ def node_enable(self, naddr, enable=True) :
     """
     if self.debug & 0x04 :
 	print("node_enable", naddr, cmd)
-    node_id = self._node_get_id(naddr)
+    (nodetype, node_id) = self._node_get_id(naddr)
 
     if not node_id :
 	raise LookupError("node_comm: unknown node : " + str(naddr) )
