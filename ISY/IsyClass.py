@@ -177,6 +177,7 @@ class Isy(IsyUtil):
 	# data dictionaries for ISY state
 	self.controls = None
 	self.name2control = None
+	self._name2id = None
 	self._folderlist = None
 	self._folder2addr = None
 	self._progdict = None      

@@ -37,11 +37,19 @@ def load_prog(self):
 	    else :
 		self._progdict[str(pdict["id"])] = pdict
 	    n = pdict["name"].upper()
+
+	    if n in self.name2id :
+		print("Dup name : \"" + n + "\" ", pdict["id"])
+		print("name2id ", self.name2id[n])
+	    else :
+		self.name2id[n] = ("program", pdict["id"])
+
 	    if n in self.name2prog :
 		print("Dup name : \"" + n + "\" ", pdict["id"])
 		print("name2prog ", self.name2prog[n])
 	    else :
 		self.name2prog[n] = pdict["id"]
+
     #self._printdict(self._progdict)
     #self._printdict(self.name2prog)
 

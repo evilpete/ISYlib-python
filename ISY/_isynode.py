@@ -141,7 +141,15 @@ def _gen_folder_list(self, nodeinfo) :
 		for k, v in child.items() :
 		    fprop[child.tag + "-" + k] =  v
 	# self._folderlist[fprop["address"]] = fprop
-	self._folder2addr[fprop["name"]] = fprop["address"]
+	n = fprop["name"].upper()
+	self._folder2addr[n] = fprop["address"]
+
+	if n in self.name2id :
+	    print("Dup name (Folder) : \"" + n + "\" ",fprop["address"])
+	    print("\tname2id ", self.name2id[n])
+	else :
+	    self.name2id[n] = ("folder", fprop["address"])
+
     #self._printdict(self._folderlist)
     #self._printdict(self._folder2addr)
 
@@ -183,11 +191,20 @@ def _gen_nodegroups(self, nodeinfo) :
 	if "address" in gprop :
 	    # self._nodegroups[gprop["address"]] = gprop
 	    if "name" in gprop :
-		if gprop["name"] in self._groups2addr :
-		    warnings.warn("Duplicate group name (0) : (1) (2)".format(gprop["name"], \
-			    str(gprop["address"]), self._groups2addr[gprop["name"]]), RuntimeWarning)
+
+		n = gprop["name"]
+		if n in self._groups2addr :
+		    warnings.warn("Duplicate group name (0) : (1) (2)".format(n, \
+			    str(gprop["address"]), self._groups2addr[n]), RuntimeWarning)
 		else :
-		    self._groups2addr[gprop["name"]] = str(gprop["address"])
+		    self._groups2addr[n] = str(gprop["address"])
+
+		if n in self.name2id :
+		    print("Dup name (Group) : \"" + n + "\" ",gprop["address"])
+		    print("\tname2id ", self.name2id[n])
+		else :
+		    self.name2id[n] = ("group", gprop["address"])
+
 	else :
 	    # should raise an exception ?
 	    self._printinfo(grp, "Error : no address in group :")
@@ -235,12 +252,21 @@ def _gen_nodedict(self, nodeinfo) :
 	if "address" in idict :
 	    # self._nodedict[idict["address"]] = idict
 	    if "name" in idict :
-		if idict["name"] in self._node2addr :
-		    warn_mess = "Duplicate Node name (0) : (1) (2)".format(idict["name"], \
-			    idict["address"], self._node2addr[idict["name"]])
+
+		n = idict["name"]
+		if n in self._node2addr :
+		    warn_mess = "Duplicate Node name (0) : (1) (2)".format(n, \
+			    idict["address"], self._node2addr[n])
 		    warnings.warn(warn_mess, RuntimeWarning)
 		else :
-		    self._node2addr[idict["name"]] = idict["address"]
+		    self._node2addr[n] = idict["address"]
+
+		if n in self.name2id :
+		    print("Dup name (Node) : \"" + n + "\" ",idict["address"])
+		    print("\tname2id ", self.name2id[n])
+		else :
+		    self.name2id[n] = ("node", idict["address"])
+
 
 	else :
 	    # should raise an exception
