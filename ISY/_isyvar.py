@@ -58,11 +58,11 @@ def load_vars(self) :
             else :
                 self.name2var[n] = vid
 
-	    if n in self.name2id :
+	    if n in self._name2id :
 		print("Dup name : \"" + n + "\" : " + vid)
-		print("\tname2id ", self.name2id[n])
+		print("\tname2id ", self._name2id[n])
 	    else :
-		self.name2id[n] = ("var", vid)
+		self._name2id[n] = ("var", vid)
 
     # self._printdict(self._vardict)
 

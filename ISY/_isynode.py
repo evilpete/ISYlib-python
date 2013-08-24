@@ -144,11 +144,11 @@ def _gen_folder_list(self, nodeinfo) :
 	n = fprop["name"].upper()
 	self._folder2addr[n] = fprop["address"]
 
-	if n in self.name2id :
+	if n in self._name2id :
 	    print("Dup name (Folder) : \"" + n + "\" ",fprop["address"])
-	    print("\tname2id ", self.name2id[n])
+	    print("\t_name2id ", self._name2id[n])
 	else :
-	    self.name2id[n] = ("folder", fprop["address"])
+	    self._name2id[n] = ("folder", fprop["address"])
 
     #self._printdict(self._folderlist)
     #self._printdict(self._folder2addr)
@@ -199,11 +199,11 @@ def _gen_nodegroups(self, nodeinfo) :
 		else :
 		    self._groups2addr[n] = str(gprop["address"])
 
-		if n in self.name2id :
+		if n in self._name2id :
 		    print("Dup name (Group) : \"" + n + "\" ",gprop["address"])
-		    print("\tname2id ", self.name2id[n])
+		    print("\t_name2id ", self._name2id[n])
 		else :
-		    self.name2id[n] = ("group", gprop["address"])
+		    self._name2id[n] = ("group", gprop["address"])
 
 	else :
 	    # should raise an exception ?
@@ -261,11 +261,11 @@ def _gen_nodedict(self, nodeinfo) :
 		else :
 		    self._node2addr[n] = idict["address"]
 
-		if n in self.name2id :
+		if n in self._name2id :
 		    print("Dup name (Node) : \"" + n + "\" ",idict["address"])
-		    print("\tname2id ", self.name2id[n])
+		    print("\t_name2id ", self._name2id[n])
 		else :
-		    self.name2id[n] = ("node", idict["address"])
+		    self._name2id[n] = ("node", idict["address"])
 
 
 	else :

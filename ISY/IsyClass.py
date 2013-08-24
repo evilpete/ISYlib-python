@@ -175,9 +175,9 @@ class Isy(IsyUtil):
 
 
 	# data dictionaries for ISY state
+	self._name2id = dict()
 	self.controls = None
 	self.name2control = None
-	self._name2id = None
 	self._folderlist = None
 	self._folder2addr = None
 	self._progdict = None      
@@ -1267,9 +1267,24 @@ class Isy(IsyUtil):
         print("\n\n")
 
 
-    def getid(self, objaddr):
-	return  self._node_get_id(objid)
+    #
+    # Untested
+    #
+    def gettype(self, ) :
+	 if isinstance(nid, IsySubClass) :
+		      return nid.objtype()
+	(idtype, nid) = self._node_get_id(fid)
+	return(idtype)
 
+    #
+    # Untested
+    #
+    def getid(self, objaddr):
+	return self._node_get_id(objid)
+
+    #
+    # Untested
+    #
     def getobj(self, objaddr):
         """ access node obj line a dictionary entery """
 	(idtype, nid) = self.getid(objid)

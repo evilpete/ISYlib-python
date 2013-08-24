@@ -24,14 +24,22 @@ def _load_networking(self, resource_id):
 	else:
 	    raise IsyResponseError (xurl)
     net_dict = dict ()
-    name2id = dict ()
+    name2rid = dict ()
     for netr in net_res_tree.iter('NetRule'):
 	netrule = et2d(netr)
 	if 'id' in netrule :
 	    net_dict[netrule['id']] = netrule
 	    if 'name' in netrule :
-		name2id[netrule['name']] = netrule['id']
-    return(net_dict, name2id)
+		n = netrule['name']
+		name2rid[n] = netrule['id']
+
+		if n in self._name2id :
+		    print("Dup name : \"" + n + "\" : " + netrule['id'])
+		    print("\tname2id ", self._name2id[n])
+		else :
+		    self._name2id[n] = (resource_id, netrule['id'])
+
+    return(net_dict, name2rid)
 
 def load_net_resource(self):
     """ Load node WOL and  Net Resource config infomation

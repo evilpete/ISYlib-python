@@ -299,6 +299,10 @@ class IsySubClass(IsyUtil):
             print("IsySubClass: ",)
             self._printdict(self._mydict)
 
+    _objtype = (0, "unknown")
+
+    def objType(self):
+	return self._objtype[0]
 
     def _get_prop(self, prop):
         """ Internal funtion call """
@@ -350,6 +354,11 @@ class IsySubClass(IsyUtil):
         """  Name of Node (readonly) """
         return self._get_prop("name")
     name = property(_getname)
+
+    def _gettype(self):
+        """  Type of Node (readonly) """
+        return self._get_prop("base")
+    objtype = property(_gettype)
 
     def __getitem__(self, prop):
         """ Internal method 

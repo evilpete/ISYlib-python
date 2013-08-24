@@ -36,7 +36,7 @@ class IsyProgram(IsySubClass):
 	    send_command() :
 
             get_prog_ts() :     get timestamp
-            get_prog_type() :   get Var type
+            get_prog_type() :   get Prog type
             get_prog_init() :   get  inital value for Var
             set_prog_init(new_value) :  set inital value for Var
             get_prog_value() :  get current value
@@ -52,6 +52,8 @@ class IsyProgram(IsySubClass):
     _propalias = { 'val':  'status', 'value': 'status',
             'addr': 'id', 'address': 'id' }
     _boollist = [ "enabled", "folder", "status", "runAtStartup"]
+
+    _objtype = (-1, "program")
 
     def get_prog_enable(self):
 	""" check if prog is enabled (bool) """
@@ -89,7 +91,7 @@ class IsyProgram(IsySubClass):
 
 #    def get_prog_id(self):
 #       return self._get_prop("id")
-#    type = property(get_prog_id)
+#    ptype = property(get_prog_id)
 
 #    def get_prog_lastFinishTime(self):
 #       return self._get_prop("lastFinishTime")
