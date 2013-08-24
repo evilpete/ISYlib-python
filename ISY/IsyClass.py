@@ -1270,10 +1270,10 @@ class Isy(IsyUtil):
     #
     # Untested
     #
-    def gettype(self, ) :
-	 if isinstance(nid, IsySubClass) :
-		      return nid.objtype()
-	(idtype, nid) = self._node_get_id(fid)
+    def gettype(self, nobj) :
+	if isinstance(nobj, IsySubClass) :
+	      return nobj.objtype()
+	(idtype, nid) = self._node_get_id(nobj)
 	return(idtype)
 
     #
