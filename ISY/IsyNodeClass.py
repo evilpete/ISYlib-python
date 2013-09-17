@@ -54,10 +54,8 @@ __all__ = ['IsyNode', 'IsyNodeFolder', 'IsyScene']
 
 class _IsyNodeBase(IsySubClass):
 
-    _objtype = (0, "unknown")
-
-    def objType(self):
-	return self._objtype[0]
+    #_objtype = (0, "unknown")
+    _objtype = "unknown"
 
     def on(self, val=255) :
         """ Send On command to a node
@@ -232,7 +230,8 @@ class IsyNode(_IsyNodeBase):
 
     def __init__(self, isy, ndict) :
 
-	self._objtype = (1, "node")
+	# self._objtype = (1, "node")
+	self._objtype = "node"
 
 	super(self.__class__, self).__init__(isy, ndict)
 
@@ -473,7 +472,8 @@ class IsyScene(_IsyNodeBase):
                     "group-flag": "flag"}
 
     def __init__(self, *args):
-	self._objtype = (2, "scene")
+	#self._objtype = (2, "scene")
+	self._objtype = "scene"
 	super(IsyScene, self).__init__(*args)
 
     # status property
@@ -556,7 +556,8 @@ class IsyNodeFolder(_IsyNodeBase):
     _propalias = {'id': 'address', 'addr': 'address', "folder-flag": "flag"}
 
     def __init__(self, *args):
-	self._objtype = (3, "folder")
+	#self._objtype = (3, "folder")
+	self._objtype = "folder"
 	super(IsyNodeFolder, self).__init__(*args)
 
     def member_add(self, node, flag=0) :

@@ -53,7 +53,8 @@ class IsyProgram(IsySubClass):
             'addr': 'id', 'address': 'id' }
     _boollist = [ "enabled", "folder", "status", "runAtStartup"]
 
-    _objtype = (-1, "program")
+    # _objtype = (-1, "program")
+    _objtype = "program"
 
     def get_prog_enable(self):
 	""" check if prog is enabled (bool) """

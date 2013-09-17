@@ -17,7 +17,7 @@ def list_nodes(isy) :
     print(pfmt.format("Node Name", "Address", "Status", "Enabled"))
     print(pfmt.format("---------", "-------", "------", "------"))
     for nod in isy :
-        if nod.type == "scene" :
+        if nod.objtype == "scene" :
             print(pfmt.format(nod.name, nod.address, "-", "-", ))
         else :
             print(pfmt.format(nod.name, nod.address, 
