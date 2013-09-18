@@ -172,6 +172,7 @@ class Isy(IsyUtil):
 	self.error_str = ""
 	self.callbacks = dict ()
         self._is_pro = True
+	self.event_heartbeat = 0;
 
 
 	# data dictionaries for ISY state
@@ -352,15 +353,23 @@ class Isy(IsyUtil):
                 warn("Event for Unknown node : {0}".format(evnt_dat["node"]), \
                         RuntimeWarning)
 
-        elif evnt_dat["control"] == "_3" : # Node Change/Updated Event
-	    print("Node Change/Updated Event :  {0}".format(evnt_dat["node"]))
-	    print("evnt_dat : ", evnt_dat)
+        elif evnt_dat["control"] == "_0" : # HeartBeat
+	    self.event_heartbeat = time();
 
 	#
         # handle VAR value change
 	#
-        elif evnt_dat["control"] == "_1" :
-            # Var Status / Initialized
+        elif evnt_dat["control"] == "_1" : # Trigger Events
+	    #
+	    # action = "0" -> Event Status   
+	    # action = "1" -> Get Status (notifies subscribers to refresh)   
+	    # action = "2" -> Key Changed   
+	    # action = "3" -> Info String    
+	    # action = "4" -> IR Learn Mode   
+	    # action = "5" -> Schedule (schedule status changed)    
+	    # action = "6" -> Variable Status (status of variable changed)    
+	    # action = "7" -> Variable Initialized (initial value of a variable    
+	    # 
             if evnt_dat["action"] == "6" or  evnt_dat["action"] == "7" :
                 var_eventInfo =  evnt_dat['eventInfo']['var']
                 vid = var_eventInfo['var-type'] + ":" + var_eventInfo['var-id']
@@ -378,6 +387,115 @@ class Isy(IsyUtil):
 
                 else :
                     warn("Event for Unknown Var : {0}".format(vid), RuntimeWarning)
+
+        elif evnt_dat["control"] == "_2" : # Driver Specific Events
+	    pass
+
+        elif evnt_dat["control"] == "_3" : # Node Change/Updated Event
+	    print("Node Change/Updated Event :  {0}".format(evnt_dat["node"]))
+	    print("evnt_dat : ", evnt_dat)
+            #
+	    # action = "NN" -> Node Renamed   
+	    # action = "NR" -> Node Removed    
+	    # action = "ND" -> Node Added    
+	    # action = "NR" -> Node Revised   
+	    # action = "MV" -> Node Moved (into a scene)   
+	    # action = "CL" -> Link Changed (in a scene)   
+	    # action = "RG" -> Removed From Group (scene)   
+	    # action = "EN" -> Enabled   
+	    # action = "PC" -> Parent Changed    
+	    # action = "PI" -> Power Info Changed   
+	    # action = "DI" -> Device ID Changed   
+	    # action = "DP" -> Device Property Changed   
+	    # action = "GN" -> Group Renamed    
+	    # action = "GR" -> Group Removed    
+	    # action = "GD" -> Group Added    
+	    # action = "FN" -> Folder Renamed   
+	    # action = "FR" -> Folder Removed    
+	    # action = "FD" -> Folder Added    
+	    # action = "NE" -> Node Error (Comm. Errors)    
+	    # action = "CE" -> Clear Node Error (Comm. Errors Cleared)    
+	    # action = "SN" -> Discovering Nodes (Linking)    
+	    # action = "SC" -> Node Discovery Complete     
+	    # action = "WR" -> Network Renamed    
+	    # action = "WH" -> Pending Device Operation         
+	    # action = "WD" -> Programming Device     
+	    # action = "RV" -> Node Revised (UPB)  
+
+        elif evnt_dat["control"] == "_4" : # System Configuration Updated
+	    pass
+	    #
+	    # action = "0" -> Time Changed
+	    # action = "1" -> Time Configuration Changed
+	    # action = "2" -> NTP Settings Updated
+	    # action = "3" -> Notifications Settings Updated
+	    # action = "4" -> NTP Communications Error
+	    # action = "5" -> Batch Mode Updated
+	    #    node = null
+	    #    <eventInfo>
+	    #        <status>"1"|"0"</status>
+	    #    </eventInfo>
+	    # action = "6"  Battery Mode Programming Updated
+	    #    node = null
+	    #    <eventInfo>
+	    #        <status>"1"|"0"</status>
+	    #    </eventInfo>
+
+        elif evnt_dat["control"] == "_5" : # System Status Updated
+	    pass
+	    # 
+	    # node = null
+	    # action = "0" -> Not Busy
+	    # action = "1" -> Busy
+	    # action = "2" -> Idle
+	    # action = "3" -> Safe Mode
+	    # 
+
+        elif evnt_dat["control"] == "_6" : # Internet Access Status
+	    pass
+	    #
+	    # action = "0" -> Disabled
+	    # action = "1" -> Enabled
+	    #     node = null
+	    #     <eventInfo>external URL</eventInfo>
+	    # action = "2" -> Failed
+	    #
+
+        elif evnt_dat["control"] == "_7" : # Progress Report
+	    pass
+
+        elif evnt_dat["control"] == "_8" : # Security System Event
+	    pass
+
+        elif evnt_dat["control"] == "_9" : # System Alert Event
+	    pass
+
+        elif evnt_dat["control"] == "_10" : # OpenADR and Flex Your Power Events
+	    pass
+
+        elif evnt_dat["control"] == "_11" : # Climate Events
+	    pass
+
+        elif evnt_dat["control"] == "_12" : # AMI/SEP Events
+	    pass
+
+        elif evnt_dat["control"] == "_13" : # External Energy Monitoring Events
+	    pass
+
+        elif evnt_dat["control"] == "_14" : # UPB Linker Events
+	    pass
+
+        elif evnt_dat["control"] == "_15" : # UPB Device Adder State
+	    pass
+
+        elif evnt_dat["control"] == "_16" : # UPB Device Status Events
+	    pass
+
+        elif evnt_dat["control"] == "_17" : # Gas Meter Events
+	    pass
+
+        elif evnt_dat["control"] == "_18" : # Zigbee Events
+	    pass
 
         else:
             print("evnt_dat :", evnt_dat)
