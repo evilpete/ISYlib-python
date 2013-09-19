@@ -67,7 +67,7 @@ from ISY.IsyEvent import ISYEvent
 # 0x08 = Dump loaded data
 # 0x10 = report changes to nodes
 # 0x20 = report soap web
-# 0x40 =
+# 0x40 = report events
 # 0x80 = print __del__()
 #
 
@@ -191,6 +191,9 @@ class Isy(IsyUtil):
 	self._wolinfo = None
 	self._net_resource = None
 	self.climateinfo  = None
+	
+	self.isy_status = dict()
+	self.zigbee = dict()
 
         if self.addr == None :
             from ISY.IsyDiscover import isy_discover
@@ -310,9 +313,10 @@ class Isy(IsyUtil):
 
         """
         # print("_read_event")
-        skip_default = ["_0", "_2", "_4", "_5", "_6", "_7", "_8",
-                "_9", "_10", "_11", "_12", "_13", "_14",
-                "_15", "_16", "_17", "_18", "_19", "_20",
+        skip_default = [
+#	        "_0", "_2", "_4", "_5", "_6", "_7", "_8",
+#               "_9", "_10", "_11", "_12", "_13", "_14",
+#               "_15", "_16", "_17", "_18", "_19", "_20",
                 "DON", "DOF",
                 ]
 
@@ -321,8 +325,9 @@ class Isy(IsyUtil):
         assert isinstance(evnt_dat, dict), "_read_event Arg must me dict"
 
 	event_targ = None
-        if evnt_dat["control"] in skip :
-            return
+
+        #if evnt_dat["control"] in skip :
+        #    return
 
 	#
 	# Status/property changed
@@ -360,9 +365,10 @@ class Isy(IsyUtil):
         # handle VAR value change
 	#
         elif evnt_dat["control"] == "_1" : # Trigger Events
+
 	    #
 	    # action = "0" -> Event Status   
-	    # action = "1" -> Get Status (notifies subscribers to refresh)   
+	    # action = "1" -> Client Should Get Status
 	    # action = "2" -> Key Changed   
 	    # action = "3" -> Info String    
 	    # action = "4" -> IR Learn Mode   
@@ -370,6 +376,9 @@ class Isy(IsyUtil):
 	    # action = "6" -> Variable Status (status of variable changed)    
 	    # action = "7" -> Variable Initialized (initial value of a variable    
 	    # 
+            if evnt_dat["action"] == "0" and 'nr' in evnt_dat['eventInfo'] :
+		prog_id = '{0:0>4}'.format(evnt_dat['eventInfo']['id'])
+
             if evnt_dat["action"] == "6" or  evnt_dat["action"] == "7" :
                 var_eventInfo =  evnt_dat['eventInfo']['var']
                 vid = var_eventInfo['var-type'] + ":" + var_eventInfo['var-id']
@@ -422,6 +431,40 @@ class Isy(IsyUtil):
 	    # action = "WD" -> Programming Device     
 	    # action = "RV" -> Node Revised (UPB)  
 
+	    if evnt_dat['action'] == 'GN' : # Group Renamed    
+		if  evnt_dat['node'] in self._nodegroups :
+		    oldname = self._nodegroups[ evnt_dat['node'] ]['name']
+		    self._nodegroups[ evnt_dat['node'] ]['name'] = evnt_dat['eventInfo']['newName']
+		    self._groups2addr[ evnt_dat['eventInfo']['newName'] ] = evnt_dat['node']
+		    del self._groups2addr[ oldname ]
+	    elif evnt_dat['action'] == 'GR' : # Group Removed/Deleted    
+		    if ( self.debug & 0x40 ) :
+			print("evnt_dat :", evnt_dat)
+		    pass
+	    elif evnt_dat['action'] == 'GD' : # New Group Added    
+		    if ( self.debug & 0x40 ) :
+			print("evnt_dat :", evnt_dat)
+		    pass
+	    
+
+	    if evnt_dat['action'] == 'FD' :
+		if 'folder' in evnt_dat['eventInfo'] and isinstance(evnt_dat['eventInfo']['folder'], dict) :
+		    self._folderlist[ evnt_dat['node'] ] = evnt_dat['eventInfo']['folder']
+		    self._folder2addr[ evnt_dat['eventInfo']['folder']['name'] ] = evnt_dat['node']
+	    elif evnt_dat['action'] == 'FR' :
+		if  evnt_dat['node'] in self._folderlist :
+		    if evnt_dat['node'] in self.nodeCdict :
+			# this is tricky if the user has a IsyNodeFolder obj
+			# more has to be done to tell the Obj it's dead
+			del self.nodeCdict[ evnt_dat['node'] ]
+		    del self._folderlist[ evnt_dat['node'] ]
+	    elif evnt_dat['action'] == 'FN' :
+		if  evnt_dat['node'] in self._folderlist :
+		    oldname = self._folderlist[ evnt_dat['node'] ]['name']
+		    self._folderlist[ evnt_dat['node'] ]['name'] = evnt_dat['eventInfo']['newName']
+		    self._folder2addr[ evnt_dat['eventInfo']['newName'] ] = evnt_dat['node']
+		    del self._folder2addr[ oldname ]
+
         elif evnt_dat["control"] == "_4" : # System Configuration Updated
 	    pass
 	    #
@@ -440,6 +483,14 @@ class Isy(IsyUtil):
 	    #    <eventInfo>
 	    #        <status>"1"|"0"</status>
 	    #    </eventInfo>
+	    if evnt_dat['action'] == '5' :
+		if 'status' in evnt_dat['eventInfo'] :
+		    self.isystatus['batchmode'] = evnt_dat['eventInfo']['status'] == "1"
+	    elif evnt_dat['action'] == '6' :
+		if 'status' in evnt_dat['eventInfo'] :
+		    self.isystatus['battery_mode_prog_update'] = evnt_dat['eventInfo']['status'] == "1"
+
+		# status_battery_mode_prog_update
 
         elif evnt_dat["control"] == "_5" : # System Status Updated
 	    pass
@@ -478,6 +529,13 @@ class Isy(IsyUtil):
 
         elif evnt_dat["control"] == "_12" : # AMI/SEP Events
 	    pass
+#	    if evnt_dat['action'] == '1' :
+#		if 'ZBNetwork' in evnt_dat['eventInfo'] :
+#		    self.zigbee['network'] = evnt_dat['eventInfo']['ZBNetwork']
+#	    elif evnt_dat['action'] == '10' :
+#		if 'MeterFormat' in evnt_dat['eventInfo'] :
+#		    self.zigbee['MeterFormat'] = evnt_dat['eventInfo']['MeterFormat']
+#
 
         elif evnt_dat["control"] == "_13" : # External Energy Monitoring Events
 	    pass
@@ -496,6 +554,21 @@ class Isy(IsyUtil):
 
         elif evnt_dat["control"] == "_18" : # Zigbee Events
 	    pass
+
+        elif evnt_dat["control"] == "_19" : # Elk Events
+	    pass
+#	    if evnt_dat["action"] == "6" :
+#	    	if 'se" in evnt_dat['eventInfo'] :
+#		    if evnt_dat['eventInfo']['se']['se-type'] == '156' :
+#			print "Elk Connection State : ", evnt_dat['eventInfo']['se']['se-val']
+#		    elif evnt_dat['eventInfo']['se']['se-type'] == '157' :
+#			print "Elk Enable State : ", evnt_dat['eventInfo']['se']['se-val']
+
+
+
+        elif evnt_dat["control"] == "_20" : # Device Linker Events
+	    pass
+
 
         else:
             print("evnt_dat :", evnt_dat)
