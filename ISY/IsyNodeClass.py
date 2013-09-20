@@ -285,13 +285,15 @@ class IsyNode(_IsyNodeBase):
 
         else :
 
-            if prop in self._mydict :
-		if prop in self._boollist :
-		    return(val2bool(self._mydict[prop])) 
-		else :
-		    return self._mydict[prop]
-            else :
-                return None
+#            if prop in self._mydict :
+#		if prop in self._boollist :
+#		    return(val2bool(self._mydict[prop])) 
+#		else :
+#		    return self._mydict[prop]
+#            else :
+#                return None
+
+	    return super(IsyNode, self)._get_prop(prop)
 
     def _set_prop(self, prop, new_value):
         """  generic property set """

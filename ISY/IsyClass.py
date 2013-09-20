@@ -125,7 +125,7 @@ class Isy(IsyUtil):
 		var_get_value, var_addrs, get_var, _var_get_id, \
 		var_get_type, var_iter
     from ISY._isyprog import load_prog, get_prog, _prog_get_id, \
-		prog_iter, prog_comm, _prog_comm
+		prog_iter, prog_comm, _prog_comm, prog_get_src
     from ISY._isynode import load_nodes, _gen_member_list, _gen_folder_list, \
 		_gen_nodegroups, _gen_nodedict, node_names, scene_names, \
 		node_addrs, scene_addrs, get_node, _node_get_id, node_get_prop, \
@@ -169,10 +169,10 @@ class Isy(IsyUtil):
         self.faststart = kwargs.get("faststart", 1)
         self.eventupdates = kwargs.get("eventupdates", 0)
 	self._isy_event = None
+	self.event_heartbeat = 0;
 	self.error_str = ""
 	self.callbacks = dict ()
         self._is_pro = True
-	self.event_heartbeat = 0;
 
 
 	# data dictionaries for ISY state
@@ -378,6 +378,52 @@ class Isy(IsyUtil):
 	    # 
             if evnt_dat["action"] == "0" and 'nr' in evnt_dat['eventInfo'] :
 		prog_id = '{0:0>4}'.format(evnt_dat['eventInfo']['id'])
+		event_targ = prog_id
+
+		if prog_id in self._progdict :
+		    prog_dict = self._progdict[prog_id]
+		    if 'on' in evnt_dat['eventInfo'] :
+			prog_dict['enabled'] = 'true'
+		    else :
+			prog_dict['enabled'] = 'false'
+		    if 'rr' in evnt_dat['eventInfo'] :
+			prog_dict['runAtStartup'] = 'true'
+		    else :
+			prog_dict['runAtStartup'] = 'false'
+		    prog_dict['lastRunTime'] = evnt_dat['eventInfo']['r']
+		    prog_dict['lastFinishTime'] = evnt_dat['eventInfo']['f']
+
+		    if evnt_dat['eventInfo']['status'] & 0x01 :
+			prog_dict['running'] = 'idle'
+		    elif evnt_dat['eventInfo']['status'] & 0x02 :
+			prog_dict['running'] = 'then'
+		    elif evnt_dat['eventInfo']['status'] & 0x03 :
+			prog_dict['running'] = 'else'
+
+		    if evnt_dat['eventInfo']['status'] & 0x10 :
+			prog_dict['status'] = 'unknown'
+		    elif evnt_dat['eventInfo']['status'] & 0x20 :
+			prog_dict['status'] = 'true'
+		    elif evnt_dat['eventInfo']['status'] & 0x30 :
+			prog_dict['status'] = 'false'
+		    elif evnt_dat['eventInfo']['status'] & 0xF0 :
+			prog_dict['status'] = 'not_loaded'
+		else :
+		    self.load_prog(prog_id)
+
+
+#   '0002': {  'enabled': 'true',
+#              'folder': 'false',
+#              'id': '0002',
+#              'lastFinishTime': '2013/03/30 15:11:25',
+#              'lastRunTime': '2013/03/30 15:11:25',
+#              'name': 'QueryAll',
+#              'nextScheduledRunTime': '2013/03/31 03:00:00',
+#              'parentId': '0001',
+#              'runAtStartup': 'false',
+#              'running': 'idle',
+#              'status': 'false'},
+
 
             if evnt_dat["action"] == "6" or  evnt_dat["action"] == "7" :
                 var_eventInfo =  evnt_dat['eventInfo']['var']
@@ -431,7 +477,11 @@ class Isy(IsyUtil):
 	    # action = "WD" -> Programming Device     
 	    # action = "RV" -> Node Revised (UPB)  
 
-	    if evnt_dat['action'] == 'GN' : # Group Renamed    
+	    if evnt_dat['action'] == 'EN' : # Enable
+		if  evnt_dat['node'] in self._nodedict :
+		    self._nodedict[ evnt_dat['node'] ]['enabled'] =  evnt_dat['eventInfo']['enabled']
+
+	    elif evnt_dat['action'] == 'GN' : # Group Renamed    
 		if  evnt_dat['node'] in self._nodegroups :
 		    oldname = self._nodegroups[ evnt_dat['node'] ]['name']
 		    self._nodegroups[ evnt_dat['node'] ]['name'] = evnt_dat['eventInfo']['newName']
@@ -447,7 +497,7 @@ class Isy(IsyUtil):
 		    pass
 	    
 
-	    if evnt_dat['action'] == 'FD' :
+	    elif evnt_dat['action'] == 'FD' :
 		if 'folder' in evnt_dat['eventInfo'] and isinstance(evnt_dat['eventInfo']['folder'], dict) :
 		    self._folderlist[ evnt_dat['node'] ] = evnt_dat['eventInfo']['folder']
 		    self._folder2addr[ evnt_dat['eventInfo']['folder']['name'] ] = evnt_dat['node']

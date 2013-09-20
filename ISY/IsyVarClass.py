@@ -56,7 +56,7 @@ class IsyVar(IsySubClass):
         """ returns var init value
         this is also avalible via the property : init
         """
-        return self._get_prop("init")
+        return self._mydict["init"]
 
     def set_var_init(self, new_value):
         """ sets var init value
@@ -71,7 +71,7 @@ class IsyVar(IsySubClass):
         """ returns var value
         this is also avalible via the property : value
         """
-        return self._get_prop("val")
+        return self._mydict["val"]
     def set_var_value(self, new_value):
         """ sets var value
         this can also be set via the property : value

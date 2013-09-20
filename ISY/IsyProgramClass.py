@@ -56,35 +56,47 @@ class IsyProgram(IsySubClass):
     # _objtype = (-1, "program")
     _objtype = "program"
 
+    def _get_prop(self, prop) :
+	if prop == 'src' :
+	    return self.get_src()
+	return super(IsyProgram, self)._get_prop(prop)
+
     def get_prog_enable(self):
 	""" check if prog is enabled (bool) """
-        en = self._get_prop("enabled")
-	return bool( en == "true" )
+        #en = self._get_prop("enabled")
+	#return bool( en == "true" )
+	return bool( self._mydict["enabled"] == "true" )
     def set_prog_enable(self, en):
 	rval = val2bool(en)
 	#print "set_prog_enable ", rval
         if rval :
-	   self.isy.prog_comm(self._mydict[id], "enable")
+	   self.isy.prog_comm(self._mydict['id'], "enable")
         else :
-	   self.isy.prog_comm(self._mydict[id], "disable")
+	   self.isy.prog_comm(self._mydict['id'], "disable")
 	self._mydict["enabled"] = rval
         return rval
     enabled = property(get_prog_enable, set_prog_enable)
 
     def get_prog_runatstart(self):
 	""" check property runAtStartup (bool) """
-        en = self._get_prop("runAtStartup")
-	return bool( en == "true" )
+        #en = self._get_prop("runAtStartup")
+	#return bool( en == "true" )
+	return bool( self._mydict['runAtStartup'] == "true" )
     def set_prog_runatstart(self, en):
 	rval = val2bool(en)
 	#print "set_prog_enable ", rval
         if rval :
-	   self.isy.prog_comm(self._mydict[id], "runAtStartup")
+	   self.isy.prog_comm(self._mydict['id'], "runAtStartup")
         else :
-	   self.isy.prog_comm(self._mydict[id], "disableRunAtStartup")
+	   self.isy.prog_comm(self._mydict['id'], "disableRunAtStartup")
 	self._mydict["runAtStartup"] = rval
         return rval
-    enabled = property(get_prog_runatstart, set_prog_runatstart)
+    runatstart = property(get_prog_runatstart, set_prog_runatstart)
+
+    def get_src(self):
+	""" get D2D source for program """
+	return self.isy.prog_get_src( self._mydict['id'] )
+    src = property(get_src)
 
 #    def get_prog_folder(self):
 #       return self._get_prop("folder")

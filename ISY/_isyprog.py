@@ -11,7 +11,7 @@ from ISY.IsyProgramClass import IsyProgram
 ##
 ## ISY Programs Code
 ##
-def load_prog(self):
+def load_prog(self, progid=None):
     """ Load Program status and Info
 
 	args : none
@@ -21,10 +21,18 @@ def load_prog(self):
     """
     if self.debug & 0x01 :
 	print("load_prog called")
-    prog_tree = self._getXMLetree("/rest/programs?subfolders=true", noquote=1)
+
     if not hasattr(self, '_progdict') or not isinstance(self._progdict, dict):
 	self._progdict = dict ()
-    self.name2prog = dict ()
+
+    if progid  :
+	xurl = "/rest/programs/" + progid
+    else :
+	xurl = "/rest/programs?subfolders=true"
+	self.name2prog = dict ()
+
+    prog_tree = self._getXMLetree(xurl, noquote=1)
+
     for pg in prog_tree.iter("program") :
 	pdict = dict ()
 	for k, v in pg.items() :
@@ -104,6 +112,20 @@ def _prog_get_id(self, pname):
 
     # print("_prog_get_id : " + n + " None")
     return None
+
+def prog_get_src(self, pname):
+
+    if not self._progdict :
+	self.load_prog()
+
+    prog_id = self._prog_get_id(pname)
+
+    if not prog_id :
+	raise IsyInvalidCmdError("prog_comm: unknown node : " + str(paddr) )
+
+    r = self.soapcomm("GetSysConf", name="/CONF/D2D/" + prog_id + ".PGM")
+
+    return r
 
 
 def prog_iter(self):
