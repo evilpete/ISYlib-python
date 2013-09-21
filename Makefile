@@ -29,7 +29,7 @@ syntax:
 	    python -m py_compile $$targ ; \
 	done 
 
-style: ISY.py syntax
+style: syntax
 	${PEP8} ${PEP8ARG} ${FILES}
 
 
@@ -58,6 +58,12 @@ checkin: commit push
 
 commit: README.txt
 	${GIT} commit -a
+
+diff:
+	${GIT} diff
+
+status:
+	${GIT} status
 
 push:
 	${GIT} push

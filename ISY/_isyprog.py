@@ -15,7 +15,7 @@ from ISY.IsyProgramClass import IsyProgram
 ##
 ## ISY Programs Code
 ##
-def load_prog(self):
+def load_prog(self, progid=None):
     """ Load Program status and Info
 
 	args : none
@@ -25,10 +25,18 @@ def load_prog(self):
     """
     if self.debug & 0x01 :
 	print("load_prog called")
-    prog_tree = self._getXMLetree("/rest/programs?subfolders=true", noquote=1)
+
     if not hasattr(self, '_progdict') or not isinstance(self._progdict, dict):
 	self._progdict = dict ()
-    self.name2prog = dict ()
+
+    if progid  :
+	xurl = "/rest/programs/" + progid
+    else :
+	xurl = "/rest/programs?subfolders=true"
+	self.name2prog = dict ()
+
+    prog_tree = self._getXMLetree(xurl, noquote=1)
+
     for pg in prog_tree.iter("program") :
 	pdict = dict ()
 	for k, v in pg.items() :
@@ -41,11 +49,19 @@ def load_prog(self):
 	    else :
 		self._progdict[str(pdict["id"])] = pdict
 	    n = pdict["name"].upper()
+
+	    if n in self._name2id :
+		print("Dup name : \"" + n + "\" ", pdict["id"])
+		print("name2id ", self._name2id[n])
+	    else :
+		self._name2id[n] = ("program", pdict["id"])
+
 	    if n in self.name2prog :
 		print("Dup name : \"" + n + "\" ", pdict["id"])
 		print("name2prog ", self.name2prog[n])
 	    else :
 		self.name2prog[n] = pdict["id"]
+
     #self._printdict(self._progdict)
     #self._printdict(self.name2prog)
 
@@ -101,6 +117,20 @@ def _prog_get_id(self, pname):
     # print("_prog_get_id : " + n + " None")
     return None
 
+def prog_get_src(self, pname):
+
+    if not self._progdict :
+	self.load_prog()
+
+    prog_id = self._prog_get_id(pname)
+
+    if not prog_id :
+	raise IsyInvalidCmdError("prog_comm: unknown node : " + str(paddr) )
+
+    r = self.soapcomm("GetSysConf", name="/CONF/D2D/" + prog_id + ".PGM")
+
+    return r
+
 
 def prog_iter(self):
     """ Iterate though program objects
@@ -110,7 +140,7 @@ def prog_iter(self):
     if not self._progdict :
 	self.load_prog()
 
-    k = self._progdict.keys()
+    k = sorted(self._progdict.keys())
     for v in k :
 	yield self.get_prog(v)
 

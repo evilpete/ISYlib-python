@@ -249,9 +249,13 @@ class ISYEvent(object) :
     def print_event(*arg):
 
         ddat = arg[0]
+        mydat = arg[1]
+        exml = arg[2]
 
         try:
-            if ddat["control"] in ["ST", "RR", "OL"] :
+	    if ddat["control"] in ["_11"] :
+		pass
+            elif ddat["control"] in ["ST", "RR", "OL"] :
                 ectrl = EVENT_CTRL.get(ddat["control"], ddat["control"])
                 node = ddat["node"]
 
@@ -261,6 +265,19 @@ class ISYEvent(object) :
                 print("%-7s %-4s\t%-22s\t%-12s\t%s\t%s" % \
                     (ti, ddat["Event-seqnum"], \
                     ectrl, node, ddat["action"], evi))
+            elif  ddat["control"] == "_3" :
+		if ddat['action'] == 'FD' :
+		    print 'new Folder node: ', ddat['node'], ' = ', ddat['eventInfo']['folder']
+		elif ddat['action'] == 'FR' :
+		    print 'del Folder node: ', ddat['node']
+		elif ddat['action'] == 'FN' :
+		    print 'rename Folder node: ', ddat['node'], ' = ', ddat
+		else :
+		    print '_3 : ', ddat
+	    else : 
+		    print "Event Dat : \n\t", ddat, "\n\t", exml
+
+
             #elif  ddat["control"] == "_1" and ddat["action"] in ["6", "7", "3"] :
         #       print ddat["control"], " : ", ddat
         #       print arg

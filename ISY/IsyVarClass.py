@@ -32,6 +32,8 @@ class IsyVar(IsySubClass):
     _getlist = ['id', 'type', 'init', 'val', 'ts', 'name']
     _setlist = ['init', 'val']
     _propalias = {'value': 'val', 'status': 'val', 'addr': 'id', 'address': 'id'}
+    # _objtype = (-1, "var")
+    _objtype = "var"
 
 # Var :    {  '1:1': {  'id': '1:1', 'init': '0', 'name': 'enter_light',
 #          'ts': '20130114 14:33:35', 'type': '1', 'val': '0'}
@@ -54,7 +56,7 @@ class IsyVar(IsySubClass):
         """ returns var init value
         this is also avalible via the property : init
         """
-        return self._get_prop("init")
+        return self._mydict["init"]
 
     def set_var_init(self, new_value):
         """ sets var init value
@@ -69,7 +71,7 @@ class IsyVar(IsySubClass):
         """ returns var value
         this is also avalible via the property : value
         """
-        return self._get_prop("val")
+        return self._mydict["val"]
     def set_var_value(self, new_value):
         """ sets var value
         this can also be set via the property : value

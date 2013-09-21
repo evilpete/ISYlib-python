@@ -141,7 +141,15 @@ def _gen_folder_list(self, nodeinfo) :
 		for k, v in child.items() :
 		    fprop[child.tag + "-" + k] =  v
 	# self._folderlist[fprop["address"]] = fprop
-	self._folder2addr[fprop["name"]] = fprop["address"]
+	n = fprop["name"].upper()
+	self._folder2addr[n] = fprop["address"]
+
+	if n in self._name2id :
+	    print("Dup name (Folder) : \"" + n + "\" ",fprop["address"])
+	    print("\t_name2id ", self._name2id[n])
+	else :
+	    self._name2id[n] = ("folder", fprop["address"])
+
     #self._printdict(self._folderlist)
     #self._printdict(self._folder2addr)
 
@@ -183,11 +191,20 @@ def _gen_nodegroups(self, nodeinfo) :
 	if "address" in gprop :
 	    # self._nodegroups[gprop["address"]] = gprop
 	    if "name" in gprop :
-		if gprop["name"] in self._groups2addr :
-		    warnings.warn("Duplicate group name (0) : (1) (2)".format(gprop["name"], \
-			    str(gprop["address"]), self._groups2addr[gprop["name"]]), RuntimeWarning)
+
+		n = gprop["name"]
+		if n in self._groups2addr :
+		    warnings.warn("Duplicate group name (0) : (1) (2)".format(n, \
+			    str(gprop["address"]), self._groups2addr[n]), RuntimeWarning)
 		else :
-		    self._groups2addr[gprop["name"]] = str(gprop["address"])
+		    self._groups2addr[n] = str(gprop["address"])
+
+		if n in self._name2id :
+		    print("Dup name (Group) : \"" + n + "\" ",gprop["address"])
+		    print("\t_name2id ", self._name2id[n])
+		else :
+		    self._name2id[n] = ("group", gprop["address"])
+
 	else :
 	    # should raise an exception ?
 	    self._printinfo(grp, "Error : no address in group :")
@@ -235,12 +252,21 @@ def _gen_nodedict(self, nodeinfo) :
 	if "address" in idict :
 	    # self._nodedict[idict["address"]] = idict
 	    if "name" in idict :
-		if idict["name"] in self._node2addr :
-		    warn_mess = "Duplicate Node name (0) : (1) (2)".format(idict["name"], \
-			    idict["address"], self._node2addr[idict["name"]])
+
+		n = idict["name"]
+		if n in self._node2addr :
+		    warn_mess = "Duplicate Node name (0) : (1) (2)".format(n, \
+			    idict["address"], self._node2addr[n])
 		    warnings.warn(warn_mess, RuntimeWarning)
 		else :
-		    self._node2addr[idict["name"]] = idict["address"]
+		    self._node2addr[n] = idict["address"]
+
+		if n in self._name2id :
+		    print("Dup name (Node) : \"" + n + "\" ",idict["address"])
+		    print("\t_name2id ", self._name2id[n])
+		else :
+		    self._name2id[n] = ("node", idict["address"])
+
 
 	else :
 	    # should raise an exception
@@ -299,7 +325,7 @@ def get_node(self, node_id) :
     if self.debug & 0x01 :
 	print("get_node")
 
-    nodeid = self._node_get_id(node_id)
+    (nodetype, nodeid) = self._node_get_id(node_id)
 
     if nodeid in self.nodeCdict :
 	return self.nodeCdict[nodeid]
@@ -320,6 +346,9 @@ def get_node(self, node_id) :
 	print("Isy get_node no node : \"{!s:}\"".format(nodeid))
 	raise LookupError("no node such Node : " + str(nodeid) )
 
+    # should never ger here
+    return None
+
 
 def _node_get_id(self, nid):
     """ node/scene/Folder name to node/scene/folder ID """
@@ -336,36 +365,36 @@ def _node_get_id(self, nid):
 
     if n in self._nodedict :
 	# print("_node_get_id : " + n + " nodedict " + n
-	return n
+	return  ("node", n)
 
     if n in self._node2addr :
 	# print("_node_get_id : " + n + " _node2addr " + self._node2addr[n])
-	return self._node2addr[n]
+	return  ("node", self._node2addr[n])
 
     ##
 
     if n in self._nodegroups :
 	# print("_node_get_id : " + n + " nodegroups " + n)
-	return n
+	return  ("group", n)
 
     if n in self._groups2addr :
 	# print("_node_get_id : " + n + " _groups2addr " + self._groups2addr[n])
-	return self._groups2addr[n]
+	return ("group", self._groups2addr[n])
 
     ##
 
     if n in self._folder2addr :
 	# print("_node_get_id : " + n + " _folder2addr " + self._folder2addr[n])
-	return self._folder2addr[n]
+	return  ("folder", self._folder2addr[n])
 
     if n in self._folderlist :
 	# print("_node_get_id : " + n + " _folderlist " + n)
-	return n
+	return  ("folder", n)
 
 
 	# Fail #
     #print("_node_get_id : " + n + " None")
-    return None
+    return(None, None)
 
 
 
@@ -388,7 +417,7 @@ def node_get_prop(self, naddr, prop_id) :
     if self.debug & 0x01 :
 	print("node_get_prop")
 
-    node_id = self._node_get_id(naddr)
+    (nodetype, node_id) = self._node_get_id(naddr)
     if not node_id :
 	raise LookupError("node_get_prop: unknown node : " + str(naddr) )
 
@@ -429,7 +458,7 @@ def node_set_prop(self, naddr, prop, val) :
     if self.debug & 0x01 :
 	print("node_set_prop")
 
-    node_id = self._node_get_id(naddr)
+    (nodetype, node_id) = self._node_get_id(naddr)
     if not node_id :
 	raise LookupError("node_set_prop: unknown node : " + str(naddr) )
 
@@ -504,7 +533,7 @@ def node_comm(self, naddr, cmd, *args) :
     """
     if self.debug & 0x04 :
 	print("node_comm", naddr, cmd)
-    node_id = self._node_get_id(naddr)
+    (nodetype, node_id) = self._node_get_id(naddr)
     cmd_id = self._get_control_id(cmd)
 
     #print("self.controls :", self.controls)
@@ -614,12 +643,12 @@ def node_iter(self, nodetype=""):
     if not self._nodedict :
 	self.load_nodes()
     if nodetype == "node" :
-	k = self._nodedict.keys()
+	k = sorted(self._nodedict.keys())
     elif nodetype == "scene" :
-	k = self._nodegroups.keys()
+	k = sorted(self._nodegroups.keys())
     else :
-	k = self._nodedict.keys()
-	k.extend(self._nodegroups.keys())
+	k = sorted(self._nodedict.keys())
+	k.extend( sorted(self._nodegroups.keys()))
     for n in k :
 	yield self.get_node(n)
 
@@ -687,7 +716,7 @@ def node_enable(self, naddr, enable=True) :
     """
     if self.debug & 0x04 :
 	print("node_enable", naddr, cmd)
-    node_id = self._node_get_id(naddr)
+    (nodetype, node_id) = self._node_get_id(naddr)
 
     if not node_id :
 	raise LookupError("node_comm: unknown node : " + str(naddr) )

@@ -54,10 +54,8 @@ __all__ = ['IsyNode', 'IsyNodeFolder', 'IsyScene']
 
 class _IsyNodeBase(IsySubClass):
 
-    _nodetype = (0, "unknown")
-
-    def nodeType(self):
-	return self._nodetype[0]
+    #_objtype = (0, "unknown")
+    _objtype = "unknown"
 
     def on(self, val=255) :
         """ Send On command to a node
@@ -232,8 +230,8 @@ class IsyNode(_IsyNodeBase):
 
     def __init__(self, isy, ndict) :
 
-	self._nodetype = (1, "node")
-
+	# self._objtype = (1, "node")
+	self._objtype = "node"
 
 	super(self.__class__, self).__init__(isy, ndict)
 
@@ -287,13 +285,15 @@ class IsyNode(_IsyNodeBase):
 
         else :
 
-            if prop in self._mydict :
-		if prop in self._boollist :
-		    return(val2bool(self._mydict[prop])) 
-		else :
-		    return self._mydict[prop]
-            else :
-                return None
+#            if prop in self._mydict :
+#		if prop in self._boollist :
+#		    return(val2bool(self._mydict[prop])) 
+#		else :
+#		    return self._mydict[prop]
+#            else :
+#                return None
+
+	    return super(self.__class__, self)._get_prop(prop)
 
     def _set_prop(self, prop, new_value):
         """  generic property set """
@@ -338,6 +338,10 @@ class IsyNode(_IsyNodeBase):
             #print "_set_prop AttributeError"
             raise AttributeError("no Attribute " + prop)
 
+
+    def _gettype(self):
+        """  Type of Node (readonly) """
+        return "node"
 
     # enable node
     def get_enable(self):
@@ -470,8 +474,9 @@ class IsyScene(_IsyNodeBase):
                     "group-flag": "flag"}
 
     def __init__(self, *args):
-	self._nodetype = (2, "scene")
-	super(IsyScene, self).__init__(*args)
+	#self._objtype = (2, "scene")
+	self._objtype = "scene"
+	super(self.__class__, self).__init__(*args)
 
     # status property
     # obj mathod for getting/setting a  Scene's value
@@ -482,10 +487,6 @@ class IsyScene(_IsyNodeBase):
 
     status = property(None, set_status)
 
-
-    def _gettype(self):
-        return "scene"
-    type = property(_gettype)
 
     def _getmembers(self) :
         """ List members of a scene or group """
@@ -557,12 +558,9 @@ class IsyNodeFolder(_IsyNodeBase):
     _propalias = {'id': 'address', 'addr': 'address', "folder-flag": "flag"}
 
     def __init__(self, *args):
-	self._nodetype = (3, "folder")
-	super(IsyNodeFolder, self).__init__(*args)
-
-    def _gettype(self):
-        return "folder"
-    type = property(_gettype)
+	#self._objtype = (3, "folder")
+	self._objtype = "folder"
+	super(self.__class__, self).__init__(*args)
 
     def member_add(self, node, flag=0) :
 	""" add Node/Scene or Folder to Folder Obj

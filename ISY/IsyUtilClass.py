@@ -299,6 +299,12 @@ class IsySubClass(IsyUtil):
             print("IsySubClass: ",)
             self._printdict(self._mydict)
 
+    #_objtype = (0, "unknown")
+    _objtype = "unknown"
+
+    def objType(self):
+	return self._objtype
+	#return self._objtype[0]
 
     def _get_prop(self, prop):
         """ Internal funtion call """
@@ -350,6 +356,13 @@ class IsySubClass(IsyUtil):
         """  Name of Node (readonly) """
         return self._get_prop("name")
     name = property(_getname)
+
+    def _gettype(self):
+        """  Type of Node (readonly) """
+	# self._get_prop("type")
+        # return self._objtype[1]
+        return self._objtype
+    objtype = property(_gettype)
 
     def __getitem__(self, prop):
         """ Internal method 
@@ -415,6 +428,8 @@ class IsySubClass(IsyUtil):
             return attr_v
         else :
             print("attr =", attr, self.address)
+	    print("self type = ", type(self))
+	    pprint(self._mydict)
             raise(AttributeError, attr)
 
 

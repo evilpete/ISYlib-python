@@ -50,11 +50,19 @@ def load_vars(self) :
             self._vardict[vid]['name'] = v.attrib['name']
             self._vardict[vid]["id"] = vid
             self._vardict[vid]["type"] = t
-            if v.attrib['name'] in self.name2var :
-                warn("Duplicate Var name (0) : (1) (2)".format(v.attrib['name'],
-                            vid, self.name2var[v.attrib['name']]), RuntimeWarning)
+
+	    n =  v.attrib['name']
+            if n in self.name2var :
+                warn("Duplicate Var name (0) : (1) (2)".format(n,
+                            vid, self.name2var[n]), RuntimeWarning)
             else :
-                self.name2var[v.attrib['name']] = vid
+                self.name2var[n] = vid
+
+	    if n in self._name2id :
+		print("Dup name : \"" + n + "\" : " + vid)
+		print("\tname2id ", self._name2id[n])
+	    else :
+		self._name2id[n] = ("var", vid)
 
     # self._printdict(self._vardict)
 

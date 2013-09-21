@@ -75,6 +75,10 @@ class IsyResponseError(IsyError, RuntimeError):
     """General exception for Isy responce errors."""
     pass
 
+class IsyLookupError(IsyError, LookupError):
+    """General exception for property errors."""
+    pass
+
 class IsyPropertyError(IsyError, LookupError):
     """General exception for property errors."""
     pass

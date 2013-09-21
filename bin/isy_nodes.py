@@ -13,11 +13,11 @@ def list_nodes(isy) :
     """ iter though Isy Class object and print returned
 	node's infomation
     """
-    pfmt = "{:<20} {:<12}\t{:<12}{!s:<12}"
+    pfmt = "{:<22} {:>12}\t{:<12}{!s:<12}"
     print(pfmt.format("Node Name", "Address", "Status", "Enabled"))
     print(pfmt.format("---------", "-------", "------", "------"))
     for nod in isy :
-        if nod.type == "scene" :
+        if nod.objtype == "scene" :
             print(pfmt.format(nod.name, nod.address, "-", "-", ))
         else :
             print(pfmt.format(nod.name, nod.address, 

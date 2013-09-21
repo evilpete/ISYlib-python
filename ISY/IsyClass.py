@@ -67,7 +67,7 @@ from ISY.IsyEvent import ISYEvent
 # 0x08 = Dump loaded data
 # 0x10 = report changes to nodes
 # 0x20 = report soap web
-# 0x40 =
+# 0x40 = report events
 # 0x80 = print __del__()
 #
 
@@ -125,7 +125,7 @@ class Isy(IsyUtil):
 		var_get_value, var_addrs, get_var, _var_get_id, \
 		var_get_type, var_iter
     from ISY._isyprog import load_prog, get_prog, _prog_get_id, \
-		prog_iter, prog_comm, _prog_comm
+		prog_iter, prog_comm, _prog_comm, prog_get_src
     from ISY._isynode import load_nodes, _gen_member_list, _gen_folder_list, \
 		_gen_nodegroups, _gen_nodedict, node_names, scene_names, \
 		node_addrs, scene_addrs, get_node, _node_get_id, node_get_prop, \
@@ -169,12 +169,14 @@ class Isy(IsyUtil):
         self.faststart = kwargs.get("faststart", 1)
         self.eventupdates = kwargs.get("eventupdates", 0)
 	self._isy_event = None
+	self.event_heartbeat = 0;
 	self.error_str = ""
 	self.callbacks = dict ()
         self._is_pro = True
 
 
 	# data dictionaries for ISY state
+	self._name2id = dict()
 	self.controls = None
 	self.name2control = None
 	self._folderlist = None
@@ -189,6 +191,9 @@ class Isy(IsyUtil):
 	self._wolinfo = None
 	self._net_resource = None
 	self.climateinfo  = None
+	
+	self.isy_status = dict()
+	self.zigbee = dict()
 
         if self.addr == None :
             from ISY.IsyDiscover import isy_discover
@@ -308,9 +313,10 @@ class Isy(IsyUtil):
 
         """
         # print("_read_event")
-        skip_default = ["_0", "_2", "_4", "_5", "_6", "_7", "_8",
-                "_9", "_10", "_11", "_12", "_13", "_14",
-                "_15", "_16", "_17", "_18", "_19", "_20",
+        skip_default = [
+#	        "_0", "_2", "_4", "_5", "_6", "_7", "_8",
+#               "_9", "_10", "_11", "_12", "_13", "_14",
+#               "_15", "_16", "_17", "_18", "_19", "_20",
                 "DON", "DOF",
                 ]
 
@@ -319,8 +325,9 @@ class Isy(IsyUtil):
         assert isinstance(evnt_dat, dict), "_read_event Arg must me dict"
 
 	event_targ = None
-        if evnt_dat["control"] in skip :
-            return
+
+        #if evnt_dat["control"] in skip :
+        #    return
 
 	#
 	# Status/property changed
@@ -351,15 +358,73 @@ class Isy(IsyUtil):
                 warn("Event for Unknown node : {0}".format(evnt_dat["node"]), \
                         RuntimeWarning)
 
-        elif evnt_dat["control"] == "_3" : # Node Change/Updated Event
-	    print("Node Change/Updated Event :  {0}".format(evnt_dat["node"]))
-	    print("evnt_dat : ", evnt_dat)
+        elif evnt_dat["control"] == "_0" : # HeartBeat
+	    self.event_heartbeat = time();
 
 	#
         # handle VAR value change
 	#
-        elif evnt_dat["control"] == "_1" :
-            # Var Status / Initialized
+        elif evnt_dat["control"] == "_1" : # Trigger Events
+
+	    #
+	    # action = "0" -> Event Status   
+	    # action = "1" -> Client Should Get Status
+	    # action = "2" -> Key Changed   
+	    # action = "3" -> Info String    
+	    # action = "4" -> IR Learn Mode   
+	    # action = "5" -> Schedule (schedule status changed)    
+	    # action = "6" -> Variable Status (status of variable changed)    
+	    # action = "7" -> Variable Initialized (initial value of a variable    
+	    # 
+            if evnt_dat["action"] == "0" and 'nr' in evnt_dat['eventInfo'] :
+		prog_id = '{0:0>4}'.format(evnt_dat['eventInfo']['id'])
+		event_targ = prog_id
+
+		if prog_id in self._progdict :
+		    prog_dict = self._progdict[prog_id]
+		    if 'on' in evnt_dat['eventInfo'] :
+			prog_dict['enabled'] = 'true'
+		    else :
+			prog_dict['enabled'] = 'false'
+		    if 'rr' in evnt_dat['eventInfo'] :
+			prog_dict['runAtStartup'] = 'true'
+		    else :
+			prog_dict['runAtStartup'] = 'false'
+		    prog_dict['lastRunTime'] = evnt_dat['eventInfo']['r']
+		    prog_dict['lastFinishTime'] = evnt_dat['eventInfo']['f']
+
+		    if evnt_dat['eventInfo']['status'] & 0x01 :
+			prog_dict['running'] = 'idle'
+		    elif evnt_dat['eventInfo']['status'] & 0x02 :
+			prog_dict['running'] = 'then'
+		    elif evnt_dat['eventInfo']['status'] & 0x03 :
+			prog_dict['running'] = 'else'
+
+		    if evnt_dat['eventInfo']['status'] & 0x10 :
+			prog_dict['status'] = 'unknown'
+		    elif evnt_dat['eventInfo']['status'] & 0x20 :
+			prog_dict['status'] = 'true'
+		    elif evnt_dat['eventInfo']['status'] & 0x30 :
+			prog_dict['status'] = 'false'
+		    elif evnt_dat['eventInfo']['status'] & 0xF0 :
+			prog_dict['status'] = 'not_loaded'
+		else :
+		    self.load_prog(prog_id)
+
+
+#   '0002': {  'enabled': 'true',
+#              'folder': 'false',
+#              'id': '0002',
+#              'lastFinishTime': '2013/03/30 15:11:25',
+#              'lastRunTime': '2013/03/30 15:11:25',
+#              'name': 'QueryAll',
+#              'nextScheduledRunTime': '2013/03/31 03:00:00',
+#              'parentId': '0001',
+#              'runAtStartup': 'false',
+#              'running': 'idle',
+#              'status': 'false'},
+
+
             if evnt_dat["action"] == "6" or  evnt_dat["action"] == "7" :
                 var_eventInfo =  evnt_dat['eventInfo']['var']
                 vid = var_eventInfo['var-type'] + ":" + var_eventInfo['var-id']
@@ -377,6 +442,183 @@ class Isy(IsyUtil):
 
                 else :
                     warn("Event for Unknown Var : {0}".format(vid), RuntimeWarning)
+
+        elif evnt_dat["control"] == "_2" : # Driver Specific Events
+	    pass
+
+        elif evnt_dat["control"] == "_3" : # Node Change/Updated Event
+	    print("Node Change/Updated Event :  {0}".format(evnt_dat["node"]))
+	    print("evnt_dat : ", evnt_dat)
+            #
+	    # action = "NN" -> Node Renamed   
+	    # action = "NR" -> Node Removed    
+	    # action = "ND" -> Node Added    
+	    # action = "NR" -> Node Revised   
+	    # action = "MV" -> Node Moved (into a scene)   
+	    # action = "CL" -> Link Changed (in a scene)   
+	    # action = "RG" -> Removed From Group (scene)   
+	    # action = "EN" -> Enabled   
+	    # action = "PC" -> Parent Changed    
+	    # action = "PI" -> Power Info Changed   
+	    # action = "DI" -> Device ID Changed   
+	    # action = "DP" -> Device Property Changed   
+	    # action = "GN" -> Group Renamed    
+	    # action = "GR" -> Group Removed    
+	    # action = "GD" -> Group Added    
+	    # action = "FN" -> Folder Renamed   
+	    # action = "FR" -> Folder Removed    
+	    # action = "FD" -> Folder Added    
+	    # action = "NE" -> Node Error (Comm. Errors)    
+	    # action = "CE" -> Clear Node Error (Comm. Errors Cleared)    
+	    # action = "SN" -> Discovering Nodes (Linking)    
+	    # action = "SC" -> Node Discovery Complete     
+	    # action = "WR" -> Network Renamed    
+	    # action = "WH" -> Pending Device Operation         
+	    # action = "WD" -> Programming Device     
+	    # action = "RV" -> Node Revised (UPB)  
+
+	    if evnt_dat['action'] == 'EN' : # Enable
+		if  evnt_dat['node'] in self._nodedict :
+		    self._nodedict[ evnt_dat['node'] ]['enabled'] =  evnt_dat['eventInfo']['enabled']
+
+	    elif evnt_dat['action'] == 'GN' : # Group Renamed    
+		if  evnt_dat['node'] in self._nodegroups :
+		    oldname = self._nodegroups[ evnt_dat['node'] ]['name']
+		    self._nodegroups[ evnt_dat['node'] ]['name'] = evnt_dat['eventInfo']['newName']
+		    self._groups2addr[ evnt_dat['eventInfo']['newName'] ] = evnt_dat['node']
+		    del self._groups2addr[ oldname ]
+	    elif evnt_dat['action'] == 'GR' : # Group Removed/Deleted    
+		    if ( self.debug & 0x40 ) :
+			print("evnt_dat :", evnt_dat)
+		    pass
+	    elif evnt_dat['action'] == 'GD' : # New Group Added    
+		    if ( self.debug & 0x40 ) :
+			print("evnt_dat :", evnt_dat)
+		    pass
+	    
+
+	    elif evnt_dat['action'] == 'FD' :
+		if 'folder' in evnt_dat['eventInfo'] and isinstance(evnt_dat['eventInfo']['folder'], dict) :
+		    self._folderlist[ evnt_dat['node'] ] = evnt_dat['eventInfo']['folder']
+		    self._folder2addr[ evnt_dat['eventInfo']['folder']['name'] ] = evnt_dat['node']
+	    elif evnt_dat['action'] == 'FR' :
+		if  evnt_dat['node'] in self._folderlist :
+		    if evnt_dat['node'] in self.nodeCdict :
+			# this is tricky if the user has a IsyNodeFolder obj
+			# more has to be done to tell the Obj it's dead
+			del self.nodeCdict[ evnt_dat['node'] ]
+		    del self._folderlist[ evnt_dat['node'] ]
+	    elif evnt_dat['action'] == 'FN' :
+		if  evnt_dat['node'] in self._folderlist :
+		    oldname = self._folderlist[ evnt_dat['node'] ]['name']
+		    self._folderlist[ evnt_dat['node'] ]['name'] = evnt_dat['eventInfo']['newName']
+		    self._folder2addr[ evnt_dat['eventInfo']['newName'] ] = evnt_dat['node']
+		    del self._folder2addr[ oldname ]
+
+        elif evnt_dat["control"] == "_4" : # System Configuration Updated
+	    pass
+	    #
+	    # action = "0" -> Time Changed
+	    # action = "1" -> Time Configuration Changed
+	    # action = "2" -> NTP Settings Updated
+	    # action = "3" -> Notifications Settings Updated
+	    # action = "4" -> NTP Communications Error
+	    # action = "5" -> Batch Mode Updated
+	    #    node = null
+	    #    <eventInfo>
+	    #        <status>"1"|"0"</status>
+	    #    </eventInfo>
+	    # action = "6"  Battery Mode Programming Updated
+	    #    node = null
+	    #    <eventInfo>
+	    #        <status>"1"|"0"</status>
+	    #    </eventInfo>
+	    if evnt_dat['action'] == '5' :
+		if 'status' in evnt_dat['eventInfo'] :
+		    self.isystatus['batchmode'] = evnt_dat['eventInfo']['status'] == "1"
+	    elif evnt_dat['action'] == '6' :
+		if 'status' in evnt_dat['eventInfo'] :
+		    self.isystatus['battery_mode_prog_update'] = evnt_dat['eventInfo']['status'] == "1"
+
+		# status_battery_mode_prog_update
+
+        elif evnt_dat["control"] == "_5" : # System Status Updated
+	    pass
+	    # 
+	    # node = null
+	    # action = "0" -> Not Busy
+	    # action = "1" -> Busy
+	    # action = "2" -> Idle
+	    # action = "3" -> Safe Mode
+	    # 
+
+        elif evnt_dat["control"] == "_6" : # Internet Access Status
+	    pass
+	    #
+	    # action = "0" -> Disabled
+	    # action = "1" -> Enabled
+	    #     node = null
+	    #     <eventInfo>external URL</eventInfo>
+	    # action = "2" -> Failed
+	    #
+
+        elif evnt_dat["control"] == "_7" : # Progress Report
+	    pass
+
+        elif evnt_dat["control"] == "_8" : # Security System Event
+	    pass
+
+        elif evnt_dat["control"] == "_9" : # System Alert Event
+	    pass
+
+        elif evnt_dat["control"] == "_10" : # OpenADR and Flex Your Power Events
+	    pass
+
+        elif evnt_dat["control"] == "_11" : # Climate Events
+	    pass
+
+        elif evnt_dat["control"] == "_12" : # AMI/SEP Events
+	    pass
+#	    if evnt_dat['action'] == '1' :
+#		if 'ZBNetwork' in evnt_dat['eventInfo'] :
+#		    self.zigbee['network'] = evnt_dat['eventInfo']['ZBNetwork']
+#	    elif evnt_dat['action'] == '10' :
+#		if 'MeterFormat' in evnt_dat['eventInfo'] :
+#		    self.zigbee['MeterFormat'] = evnt_dat['eventInfo']['MeterFormat']
+#
+
+        elif evnt_dat["control"] == "_13" : # External Energy Monitoring Events
+	    pass
+
+        elif evnt_dat["control"] == "_14" : # UPB Linker Events
+	    pass
+
+        elif evnt_dat["control"] == "_15" : # UPB Device Adder State
+	    pass
+
+        elif evnt_dat["control"] == "_16" : # UPB Device Status Events
+	    pass
+
+        elif evnt_dat["control"] == "_17" : # Gas Meter Events
+	    pass
+
+        elif evnt_dat["control"] == "_18" : # Zigbee Events
+	    pass
+
+        elif evnt_dat["control"] == "_19" : # Elk Events
+	    pass
+#	    if evnt_dat["action"] == "6" :
+#	    	if 'se" in evnt_dat['eventInfo'] :
+#		    if evnt_dat['eventInfo']['se']['se-type'] == '156' :
+#			print "Elk Connection State : ", evnt_dat['eventInfo']['se']['se-val']
+#		    elif evnt_dat['eventInfo']['se']['se-type'] == '157' :
+#			print "Elk Enable State : ", evnt_dat['eventInfo']['se']['se-val']
+
+
+
+        elif evnt_dat["control"] == "_20" : # Device Linker Events
+	    pass
+
 
         else:
             print("evnt_dat :", evnt_dat)
@@ -410,7 +652,40 @@ class Isy(IsyUtil):
 
 
 
-    def node_rename(self, nid, nname) :
+
+
+    #
+    # need to add code to update name2id and *2addr lookup arrays
+    #
+    def rename(self, objid, nname) :
+	""" rename 
+
+		args: 
+		    id = Node/Scene/Folder name or ID
+		    name = new name
+
+	    calls SOAP RenameNode() / RenameGroup() / RenameFolder()
+	"""
+	(idtype, nid) = self.getid(objid)
+	if nid == None :
+	    raise IsyValueError("unknown node/obj : " + objid)
+	if idtype == "node" :
+	    return self.soapcomm("RenameNode", id=nid, name=nname)
+	elif idtype == "group" :
+	    return self.soapcomm("RenameGroup", id=fid, name=nname)
+	elif idtype == "folder" :
+	    return self.soapcomm("RenameFolder", id=fid, name=nname)
+	elif idtype == "var" :
+	    raise IsyValueError("can not rename vars ( yet )")
+	elif idtype == "prog" :
+	    raise IsyValueError("can not rename prog ( yet )")
+	else : 
+	    raise IsyValueError("node/obj " + objid + " not node (" + idtype + ")" )
+
+    #
+    # need to add code to update name2id and *2addr lookup arrays
+    #
+    def node_rename(self, nodeid, nname) :
 	""" rename Node
 
 		args: 
@@ -419,9 +694,8 @@ class Isy(IsyUtil):
 
 	    calls SOAP RenameNode()
 	"""
-	nid = self._node_get_id(nid)
+	(idtype, nid) = self._node_get_id(fid)
 	return self.soapcomm("RenameNode", id=nid, name=nname)
-
 
 #    def node_new(self, id, nname) :
 #	""" create new Folder """
@@ -429,6 +703,9 @@ class Isy(IsyUtil):
 
     ## scene
 
+    #
+    # need to add code to update name2id and *2addr lookup arrays
+    #
     def scene_rename(self, fid, fname) :
 	""" rename Scene/Group
 
@@ -439,9 +716,12 @@ class Isy(IsyUtil):
 
 	    calls SOAP RenameGroup()
 	"""
-	fid = self._node_get_id(fid)
+	(idtype, grid) = self._node_get_id(fid)
 	return self.soapcomm("RenameGroup", id=fid, name=fname)
 
+    #
+    # need to add code to update name2id and *2addr lookup arrays
+    #
     def scene_del(self, sid=None ) :
 	""" delete Scene/Group 
 
@@ -450,7 +730,7 @@ class Isy(IsyUtil):
 
 	    calls SOAP RemoveGroup()
 	"""
-	sceneid = self._node_get_id(sid)
+	(idtype, sceneid) = self._node_get_id(sid)
 	if sceneid == None :
 	    raise IsyValueError("no such Scene : " + str(sid) )
 	#
@@ -458,6 +738,9 @@ class Isy(IsyUtil):
 	#
 	return  self.soapcomm("RemoveGroup", id=sceneid)
 
+    #
+    # need to add code to update name2id and *2addr lookup arrays
+    #
     def scene_new(self, nid=0, sname=None) :
 	""" new Scene/Group
 
@@ -497,7 +780,7 @@ class Isy(IsyUtil):
 
 	    calls SOAP MoveNode()
 	"""
-	nodeid = self._node_get_id(nid)
+	(idtype, nodeid) = self._node_get_id(nid)
 	if nodeid == None :
 	    raise IsyValueError("no such Node : " + str(nid) )
 	r = self.soapcomm("MoveNode", group=groupid, node=nodeid, flag=nflag)
@@ -512,7 +795,7 @@ class Isy(IsyUtil):
 
 	    calls SOAP RemoveFromGroup()
 	"""
-	nodeid = self._node_get_id(nid)
+	(idtype, nodeid) = self._node_get_id(nid)
 	if nodeid == None :
 	    raise IsyValueError("no such Node : " + str(nid) )
 	r = self.soapcomm("RemoveFromGroup", group=groupid, id=nodeid)
@@ -520,6 +803,9 @@ class Isy(IsyUtil):
 
     ## folder
 
+    #
+    # need to add code to update name2id and *2addr lookup arrays
+    #
     def folder_rename(self, fid, fname) :
 	""" rename Folder
 
@@ -529,7 +815,7 @@ class Isy(IsyUtil):
 
 	    calls SOAP RenameFolder()
 	"""
-	fid = self._node_get_id(fid)
+	(idtype, fid) = self._node_get_id(fid)
 	r = self.soapcomm("RenameFolder", id=fid, name=fname)
 	return r
 
@@ -567,7 +853,7 @@ class Isy(IsyUtil):
 
 	    calls SOAP RemoveFolder()
 	"""
-	fid = self._node_get_id(fid)
+	(idtype, fid) = self._node_get_id(fid)
 	if fid == None :
 	    raise IsyValueError("Unknown Folder : " + str(fid) )
 	r = self.soapcomm("RemoveFolder", id=fid)
@@ -588,12 +874,12 @@ class Isy(IsyUtil):
 
 	    calls SOAP SetParent()
 	"""
-	nodeid = self._node_get_id(nid)
+	(idtype, nodeid) = self._node_get_id(nid)
 	if nodeid == None :
 	    raise IsyValueError("no such Node/Scene : " + str(nid) )
 
 	if parent != "" :
-	    fldid = self._node_get_id(parent)
+	    (idtype, fldid) = self._node_get_id(parent)
 	    if fldid == None :
 		raise IsyValueError("no such Folder : " + str(parent) )
 	    parentid = fldid
@@ -1174,7 +1460,7 @@ class Isy(IsyUtil):
 	    raise IsyValueError("callback_set : Invalid Arg, function not callable")
 	    # func.__repr__()
 
-	nodeid = self._node_get_id(nid)
+	(idtype, nodeid) = self._node_get_id(nid)
 	if nodeid == None :
 	    raise LookupError("no such Node : " + str(nodeid) )
 
@@ -1190,7 +1476,7 @@ class Isy(IsyUtil):
 	no none exist then value "None" is returned
 	"""
 
-	nodeid = self._node_get_id(nid)
+	(idtype, nodeid) = self._node_get_id(nid)
 
 	if nodeid != None and nodeid in self.callbacks :
 	    return self.callbacks[nodeid]
@@ -1208,7 +1494,7 @@ class Isy(IsyUtil):
 
 	    no error is raised if callback does not exist
 	"""
-	nodeid = self._node_get_id(nid)
+	(idtype, nodeid) = self._node_get_id(nid)
 	if nodeid != None and nodeid in self.callbacks :
 	    del self.callbacks[nodeid]
 
@@ -1221,6 +1507,41 @@ class Isy(IsyUtil):
             print("   obj.%s = %s" % (attr, getattr(uobj, attr)))
         print("\n\n")
 
+
+    #
+    # Untested
+    #
+    def gettype(self, nobj) :
+	if isinstance(nobj, IsySubClass) :
+	      return nobj.objtype()
+	(idtype, nid) = self._node_get_id(nobj)
+	return(idtype)
+
+    #
+    # Untested
+    #
+    def getid(self, objaddr):
+	return self._node_get_id(objid)
+
+    #
+    # Untested
+    #
+    def getobj(self, objaddr):
+        """ access node obj line a dictionary entery """
+	(idtype, nid) = self.getid(objid)
+	if nid == None :
+	    raise IsyValueError("unknown node/obj : " + objid)
+        if nid in self.nodeCdict :
+            return self.nodeCdict[nid]
+
+	if idtype in ['node', 'group', 'folder'] :
+            return self.get_node(nid)
+	elif idtype == "var" :
+            return self.get_var(nid)
+	elif idtype == "prog" :
+            return self.get_prog(nid)
+	else :
+	    raise IsyValueError("don't know how to get obj for type : " + idtype)
 
     ##
     ## Special Methods
