@@ -293,7 +293,7 @@ class IsyNode(_IsyNodeBase):
 #            else :
 #                return None
 
-	    return super(IsyNode, self)._get_prop(prop)
+	    return super(self.__class__, self)._get_prop(prop)
 
     def _set_prop(self, prop, new_value):
         """  generic property set """
@@ -476,7 +476,7 @@ class IsyScene(_IsyNodeBase):
     def __init__(self, *args):
 	#self._objtype = (2, "scene")
 	self._objtype = "scene"
-	super(IsyScene, self).__init__(*args)
+	super(self.__class__, self).__init__(*args)
 
     # status property
     # obj mathod for getting/setting a  Scene's value
@@ -560,7 +560,7 @@ class IsyNodeFolder(_IsyNodeBase):
     def __init__(self, *args):
 	#self._objtype = (3, "folder")
 	self._objtype = "folder"
-	super(IsyNodeFolder, self).__init__(*args)
+	super(self.__class__, self).__init__(*args)
 
     def member_add(self, node, flag=0) :
 	""" add Node/Scene or Folder to Folder Obj

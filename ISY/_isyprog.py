@@ -136,7 +136,7 @@ def prog_iter(self):
     if not self._progdict :
 	self.load_prog()
 
-    k = self._progdict.keys()
+    k = sorted(self._progdict.keys())
     for v in k :
 	yield self.get_prog(v)
 

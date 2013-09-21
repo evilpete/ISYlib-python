@@ -59,7 +59,7 @@ class IsyProgram(IsySubClass):
     def _get_prop(self, prop) :
 	if prop == 'src' :
 	    return self.get_src()
-	return super(IsyProgram, self)._get_prop(prop)
+	return super(self.__class__, self)._get_prop(prop)
 
     def get_prog_enable(self):
 	""" check if prog is enabled (bool) """

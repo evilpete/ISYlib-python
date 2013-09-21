@@ -643,12 +643,12 @@ def node_iter(self, nodetype=""):
     if not self._nodedict :
 	self.load_nodes()
     if nodetype == "node" :
-	k = self._nodedict.keys()
+	k = sorted(self._nodedict.keys())
     elif nodetype == "scene" :
-	k = self._nodegroups.keys()
+	k = sorted(self._nodegroups.keys())
     else :
-	k = self._nodedict.keys()
-	k.extend(self._nodegroups.keys())
+	k = sorted(self._nodedict.keys())
+	k.extend( sorted(self._nodegroups.keys()))
     for n in k :
 	yield self.get_node(n)
 
