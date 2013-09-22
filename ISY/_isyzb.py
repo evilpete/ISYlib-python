@@ -12,12 +12,19 @@ to test against
 """
 
 def load_zb():
+    # /rest/zb/nodes
     pass
 
 def zb_scannetwork():
+    # /rest/zb/scanNetwork
     pass
 
 def zb_ntable():
+    # /rest/zb/ntable
+    pass
+
+def zb_ping_node():
+    # /rest/zb/nodes/[euid]/ping
     pass
 
 def get_zbnode():

@@ -135,6 +135,8 @@ class Isy(IsyUtil):
 		_net_resource_get_id, net_resource_run, \
 		net_resource_names, net_resource_iter, \
 		load_net_wol, net_wol, _net_wol_get_id, net_wol_names, net_wol_iter
+#    from ISY._isyzb import load_zb, zb_scannetwork, zb_ntable, zb_ping_node, \
+#		zbnode_addrs, zbnode_names, zbnode_iter
 
 
 
@@ -168,10 +170,11 @@ class Isy(IsyUtil):
         self.cachetime = kwargs.get("cachetime", 0)
         self.faststart = kwargs.get("faststart", 1)
         self.eventupdates = kwargs.get("eventupdates", 0)
+
 	self._isy_event = None
 	self.event_heartbeat = 0;
 	self.error_str = ""
-	self.callbacks = dict ()
+	self.callbacks = None
         self._is_pro = True
 
 
@@ -258,6 +261,10 @@ class Isy(IsyUtil):
         self.folderCdict = dict ()
 
         if self.eventupdates :
+	    if not self._progdict :
+		self.load_prog()
+            if  not self._nodedict :
+		self.load_nodes()
             self.start_event_thread()
 
     #
@@ -359,7 +366,8 @@ class Isy(IsyUtil):
                         RuntimeWarning)
 
         elif evnt_dat["control"] == "_0" : # HeartBeat
-	    self.event_heartbeat = time();
+	    #self.event_heartbeat = time.gmtime()
+	    pass
 
 	#
         # handle VAR value change
@@ -374,7 +382,7 @@ class Isy(IsyUtil):
 	    # action = "4" -> IR Learn Mode   
 	    # action = "5" -> Schedule (schedule status changed)    
 	    # action = "6" -> Variable Status (status of variable changed)    
-	    # action = "7" -> Variable Initialized (initial value of a variable    
+	    # action = "7" -> Variable Initialized (initial value of a variable    )
 	    # 
             if evnt_dat["action"] == "0" and 'nr' in evnt_dat['eventInfo'] :
 		prog_id = '{0:0>4}'.format(evnt_dat['eventInfo']['id'])
@@ -393,20 +401,21 @@ class Isy(IsyUtil):
 		    prog_dict['lastRunTime'] = evnt_dat['eventInfo']['r']
 		    prog_dict['lastFinishTime'] = evnt_dat['eventInfo']['f']
 
-		    if evnt_dat['eventInfo']['status'] & 0x01 :
+		    ev_status = int(evnt_dat['eventInfo']['s'])
+		    if ev_status & 0x01 :
 			prog_dict['running'] = 'idle'
-		    elif evnt_dat['eventInfo']['status'] & 0x02 :
+		    elif ev_status & 0x02 :
 			prog_dict['running'] = 'then'
-		    elif evnt_dat['eventInfo']['status'] & 0x03 :
+		    elif ev_status & 0x03 :
 			prog_dict['running'] = 'else'
 
-		    if evnt_dat['eventInfo']['status'] & 0x10 :
+		    if ev_status & 0x10 :
 			prog_dict['status'] = 'unknown'
-		    elif evnt_dat['eventInfo']['status'] & 0x20 :
+		    elif ev_status & 0x20 :
 			prog_dict['status'] = 'true'
-		    elif evnt_dat['eventInfo']['status'] & 0x30 :
+		    elif ev_status & 0x30 :
 			prog_dict['status'] = 'false'
-		    elif evnt_dat['eventInfo']['status'] & 0xF0 :
+		    elif ev_status & 0xF0 :
 			prog_dict['status'] = 'not_loaded'
 		else :
 		    self.load_prog(prog_id)
@@ -487,6 +496,17 @@ class Isy(IsyUtil):
 		    self._nodegroups[ evnt_dat['node'] ]['name'] = evnt_dat['eventInfo']['newName']
 		    self._groups2addr[ evnt_dat['eventInfo']['newName'] ] = evnt_dat['node']
 		    del self._groups2addr[ oldname ]
+		    
+		    if evnt_dat['eventInfo']['newName'] in self._name2id :
+			# warn Dup ID
+			if self._name2id[ evnt_dat['eventInfo']['newName'] ][0] == "group" :
+			    self._name2id[ evnt_dat['eventInfo']['newName'] ] = ("group", evnt_dat['node'] )
+		    else :
+			self._name2id[ evnt_dat['eventInfo']['newName'] ] = ("group", evnt_dat['node'] )
+		    # Delete old entery if it is 'ours'
+		    if oldname in self._name2id and self._name2id[ oldname ][0] == "group" :
+			del self._name2id[ oldname ]
+
 	    elif evnt_dat['action'] == 'GR' : # Group Removed/Deleted    
 		    if ( self.debug & 0x40 ) :
 			print("evnt_dat :", evnt_dat)
@@ -535,10 +555,18 @@ class Isy(IsyUtil):
 	    #    </eventInfo>
 	    if evnt_dat['action'] == '5' :
 		if 'status' in evnt_dat['eventInfo'] :
-		    self.isystatus['batchmode'] = evnt_dat['eventInfo']['status'] == "1"
+		    if evnt_dat['eventInfo']['status'] == "1" :
+			self.isy_status['batchmode'] = True
+		    else :
+			self.isy_status['batchmode'] = False
+		    # self.isy_status['batchmode'] = (evnt_dat['eventInfo']['status'] == "1")
 	    elif evnt_dat['action'] == '6' :
 		if 'status' in evnt_dat['eventInfo'] :
-		    self.isystatus['battery_mode_prog_update'] = evnt_dat['eventInfo']['status'] == "1"
+		    if evnt_dat['eventInfo']['status'] == "1" :
+			self.isy_status['battery_mode_prog_update'] = True
+		    else :
+			self.isy_status['battery_mode_prog_update'] = False
+		    #self.isy_status['battery_mode_prog_update'] = (evnt_dat['eventInfo']['status'] == "1")
 
 		# status_battery_mode_prog_update
 
@@ -624,14 +652,21 @@ class Isy(IsyUtil):
             print("evnt_dat :", evnt_dat)
             print("Event fall though : '{0}'".format(evnt_dat["node"]))
 
-	if event_targ in self.callbacks :
-	    cb = self.callbacks[event_targ]
-	    if isinstance(cb[0], collections.Callable) :
-		cb[0](evnt_dat, *cb[1])
-	    else :
-		warn("callback for {0} not callable, deleting callback".format(event_targ),
-                        RuntimeWarning)
-		del self.callbacks[event_targ]
+	if self.callbacks != None :
+	    call_targ = None
+	    if event_targ in self.callbacks :
+		call_targ = event_targ
+	    elif evnt_dat["control"] in self.callbacks :
+		call_targ = evnt_dat["control"] 
+
+	    if call_targ != None :
+		cb = self.callbacks[call_targ]
+		if isinstance(cb[0], collections.Callable) :
+		    cb[0](evnt_dat, *cb[1])
+		else :
+		    warn("callback for {!s} not callable, deleting callback".format(call_targ),
+			    RuntimeWarning)
+		    del self.callbacks[call_targ]
 
 	return
 
@@ -1320,7 +1355,7 @@ class Isy(IsyUtil):
 	xurl = "/rest/subscriptions"
         if self.debug & 0x02 : print("xurl = " + xurl)
 	resp = self._getXMLetree(xurl)
-	self._printXML(resp)
+	#self._printXML(resp)
 	return et2d(resp)
 
     def network(self) :
@@ -1335,7 +1370,7 @@ class Isy(IsyUtil):
 	xurl = "/rest/network"
         if self.debug & 0x02 : print("xurl = " + xurl)
 	resp = self._getXMLetree(xurl)
-	self._printXML(resp)
+	#self._printXML(resp)
 	return et2d(resp)
 
     def sys(self) :
@@ -1348,7 +1383,7 @@ class Isy(IsyUtil):
 	xurl = "/rest/sys"
         if self.debug & 0x02 : print("xurl = " + xurl)
 	resp = self._getXMLetree(xurl)
-	self._printXML(resp)
+	#self._printXML(resp)
 	return et2d(resp)
 
     def time(self) :
@@ -1360,7 +1395,7 @@ class Isy(IsyUtil):
 	"""
 	xurl = "/rest/time"
 	resp = self._getXMLetree(xurl)
-	self._printXML(resp)
+	#self._printXML(resp)
 	return et2d(resp)
 
     def batch( self, on=-1) :
@@ -1386,7 +1421,7 @@ class Isy(IsyUtil):
 	    print 'The server couldn\'t fulfill the request.'
 	    raise IsyResponseError("Batch")
 	else :
-	    self._printXML(resp)
+	    #self._printXML(resp)
 	    return resp
 
     #/rest/batterypoweredwrites
@@ -1411,7 +1446,7 @@ class Isy(IsyUtil):
         if self.debug & 0x02 : print("xurl = " + xurl)
 	resp = self._getXMLetree(xurl)
 	if resp != None :
-	    self._printXML(resp)
+	    #self._printXML(resp)
 	    return et2d(resp)
 
     def electricity(self):
@@ -1433,7 +1468,7 @@ class Isy(IsyUtil):
             print("xurl = " + xurl)
 	resp = self._getXMLetree(xurl)
 	if resp != None :
-	    self._printXML(resp)
+	    #self._printXML(resp)
 	    return et2d(resp)
 
     ##
@@ -1460,6 +1495,9 @@ class Isy(IsyUtil):
 	    raise IsyValueError("callback_set : Invalid Arg, function not callable")
 	    # func.__repr__()
 
+	if self.callbacks == None :
+	    self.callbacks = dict ()
+
 	(idtype, nodeid) = self._node_get_id(nid)
 	if nodeid == None :
 	    raise LookupError("no such Node : " + str(nodeid) )
@@ -1476,10 +1514,11 @@ class Isy(IsyUtil):
 	no none exist then value "None" is returned
 	"""
 
-	(idtype, nodeid) = self._node_get_id(nid)
+	if self.callbacks != None :
+	    (idtype, nodeid) = self._node_get_id(nid)
 
-	if nodeid != None and nodeid in self.callbacks :
-	    return self.callbacks[nodeid]
+	    if nodeid != None and nodeid in self.callbacks :
+		return self.callbacks[nodeid]
 	
 	return None
 
@@ -1494,9 +1533,10 @@ class Isy(IsyUtil):
 
 	    no error is raised if callback does not exist
 	"""
-	(idtype, nodeid) = self._node_get_id(nid)
-	if nodeid != None and nodeid in self.callbacks :
-	    del self.callbacks[nodeid]
+	if self.callbacks != None :
+	    (idtype, nodeid) = self._node_get_id(nid)
+	    if nodeid != None and nodeid in self.callbacks :
+		del self.callbacks[nodeid]
 
     ##
     ## support functions
@@ -1507,6 +1547,10 @@ class Isy(IsyUtil):
             print("   obj.%s = %s" % (attr, getattr(uobj, attr)))
         print("\n\n")
 
+
+    ##
+    ## the following are obj independent get methods
+    ##
 
     #
     # Untested
@@ -1521,7 +1565,8 @@ class Isy(IsyUtil):
     # Untested
     #
     def getid(self, objaddr):
-	return self._node_get_id(objid)
+	(idtype, nid) = self._node_get_id(objaddr)
+	return(nid)
 
     #
     # Untested

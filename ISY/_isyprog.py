@@ -25,6 +25,9 @@ def load_prog(self, progid=None):
     if not hasattr(self, '_progdict') or not isinstance(self._progdict, dict):
 	self._progdict = dict ()
 
+    if not hasattr(self, '_name2id') or not isinstance(self._name2id, dict):
+        self._name2id = dict ()
+
     if progid  :
 	xurl = "/rest/programs/" + progid
     else :
@@ -46,8 +49,9 @@ def load_prog(self, progid=None):
 		self._progdict[str(pdict["id"])] = pdict
 	    n = pdict["name"].upper()
 
+	    # name2id to replace name2var as a global lookup table
 	    if n in self._name2id :
-		print("Dup name : \"" + n + "\" ", pdict["id"])
+		print("Dup name2id : \"" + n + "\" ", pdict["id"])
 		print("name2id ", self._name2id[n])
 	    else :
 		self._name2id[n] = ("program", pdict["id"])
@@ -189,7 +193,7 @@ def _prog_comm(self, prog_id, cmd) :
 	print("xurl = " + xurl)
 
     resp = self._getXMLetree(xurl)
-    self._printXML(resp)
+    #self._printXML(resp)
     if resp.attrib["succeeded"] != 'true' :
 	raise IsyResponseError("ISY command error : prog_id=" +
 	    str(prog_id) + " cmd=" + str(cmd))

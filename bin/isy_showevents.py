@@ -1,4 +1,4 @@
-#!/usr/local/bin/python2.7
+#!/usr/local/bin/python2.7 -u
 __author__ = "Peter Shipley"
 
 

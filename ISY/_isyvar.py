@@ -30,6 +30,10 @@ def load_vars(self) :
     """
     if not hasattr(self, '_vardict') or not isinstance(self._vardict, dict):
         self._vardict = dict ()
+
+    if not hasattr(self, '_name2id') or not isinstance(self._name2id, dict):
+        self._name2id = dict ()
+
     self.name2var = dict ()
     for t in [ '1', '2' ] :
         vinfo = self._getXMLetree("/rest/vars/get/" + t)
@@ -58,8 +62,9 @@ def load_vars(self) :
             else :
                 self.name2var[n] = vid
 
+	    # name2id to replace name2var as a global lookup table
 	    if n in self._name2id :
-		print("Dup name : \"" + n + "\" : " + vid)
+		print("Dup name2id : \"" + n + "\" : " + vid)
 		print("\tname2id ", self._name2id[n])
 	    else :
 		self._name2id[n] = ("var", vid)
