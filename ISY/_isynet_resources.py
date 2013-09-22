@@ -18,6 +18,10 @@ from ISY.IsyExceptionClass import IsyResponseError, IsyValueError
 def _load_networking(self, resource_id):
     if self.debug & 0x01 :
 	print("_load_networking {!s} called".resource_id)
+
+    if not hasattr(self, '_name2id') or not isinstance(self._name2id, dict):
+        self._name2id = dict ()
+
     xurl = "/rest/networking/{!s}".format(resource_id)
     if self.debug & 0x02 :
 	print("_load_networking : xurl = " + xurl)
@@ -37,8 +41,9 @@ def _load_networking(self, resource_id):
 		n = netrule['name']
 		name2rid[n] = netrule['id']
 
+		# name2id to replace name2var as a global lookup table
 		if n in self._name2id :
-		    print("Dup name : \"" + n + "\" : " + netrule['id'])
+		    print("Dup name2id : \"" + n + "\" : " + netrule['id'])
 		    print("\tname2id ", self._name2id[n])
 		else :
 		    self._name2id[n] = (resource_id, netrule['id'])

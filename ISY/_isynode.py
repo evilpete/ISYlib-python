@@ -39,6 +39,9 @@ def load_nodes(self) :
     if not hasattr(self, '_folder2addr') or not isinstance(self._folder2addr, dict):
 	self._folder2addr = dict ()
 
+    if not hasattr(self, '_name2id') or not isinstance(self._name2id, dict):
+        self._name2id = dict ()
+
     # self.nodeCdict = dict ()
     # self._node2addr = dict ()
     if self.debug & 0x01 :
@@ -144,8 +147,9 @@ def _gen_folder_list(self, nodeinfo) :
 	n = fprop["name"].upper()
 	self._folder2addr[n] = fprop["address"]
 
+	# name2id to replace name2var as a global lookup table
 	if n in self._name2id :
-	    print("Dup name (Folder) : \"" + n + "\" ",fprop["address"])
+	    print("Dup name2id (Folder) : \"" + n + "\" ",fprop["address"])
 	    print("\t_name2id ", self._name2id[n])
 	else :
 	    self._name2id[n] = ("folder", fprop["address"])
@@ -200,7 +204,7 @@ def _gen_nodegroups(self, nodeinfo) :
 		    self._groups2addr[n] = str(gprop["address"])
 
 		if n in self._name2id :
-		    print("Dup name (Group) : \"" + n + "\" ",gprop["address"])
+		    print("Dup name2id (Group) : \"" + n + "\" ",gprop["address"])
 		    print("\t_name2id ", self._name2id[n])
 		else :
 		    self._name2id[n] = ("group", gprop["address"])
@@ -262,7 +266,7 @@ def _gen_nodedict(self, nodeinfo) :
 		    self._node2addr[n] = idict["address"]
 
 		if n in self._name2id :
-		    print("Dup name (Node) : \"" + n + "\" ",idict["address"])
+		    print("Dup name2id (Node) : \"" + n + "\" ",idict["address"])
 		    print("\t_name2id ", self._name2id[n])
 		else :
 		    self._name2id[n] = ("node", idict["address"])
@@ -494,7 +498,7 @@ def _node_send(self, naddr, action,  prop, *args) :
     xurl = "/rest/nodes/{!s:}/{!s:}/{!s:}/{!s:}".format(naddr, action, prop, "/".join(str(x) for x in args) )
     if self.debug & 0x02 : print("xurl = " + xurl)
     resp = self._getXMLetree(xurl)
-    self._printXML(resp)
+    # self._printXML(resp)
     if resp == None or resp.attrib["succeeded"] != 'true' :
 	raise IsyResponseError(
 		"Node Cmd/Property Set error : node=%s prop=%s " %
