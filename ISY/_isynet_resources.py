@@ -190,7 +190,7 @@ def net_wol_iter(self):
     if not self._wolinfo :
 	self.load_net_wol()
 
-    for k, v in self._wolinfo.items() :
+    for v in self._wolinfo.values() :
 	yield v
 
 

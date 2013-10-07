@@ -280,6 +280,9 @@ class Isy(IsyUtil):
         """
         from threading import Thread
 
+	if ( self.debug & 0x40 ) :
+	    print "start_event_thread"
+
 	# if thread already runing we should update mask
 	if hasattr(self, 'event_thread') and isinstance(self.event_thread, Thread) :
 	    if self.event_thread.is_alive() :
@@ -388,7 +391,7 @@ class Isy(IsyUtil):
 		prog_id = '{0:0>4}'.format(evnt_dat['eventInfo']['id'])
 		event_targ = prog_id
 
-		if prog_id in self._progdict :
+		if self._progdict prog_id in self._progdict :
 		    prog_dict = self._progdict[prog_id]
 		    if 'on' in evnt_dat['eventInfo'] :
 			prog_dict['enabled'] = 'true'
@@ -456,8 +459,9 @@ class Isy(IsyUtil):
 	    pass
 
         elif evnt_dat["control"] == "_3" : # Node Change/Updated Event
-	    print("Node Change/Updated Event :  {0}".format(evnt_dat["node"]))
-	    print("evnt_dat : ", evnt_dat)
+	    if ( self.debug & 0x40 ) :
+		print("Node Change/Updated Event :  {0}".format(evnt_dat["node"]))
+		print("evnt_dat : ", evnt_dat)
             #
 	    # action = "NN" -> Node Renamed   
 	    # action = "NR" -> Node Removed    
@@ -649,8 +653,9 @@ class Isy(IsyUtil):
 
 
         else:
-            print("evnt_dat :", evnt_dat)
-            print("Event fall though : '{0}'".format(evnt_dat["node"]))
+	    if ( self.debug & 0x40 ) :
+		print("evnt_dat :", evnt_dat)
+		print("Event fall though : '{0}'".format(evnt_dat["node"]))
 
 	if self.callbacks != None :
 	    call_targ = None
@@ -662,7 +667,13 @@ class Isy(IsyUtil):
 	    if call_targ != None :
 		cb = self.callbacks[call_targ]
 		if isinstance(cb[0], collections.Callable) :
-		    cb[0](evnt_dat, *cb[1])
+		    try :
+			cb[0](evnt_dat, *cb[1])
+		    except Exception as e:
+			print "e=",e
+			print "sys.exc_info()=",sys.exc_info()
+			print("Callback Error:", sys.exc_info()[0])
+
 		else :
 		    warn("callback for {!s} not callable, deleting callback".format(call_targ),
 			    RuntimeWarning)
@@ -1081,26 +1092,26 @@ class Isy(IsyUtil):
 	    preload all data tables from ISY device into cache
 	    normally this is done "on demand" as needed
 	"""
-	if rload or  not hasattr(self, "controls") :
+	if rload or  not self.controls :
 	    self.load_conf()
 
-	if rload or not hasattr(self, "_nodedict") :
+	if rload or not self._nodedict :
 	    self.load_nodes()
 
         # self._gen_member_list()
-	# if rload or  not hasattr(self, "climateinfo") :
+	# if rload or not self.climateinfo :
 	    # self.load_clim()
 
-	if rload or  not hasattr(self, "_vardict") :
+	if rload or not self._vardict :
 	    self.load_vars()
 
-	if rload or  not hasattr(self, "_progdict") :
+	if rload or not self._progdict :
 	    self.load_prog()
 
-	# if rload or  not hasattr(self, "_wolinfo") :
+	# if rload or not self._wolinfo :
 	    #self.load_wol()
 
-	if rload or  not hasattr(self, "_nodeCategory") :
+	if rload or not self._nodeCategory :
 	    self.load_node_types()
 
     def _savedict(self) :
@@ -1500,9 +1511,10 @@ class Isy(IsyUtil):
 
 	(idtype, nodeid) = self._node_get_id(nid)
 	if nodeid == None :
-	    raise LookupError("no such Node : " + str(nodeid) )
-
-	self.callbacks[nodeid] = (func, args)
+	    # raise LookupError("no such Node : " + str(nodeid) )
+	    self.callbacks[nid] = (func, args)
+	else :
+	    self.callbacks[nodeid] = (func, args)
 
     def callback_get(self, nid):
 	"""get a callback funtion for a Nodes
