@@ -106,12 +106,13 @@ class _IsyNodeBase(IsySubClass):
         return [ ]
 
     def is_dimable(self) :
-	if type in self._mydict :
+	if 'type' in self._mydict :
 	    a = self._mydict["type"].split('.') 
 	    if a[0] == "1" :
 		return True
-
 	return False
+    dimable = property(is_dimable)
+
 
 
 
