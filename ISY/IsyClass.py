@@ -391,7 +391,7 @@ class Isy(IsyUtil):
 		prog_id = '{0:0>4}'.format(evnt_dat['eventInfo']['id'])
 		event_targ = prog_id
 
-		if self._progdict prog_id in self._progdict :
+		if self._progdict and prog_id in self._progdict :
 		    prog_dict = self._progdict[prog_id]
 		    if 'on' in evnt_dat['eventInfo'] :
 			prog_dict['enabled'] = 'true'
