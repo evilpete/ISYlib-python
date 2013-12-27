@@ -1278,10 +1278,18 @@ class Isy(IsyUtil):
         if self.debug & 0x02 :
             print("xurl = " + xurl)
         req = URL.Request(xurl)
-        res = self._opener.open(req)
-        data = res.read()
-        res.close()
-        return data.splitlines()
+	try:
+
+	    res = self._opener.open(req)
+
+	except URL.URLError as e:
+	    # Error log can return a 404 is there are not logs ( yet )
+	    return [ ]
+
+	else :
+	    data = res.read()
+	    res.close()
+	    return data.splitlines()
 
     def log_format_line(self, line) :
         """ format a ISY log line into a more human readable form
