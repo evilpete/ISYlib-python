@@ -169,11 +169,18 @@ def var_get_value(self, var, prop="val") :
         return(self._vardict[varid][prop])
 
 
-#    def var_names(self) :
-#        pass
+# to conform with node and prog API calls
+def var_addrs(self) :
+    return self.var_ids()
 
 
-def var_addrs(self)  :
+def var_ids(self)  :
+    if not self._vardict :
+        self.load_vars()
+
+    return self._vardict
+
+def var_names(self)  :
     """ access method for var addresses
 
         args: None

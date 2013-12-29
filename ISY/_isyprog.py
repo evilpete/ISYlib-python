@@ -46,6 +46,11 @@ def load_prog(self, progid=None):
 	    pdict[k] = v
 	for pe in list(pg):
 	    pdict[pe.tag] = pe.text
+
+	# spacial case for root program node folder
+	if not "parentId" in pdict :
+	    pdict["parentId"] = pdict["id"]
+
 	if "id" in pdict :
 	    if str(pdict["id"]) in self._progdict :
 		self._progdict[str(pdict["id"])].update(pdict)

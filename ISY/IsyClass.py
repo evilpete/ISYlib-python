@@ -122,7 +122,7 @@ class Isy(IsyUtil):
     # import functions
     from ISY._isyclimate import load_clim, clim_get_val, clim_query, clim_iter
     from ISY._isyvar  import load_vars, var_set_value, _var_set_value, \
-		var_get_value, var_addrs, get_var, _var_get_id, \
+		var_get_value, var_addrs, var_ids, get_var, _var_get_id, \
 		var_get_type, var_iter
     from ISY._isyprog import load_prog, get_prog, _prog_get_id, \
 		prog_iter, prog_comm, _prog_comm, prog_get_src
