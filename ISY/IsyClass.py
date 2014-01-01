@@ -125,12 +125,14 @@ class Isy(IsyUtil):
 		var_get_value, var_addrs, var_ids, get_var, _var_get_id, \
 		var_get_type, var_iter
     from ISY._isyprog import load_prog, get_prog, _prog_get_id, \
-		prog_iter, prog_comm, _prog_comm, prog_get_src
+		prog_iter, prog_comm, _prog_comm, prog_get_src, \
+		prog_get_path, _prog_get_path
     from ISY._isynode import load_nodes, _gen_member_list, _gen_folder_list, \
 		_gen_nodegroups, _gen_nodedict, node_names, scene_names, \
 		node_addrs, scene_addrs, get_node, _node_get_id, node_get_prop, \
 		node_set_prop, _node_send, node_comm, _updatenode, \
-		load_node_types, node_get_type, node_iter, _updatenode
+		load_node_types, node_get_type, node_iter, _updatenode, \
+		node_get_path, _node_get_path
     from ISY._isynet_resources import _load_networking, load_net_resource, \
 		_net_resource_get_id, net_resource_run, \
 		net_resource_names, net_resource_iter, \

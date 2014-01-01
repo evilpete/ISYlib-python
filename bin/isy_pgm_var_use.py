@@ -56,12 +56,9 @@ def list_prog_vars(isy) :
 	if p.parentId == '0001' or opt_fullpath == False  :
 	    pname = p.name
 	else :
-	    pname = p.name
-	    pgm = isy.get_prog(p.parentId)
-	    while pgm.id != '0001' :
-		pname = pgm.name + "/" + pname 
-		pgm = isy.get_prog(pgm.parentId)
+	    pname = p.path
 	    
+
 	if len(var_list) > 0 or  opt_skipnovars != True :
 	    print "{:<5}{:<{namew}} {!s}".format(p.id, pname, ", ".join(var_list), namew=name_width),
 

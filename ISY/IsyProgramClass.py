@@ -93,6 +93,15 @@ class IsyProgram(IsySubClass):
         return rval
     runatstart = property(get_prog_runatstart, set_prog_runatstart)
 
+    def get_path(self):
+	return self.isy.prog_get_path( self._mydict['id'] )
+    path = property(get_path)
+
+    def get_path(self):
+	""" get folder path program """
+	return self.isy._prog_get_path( self._mydict['id'] )
+    src = property(get_path)
+
     def get_src(self):
 	""" get D2D source for program """
 	return self.isy.prog_get_src( self._mydict['id'] )

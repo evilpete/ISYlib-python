@@ -126,6 +126,28 @@ def _prog_get_id(self, pname):
     # print("_prog_get_id : " + n + " None")
     return None
 
+def prog_get_path(self, pname) :
+
+    if not self._progdict :
+	self.load_prog()
+
+    prog_id = self._prog_get_id(pname)
+
+    if not prog_id :
+	raise IsyInvalidCmdError("prog_comm: unknown node : " + str(pname) )
+
+    return self._prog_get_path(prog_id)
+
+def _prog_get_path(self, prog_id) :
+    fpath = self._progdict[prog_id]['name']
+    pgm = self._progdict[ self._progdict[prog_id]['parentId'] ]
+    while pgm['id'] != '0001' :
+	fpath = pgm['name'] + "/" + fpath 
+	pgm = self._progdict[ pgm['parentId'] ]
+
+    return fpath
+
+
 def prog_get_src(self, pname):
 
     if not self._progdict :

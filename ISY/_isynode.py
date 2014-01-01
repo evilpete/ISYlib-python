@@ -315,6 +315,28 @@ def scene_addrs(self) :
 	self.load_nodes()
     return self._nodegroups.viewkeys()
 
+def node_get_path(self, nodeid) :
+
+    if not self._nodedict :
+	self.load_node()
+
+    node_id = self._node_get_id(nodeid)
+
+    if not node_id :
+	raise IsyInvalidCmdError("node_path: unknown node : " + str(nodeid) )
+
+    return self._node_get_path(node_id)
+
+def _node_get_path(self, noid_id) :
+    fpath = self._nodedict[node_id]['name']
+    pnode = self._nodedict[ self._nodedict[node_id]['parentId'] ]
+    while pnode['id'] != '0001' :
+	fpath = pnode['name'] + "/" + fpath 
+	pnode = self._nodedict[ pnode['parentId'] ]
+
+    return fpath
+
+
 
 def get_node(self, node_id) :
     """ Get a Node object for given node or scene name or ID

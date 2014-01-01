@@ -90,6 +90,10 @@ class _IsyNodeBase(IsySubClass):
         self.isy._node_send(self._mydict["address"], "cmd", "BEEP")
 
 
+    def get_path(self): 
+	return self.isy.node_get_path( self._mydict['id'] )
+    path = property(get_path) 
+
     def members_list(self) :
 	pass
 
