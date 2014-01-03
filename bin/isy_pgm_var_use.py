@@ -1,4 +1,5 @@
 #!/usr/local/bin/python2.7
+__author__ = "Peter Shipley"
 #
 #  quick hack to check what ISY vars are in use by which programs
 #
@@ -18,7 +19,6 @@ opt_fullpath = True
 # Skip program that don't use vars
 opt_skipnovars = True
 
-__author__ = "Peter Shipley"
 
 import xml.etree.ElementTree as ET
 

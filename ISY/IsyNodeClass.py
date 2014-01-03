@@ -224,6 +224,7 @@ class IsyNode(_IsyNodeBase):
     """
     _getlist = ['address', 'enabled', 'formatted',
             'ELK_ID',
+	    'parent', 'parent-type',
             'name', 'pnode', 'flag',
             'OL', 'RR', 'ST', 'type']
     _setlist = ['RR', 'OL', 'status', 'ramprate', 'onlevel', 'enable']
@@ -268,6 +269,8 @@ class IsyNode(_IsyNodeBase):
             prop = self._propalias[prop]
 
         if not prop in self._getlist :
+#	    if prop in ['parent', 'parent-type'] :
+#		return None
             raise IsyPropertyError("no property Attribute {!s}".format(prop))
 
         # check if we have a property

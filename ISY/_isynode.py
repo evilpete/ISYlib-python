@@ -33,8 +33,8 @@ def load_nodes(self) :
     if not hasattr(self, '_nodegroups') or not isinstance(self._nodegroups, dict):
 	self._nodegroups  = dict ()
 
-    if not hasattr(self, '_folderlist') or not isinstance(self._folderlist, dict):
-	self._folderlist  = dict ()
+    if not hasattr(self, '_nodefolder') or not isinstance(self._nodefolder, dict):
+	self._nodefolder  = dict ()
 
     if not hasattr(self, '_folder2addr') or not isinstance(self._folder2addr, dict):
 	self._folder2addr = dict ()
@@ -65,9 +65,9 @@ def _gen_member_list(self) :
     else :
 
 	# Folders can only belong to Folders
-	for faddr in self._folderlist :
+	for faddr in self._nodefolder :
 	    # make code easier to read
-	    foldr = self._folderlist[faddr]
+	    foldr = self._nodefolder[faddr]
 	    # add members list if needed
 	    if 'members' not in foldr :
 		foldr['members'] = list()
@@ -75,10 +75,10 @@ def _gen_member_list(self) :
 	    if 'parent' in foldr :
 		# this should always be true
 		if foldr['parent-type'] == '3' and \
-			foldr['parent'] in self._folderlist :
-		    if 'members' not in self._folderlist[foldr['parent']] :
-			self._folderlist[foldr['parent']]['members'] = list()
-		    self._folderlist[foldr['parent']]['members'].append( foldr['address'])  
+			foldr['parent'] in self._nodefolder :
+		    if 'members' not in self._nodefolder[foldr['parent']] :
+			self._nodefolder[foldr['parent']]['members'] = list()
+		    self._nodefolder[foldr['parent']]['members'].append( foldr['address'])  
 		else:
 		    print("warn bad parenting foldr =", foldr)
 		    warnings.warn("Bad Parent : Folder  (0)  (1) : (2)".format( \
@@ -88,8 +88,8 @@ def _gen_member_list(self) :
 	for sa in self._nodegroups :
 	    s = self._nodegroups[sa]
 	    if "parent" in s :
-		if s['parent-type'] == '3' and  s['parent'] in self._folderlist :
-		    self._folderlist[s['parent']]['members'].append( s['address'])
+		if s['parent-type'] == '3' and  s['parent'] in self._nodefolder :
+		    self._nodefolder[s['parent']]['members'].append( s['address'])
 		else:
 		    print("warn bad parenting s = ", s)
 		    warnings.warn("Bad Parent : Scene  (0)  (1) : (2)".format( \
@@ -107,8 +107,8 @@ def _gen_member_list(self) :
 	    if 'parent' in n :
 		if 'pnode' not in n or n['parent'] != n['pnode'] :
 		    if n['parent-type'] == 3 :
-			if n['parent'] in self._folderlist :
-			    self._folderlist[n['parent']]['members'].append( n['address'])
+			if n['parent'] in self._nodefolder :
+			    self._nodefolder[n['parent']]['members'].append( n['address'])
 		    elif  n['parent-type'] == 1 :
 			if n['parent'] in self._nodegroups :
 			    self._nodegroups[n['parent']]['members'].add( n['address'])
@@ -121,16 +121,16 @@ def _gen_member_list(self) :
 
 def _gen_folder_list(self, nodeinfo) :
     """ generate folder dictionary for load_node() """
-    # self._folderlist = dict ()
+    # self._nodefolder = dict ()
     # self._folder2addr = dict ()
     for fold in nodeinfo.iter('folder'):
 
 	xelm = fold.find('address')
 	if hasattr(xelm, 'text') :
 	    if xelm.text in self._nodegroups :
-		fprop = self._folderlist[xelm.text]
+		fprop = self._nodefolder[xelm.text]
 	    else :
-		fprop = self._folderlist[xelm.text] = dict()
+		fprop = self._nodefolder[xelm.text] = dict()
 	else :
 	    warnings.warn("Error : no address in folder", RuntimeWarning)
 	    continue
@@ -143,7 +143,7 @@ def _gen_folder_list(self, nodeinfo) :
 	    if child.attrib :
 		for k, v in child.items() :
 		    fprop[child.tag + "-" + k] =  v
-	# self._folderlist[fprop["address"]] = fprop
+	# self._nodefolder[fprop["address"]] = fprop
 	n = fprop["name"].upper()
 	self._folder2addr[n] = fprop["address"]
 
@@ -154,7 +154,7 @@ def _gen_folder_list(self, nodeinfo) :
 	else :
 	    self._name2id[n] = ("folder", fprop["address"])
 
-    #self._printdict(self._folderlist)
+    #self._printdict(self._nodefolder)
     #self._printdict(self._folder2addr)
 
 def _gen_nodegroups(self, nodeinfo) :
@@ -316,12 +316,10 @@ def scene_addrs(self) :
     return self._nodegroups.viewkeys()
 
 def node_get_path(self, nodeid) :
-
+    " get path of parent names "
     if not self._nodedict :
 	self.load_node()
-
     node_id = self._node_get_id(nodeid)
-
     if not node_id :
 	raise IsyInvalidCmdError("node_path: unknown node : " + str(nodeid) )
 
@@ -364,15 +362,16 @@ def get_node(self, node_id) :
 	self.nodeCdict[nodeid] = IsyScene(self, self._nodegroups[nodeid])
 	return self.nodeCdict[nodeid]
 
-    elif nodeid in self._folderlist:
-	self.nodeCdict[nodeid] = IsyNodeFolder(self, self._folderlist[nodeid])
+    elif nodeid in self._nodefolder:
+	self.nodeCdict[nodeid] = IsyNodeFolder(self, self._nodefolder[nodeid])
 	return self.nodeCdict[nodeid]
 
     else :
-	print("Isy get_node no node : \"{!s:}\"".format(nodeid))
+	# print("Isy get_node no node : \"{!s:}\"".format(nodeid))
 	raise LookupError("no node such Node : " + str(nodeid) )
 
-    # should never ger here
+    # should never get here
+    #print "And you may ask yourself-Well...How did I get here?"
     return None
 
 
@@ -413,8 +412,8 @@ def _node_get_id(self, nid):
 	# print("_node_get_id : " + n + " _folder2addr " + self._folder2addr[n])
 	return  ("folder", self._folder2addr[n])
 
-    if n in self._folderlist :
-	# print("_node_get_id : " + n + " _folderlist " + n)
+    if n in self._nodefolder :
+	# print("_node_get_id : " + n + " _nodefolder " + n)
 	return  ("folder", n)
 
 
@@ -657,7 +656,7 @@ def node_get_type(self, typid) :
     return (devcat, subcat)
 
 
-def node_iter(self, nodetype=""):
+def node_iter(self, **kargs):
     """ Iterate though nodes
 
 	args: 
@@ -666,17 +665,41 @@ def node_iter(self, nodetype=""):
 	returns :
 	    Return an iterator over the Node Obj
     """
+    nodetype = kargs.get("nodetype", ("node", "scene"))
+
+    # this should be generalized to be any attr
+    parent = kargs.get("parent", None)
+    if parent :
+	if isinstance(parent, IsySubClass):
+	    parent = parent.address
+
     if not self._nodedict :
 	self.load_nodes()
-    if nodetype == "node" :
-	k = sorted(self._nodedict.keys())
-    elif nodetype == "scene" :
-	k = sorted(self._nodegroups.keys())
-    else :
-	k = sorted(self._nodedict.keys())
-	k.extend( sorted(self._nodegroups.keys()))
+
+    k = list();
+    if "node" in nodetype :
+	print "adding node"
+	k.extend( sorted(self._nodedict.keys()) )
+
+    if "scene" in nodetype :
+	print "adding scene"
+	k.extend( sorted(self._nodegroups.keys()) )
+
+    if "folder" in nodetype :
+	print "adding folder"
+	k.extend( sorted(self._nodefolder.keys()) )
+
+#    else :
+#	k = sorted(self._nodedict.keys())
+#	k.extend( sorted(self._nodegroups.keys()))
+
     for n in k :
-	yield self.get_node(n)
+	if parent :
+	    nod = self.get_node(n)
+	    if parent == getattr(nod, "parent", None) :
+		yield nod
+	else :
+	    yield self.get_node(n)
 
 
 ## redundant

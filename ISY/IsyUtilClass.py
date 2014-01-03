@@ -426,11 +426,11 @@ class IsySubClass(IsyUtil):
         attr_v = self._get_prop(attr)
         if attr_v != None :
             return attr_v
-#        else :
+        else :
 #            print("attr =", attr, self.address)
 #	    print("self type = ", type(self))
 #	    pprint(self._mydict)
-#            raise(AttributeError, attr)
+            raise(AttributeError, attr)
 
 
     # This allows for 

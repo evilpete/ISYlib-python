@@ -82,7 +82,7 @@ def net_resource_run(self, rrid):
     rid = self._net_resource_get_id(rrid)
 
     if rid == None :
-	raise IsyValueError("bad network resources ID : " + rrid)
+	raise IsyValueError("net_resource_run : bad network resources ID : " + rrid)
 
     xurl = "/rest/networking/resources/{!s}".format(rid)
 
@@ -93,6 +93,17 @@ def net_resource_run(self, rrid):
     if resp == None or  resp.attrib["succeeded"] != 'true' :
 	raise IsyResponseError("ISY network resources error : rid=" + str(rid))
 
+
+def net_resource_get_src(self, rrid):
+
+    rid = self._net_resource_get_id(rrid)
+
+    if rid == None :
+	raise IsyValueError("net_resource_get_src: bad network resources ID : " + rrid)
+
+    r = self.soapcomm("GetSysConf", name="/CONF/NET/" + rrid + ".RES")
+
+    return r
 
 
 def net_resource_names(self):

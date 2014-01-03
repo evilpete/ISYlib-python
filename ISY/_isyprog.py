@@ -127,15 +127,12 @@ def _prog_get_id(self, pname):
     return None
 
 def prog_get_path(self, pname) :
-
+    " get path of parent names "
     if not self._progdict :
 	self.load_prog()
-
     prog_id = self._prog_get_id(pname)
-
     if not prog_id :
 	raise IsyInvalidCmdError("prog_comm: unknown node : " + str(pname) )
-
     return self._prog_get_path(prog_id)
 
 def _prog_get_path(self, prog_id) :

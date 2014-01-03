@@ -184,7 +184,7 @@ class Isy(IsyUtil):
 	self._name2id = dict()
 	self.controls = None
 	self.name2control = None
-	self._folderlist = None
+	self._nodefolder = None
 	self._folder2addr = None
 	self._progdict = None      
 	self._nodedict = None
@@ -525,19 +525,19 @@ class Isy(IsyUtil):
 
 	    elif evnt_dat['action'] == 'FD' :
 		if 'folder' in evnt_dat['eventInfo'] and isinstance(evnt_dat['eventInfo']['folder'], dict) :
-		    self._folderlist[ evnt_dat['node'] ] = evnt_dat['eventInfo']['folder']
+		    self._nodefolder[ evnt_dat['node'] ] = evnt_dat['eventInfo']['folder']
 		    self._folder2addr[ evnt_dat['eventInfo']['folder']['name'] ] = evnt_dat['node']
 	    elif evnt_dat['action'] == 'FR' :
-		if  evnt_dat['node'] in self._folderlist :
+		if  evnt_dat['node'] in self._nodefolder :
 		    if evnt_dat['node'] in self.nodeCdict :
 			# this is tricky if the user has a IsyNodeFolder obj
 			# more has to be done to tell the Obj it's dead
 			del self.nodeCdict[ evnt_dat['node'] ]
-		    del self._folderlist[ evnt_dat['node'] ]
+		    del self._nodefolder[ evnt_dat['node'] ]
 	    elif evnt_dat['action'] == 'FN' :
-		if  evnt_dat['node'] in self._folderlist :
-		    oldname = self._folderlist[ evnt_dat['node'] ]['name']
-		    self._folderlist[ evnt_dat['node'] ]['name'] = evnt_dat['eventInfo']['newName']
+		if  evnt_dat['node'] in self._nodefolder :
+		    oldname = self._nodefolder[ evnt_dat['node'] ]['name']
+		    self._nodefolder[ evnt_dat['node'] ]['name'] = evnt_dat['eventInfo']['newName']
 		    self._folder2addr[ evnt_dat['eventInfo']['newName'] ] = evnt_dat['node']
 		    del self._folder2addr[ oldname ]
 
@@ -806,7 +806,7 @@ class Isy(IsyUtil):
 	if nid == 0 :
 	    iid = 30001
 	    nid = str(iid)
-	    while nid in self._folderlist or nid in self._nodegroups :
+	    while nid in self._nodefolder or nid in self._nodegroups :
 		iid += 1
 		nid=str(iid)
 	self.soapcomm("AddGroup", id=nid, name=sname)
@@ -882,15 +882,15 @@ class Isy(IsyUtil):
 	if fid == 0 :
 	    iid = 50001
 	    fid = str(iid)
-	    while fid in self._folderlist or fid in self._nodegroups :
+	    while fid in self._nodefolder or fid in self._nodegroups :
 		iid += 1
 		fid = str(iid)
 	r = self.soapcomm("AddFolder", fid=1234, name=fname)
 	if  isinstance(r, tuple) and r[0] == '200' :
-	    self._folderlist[fid] = dict()
-	    self._folderlist[fid]['address'] = fid
-	    self._folderlist[fid]['folder-flag'] = '0'
-	    self._folderlist[fid]['name'] = 'fname'
+	    self._nodefolder[fid] = dict()
+	    self._nodefolder[fid]['address'] = fid
+	    self._nodefolder[fid]['folder-flag'] = '0'
+	    self._nodefolder[fid]['name'] = 'fname'
 
 	return r
 
@@ -906,7 +906,7 @@ class Isy(IsyUtil):
 	    raise IsyValueError("Unknown Folder : " + str(fid) )
 	r = self.soapcomm("RemoveFolder", id=fid)
 	if  isinstance(r, tuple) and r[0] == '200' :
-	    self._folderlist[fid] = dict()
+	    self._nodefolder[fid] = dict()
 
     # SetParent(node, nodeType, parent, parentType )
     def folder_add_node(self, nid, nodeType=1, parent="", parentType=3) :
@@ -1127,7 +1127,7 @@ class Isy(IsyUtil):
 
         self._writedict(self._nodegroups, "nodegroups.txt")
 
-        self._writedict(self._folderlist, "folderlist.txt")
+        self._writedict(self._nodefolder, "folderlist.txt")
 
         self._writedict(self._vardict, "vardict.txt")
 
