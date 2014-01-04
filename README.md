@@ -48,7 +48,10 @@ a Isy obj my the node name or address
  
     import ISY
     myisy = ISY.Isy()
+    myisy["16 3F E5 1"].off()
+or
     myisy["Garage Light"].off()
+
 
  
  on 50% :
@@ -71,6 +74,32 @@ list all nodes and scenes and their status :
         else :
             print(pfmt.format(nod.name, nod.address, nod.formatted, nod.enabled, ))
    
+
+--
+
+Callbacks can be set up as easy as
+
+    def mycall(*args):
+	print "mycall called: "
+	for i in args :
+	    print "arg : ", type(i), i
+
+    myisy = ISY.Isy(addr="10.1.1.3", eventupdates=1)
+    myisy.callback_set("Garage Light", mycall, "my extra args")
+
+or
+
+    garage_light = myisy["Garage Light"]
+    garage_light.set_callback(mycall, "my extra args")
+
+or if you don't have any extra arguments to pass
+
+    garage_light = myisy["Garage Light"]
+    garage_light.set_callback = mycall
+
+
+--
+
 see also : http://www.universal-devices.com/residential/
 	   http://wiki.universal-devices.com/index.php?title=Main_Page
 	   

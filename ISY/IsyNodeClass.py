@@ -118,6 +118,14 @@ class _IsyNodeBase(IsySubClass):
     dimable = property(is_dimable)
 
 
+    def get_callback(self) :
+	return self.isy.callback_get(self._mydict["address"])
+    def set_callback(self, func, *args) :
+	if func == None :
+	    return self.isy.callback_del(self._mydict["address"])
+	else :
+	    return self.isy.callback_set(self._mydict["address"], func, args)
+    callback = property(get_callback, set_callback)
 
 
     def is_member(self, obj) :
