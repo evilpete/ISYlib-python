@@ -15,8 +15,61 @@ The Goal / design concept is to provide a fast and simple to use  interface
 
 
 This is a work in progress ( so expect new features )
+
+nodes, programs and iay  vars can be controled with ia objects or call methods.
+
+Get and print the status for the node called "Garage Light"
  
-  
+    import ISY
+    myisy = ISY.Isy(addr="admin", userp="admin, userl="isy")
+ 
+    garage_light = myisy.get_node("Garage Light")
+ 
+    print "Node {:} is {:}".format(garage_light.name, garage_light.formatted)
+ 
+ 
+--
+ 
+Get an object that represents the node called "Garage Light"
+and turn it off if it is on
+ 
+    import ISY
+    myisy = ISY.Isy()
+ 
+    garage_light = myisy.get_node("Garage Light")
+    if garage_light :
+        garage_light.off()
+
+
+--
+ 
+Alternately you can obtain a Node's object by indexing
+a Isy obj my the node name or address
+ 
+    import ISY
+    myisy = ISY.Isy()
+    myisy["Garage Light"].off()
+
+ 
+ on 50% :
+ 
+    garage_light = myisy["Garage Light"]
+    garage_light.on(128)
+    
+ or without node device objs
+
+    myisy.node_comm("Garage Light", "on", 128)
+
+list all nodes and scenes and their status :
+
+    pfmt = "{:<22} {:>12}\t{:<12}{!s:<12}"
+    print(pfmt.format("Node Name", "Address", "Status", "Enabled"))
+    print(pfmt.format("---------", "-------", "------", "------"))
+    for nod in isy :
+        if nod.objtype == "scene" :
+            print(pfmt.format(nod.name, nod.address, "-", "-", ))
+        else :
+            print(pfmt.format(nod.name, nod.address, nod.formatted, nod.enabled, ))
    
 see also : http://www.universal-devices.com/residential/
 	   http://wiki.universal-devices.com/index.php?title=Main_Page
