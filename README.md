@@ -78,9 +78,9 @@ list all nodes and scenes and their status :
 Callbacks can be set up as easy as
 
     def mycall(*args):
-	print "mycall called: "
-	for i in args :
-	    print "arg : ", type(i), i
+        print "mycall called: "
+        for i in args :
+            print "arg : ", type(i), i
 
     myisy = ISY.Isy(addr="10.1.1.3", eventupdates=1)
     myisy.callback_set("Garage Light", mycall, "my extra args")
@@ -101,10 +101,13 @@ Callbacks are executed as a part of the event subthread
 
 --
 
-see also : http://www.universal-devices.com/residential/
-	   http://wiki.universal-devices.com/index.php?title=Main_Page
+see also :
 
-NOTE: This Libaray is not written my or supported by universal devices
+    http://www.universal-devices.com/residential/
+and/or
+    http://wiki.universal-devices.com/index.php?title=Main_Page
+
+NOTE: This Libaray is not written by or supported by universal devices
 
 
 
