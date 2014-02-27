@@ -274,13 +274,16 @@ class ISYEvent(object) :
 		    print 'rename Folder node: ', ddat['node'], ' = ', ddat
 		else :
 		    print '_3 : ', ddat
+
+
+#            elif  ddat["control"] == "_12" :
+#		pass
+#            elif  ddat["control"] == "_1" and ddat["action"] in ["6", "7", "3"] :
+#               print ddat["control"], " : ", ddat
+#               print arg
+
 	    else : 
 		    print "Event Dat : \n\t", ddat, "\n\t", exml
-
-
-            #elif  ddat["control"] == "_1" and ddat["action"] in ["6", "7", "3"] :
-        #       print ddat["control"], " : ", ddat
-        #       print arg
 
             #print ddat
             # print data

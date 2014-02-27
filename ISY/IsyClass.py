@@ -336,10 +336,14 @@ class Isy(IsyUtil):
 
         assert isinstance(evnt_dat, dict), "_read_event Arg must me dict"
 
+	# event_targ holds the node address or var id
+	# for the current event ( if applicable )
 	event_targ = None
 
         #if evnt_dat["control"] in skip :
         #    return
+
+	# print "evnt_dat ", evnt_dat
 
 	#
 	# Status/property changed
@@ -658,6 +662,7 @@ class Isy(IsyUtil):
 	    if ( self.debug & 0x40 ) :
 		print("evnt_dat :", evnt_dat)
 		print("Event fall though : '{0}'".format(evnt_dat["node"]))
+
 
 	if self.callbacks != None :
 	    call_targ = None
@@ -1506,8 +1511,9 @@ class Isy(IsyUtil):
 	Sets up a callback function that will be called whenever there
 	is a change event for the specified node
 
-	Only one callback per node is supported, If a callback funtion is already
-	registared for node_id it will be replaced
+	Only one callback per node is supported,
+	If a callback funtion is already registared for
+	node or var id it will be replaced
 
 	requires IsyClass option "eventupdates" to to set
 	"""

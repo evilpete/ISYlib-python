@@ -81,7 +81,7 @@ class _IsyNodeBase(IsySubClass):
         """
         self.isy._node_send(self._mydict["address"], "cmd", "DOF")
         if "property" in self._mydict :
-            self._mydict["property"]["time"] = 0
+            # self._mydict["property"]["time"] = 0
             if "ST" in  self._mydict["property"] :
                 self._mydict["property"]["ST"]["value"] = 0
                 self._mydict["property"]["ST"]["formatted"] = "off"

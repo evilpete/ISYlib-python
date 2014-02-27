@@ -1,7 +1,7 @@
 #!/usr/local/bin/python2.7
 """list ISY vars demo app
 
-Usage: %(program)s [options] [localhost:localport [remotehost:remoteport]]
+Usage: %(program)s [options] [var=val]
  
 Options:
  
@@ -75,7 +75,7 @@ def parseargs():
         elif opt in ('-d', '--debug'):
             options.debug = arg 
 
-    return options, arg
+    return options, args
 
 def set_vars(isy, *arg):
     print "set_vars arg: ", arg
