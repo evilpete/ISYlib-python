@@ -39,7 +39,7 @@ def et2d(et) :
 	converts an ETree to a Dict Tree
 	lists are created for duplicate tag
 
-	if there are multiple XML of the name name
+	if there are multiple XML of the same name
 	an list array is used
 	attrib tags are converted to "tag_name" + "attrib_name"
 

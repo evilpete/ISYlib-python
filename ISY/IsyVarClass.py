@@ -79,6 +79,15 @@ class IsyVar(IsySubClass):
         self.isy._var_set_value(self._mydict['id'], new_value)
     value = property(get_var_value, set_var_value)
 
+    def get_callback(self) :
+	return self.isy.callback_get(self._mydict["id"])
+    def set_callback(self, func, *args) :
+	if func == None :
+	    return self.isy.callback_del(self._mydict["id"])
+	else :
+	    return self.isy.callback_set(self._mydict["id"], func, args)
+    callback = property(get_callback, set_callback)
+
 #    def get_var_id(self):
 #       return self._get_prop("id")
 #    id = property(get_var_id)

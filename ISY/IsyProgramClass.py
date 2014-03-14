@@ -65,14 +65,17 @@ class IsyProgram(IsySubClass):
 	""" check if prog is enabled (bool) """
         #en = self._get_prop("enabled")
 	#return bool( en == "true" )
-	return bool( self._mydict["enabled"] == "true" )
+	if "enabled" in self._mydict :
+	    return bool( self._mydict["enabled"] == "true" )
+	return True 
     def set_prog_enable(self, en):
 	rval = val2bool(en)
 	#print "set_prog_enable ", rval
-        if rval :
-	   self.isy.prog_comm(self._mydict['id'], "enable")
-        else :
-	   self.isy.prog_comm(self._mydict['id'], "disable")
+	if "enabled" in self._mydict :
+	    if rval :
+	       self.isy.prog_comm(self._mydict['id'], "enable")
+	    else :
+	       self.isy.prog_comm(self._mydict['id'], "disable")
 	self._mydict["enabled"] = rval
         return rval
     enabled = property(get_prog_enable, set_prog_enable)
