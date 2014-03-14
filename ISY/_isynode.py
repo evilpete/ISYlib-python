@@ -84,7 +84,7 @@ def _gen_member_list(self) :
 		    self._nodefolder[foldr['parent']]['members'].append( foldr['address'])  
 		else:
 		    # print("warn bad parenting foldr =", foldr)
-		    warnings.warn("Bad Parent : Folder  (0)  (1) : (2)".format( \
+		    warnings.warn("Bad Parent : Folder  {0} {1} : {2}".format( \
 			    foldr["name"], faddr, foldr['parent']), RuntimeWarning)
 
 	# Scenes can only belong to Folders
@@ -95,7 +95,7 @@ def _gen_member_list(self) :
 		    self._nodefolder[s['parent']]['members'].append( s['address'])
 		else:
 		    # print("warn bad parenting s = ", s)
-		    warnings.warn("Bad Parent : Scene  (0)  (1) : (2)".format( \
+		    warnings.warn("Bad Parent : Scene  {0} {1} : {2}".format( \
 			    s["name"], sa, s['parent']), RuntimeWarning)
 
 	# A Node can belong only to ONE and only ONE Folder or another Node
@@ -201,7 +201,7 @@ def _gen_nodegroups(self, nodeinfo) :
 
 		n = gprop["name"]
 		if n in self._groups2addr :
-		    warnings.warn("Duplicate group name (0) : (1) (2)".format(n, \
+		    warnings.warn("Duplicate group name {0} : {1} {2}".format(n, \
 			    str(gprop["address"]), self._groups2addr[n]), RuntimeWarning)
 		else :
 		    self._groups2addr[n] = str(gprop["address"])
@@ -261,7 +261,7 @@ def _gen_nodedict(self, nodeinfo) :
 
 		n = idict["name"]
 		if n in self._node2addr :
-		    warn_mess = "Duplicate Node name (0) : (1) (2)".format(\
+		    warn_mess = "Duplicate Node name {0} : {1} {2}".format(\
 				n, idict["address"], self._node2addr[n])
 		    warnings.warn(warn_mess, RuntimeWarning)
 		else :
