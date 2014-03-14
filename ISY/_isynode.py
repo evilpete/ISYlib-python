@@ -47,6 +47,9 @@ def load_nodes(self) :
     if self.debug & 0x01 :
 	print("load_nodes pre _getXML")
     nodeinfo = self._getXMLetree("/rest/nodes")
+    if nodeinfo is None :
+	  raise IsyCommunicationError("Load Node Info Fail : " \
+			      + self.error_str)   
     self._gen_nodedict(nodeinfo)
     self._gen_folder_list(nodeinfo)
     self._gen_nodegroups(nodeinfo)
@@ -319,18 +322,32 @@ def node_get_path(self, nodeid) :
     " get path of parent names "
     if not self._nodedict :
 	self.load_node()
-    node_id = self._node_get_id(nodeid)
+    node_type, node_id = self._node_get_id(nodeid)
     if not node_id :
 	raise IsyInvalidCmdError("node_path: unknown node : " + str(nodeid) )
 
-    return self._node_get_path(node_id)
+    return self._node_get_path(node_id, node_type)
 
-def _node_get_path(self, noid_id) :
-    fpath = self._nodedict[node_id]['name']
-    pnode = self._nodedict[ self._nodedict[node_id]['parentId'] ]
-    while pnode['id'] != '0001' :
-	fpath = pnode['name'] + "/" + fpath 
-	pnode = self._nodedict[ pnode['parentId'] ]
+def _node_get_path(self, node_id, node_type) :
+
+    if node_type == "node" :
+	noded=self._nodedict[node_id]
+    elif node_type == "scene" :
+	noded=self._nodegroups[node_id]
+    elif node_type == "folder" :
+	noded=self._nodefolder[node_id]
+    else :
+	warnings.warn("Internal Error : unknown node type", RuntimeWarning)
+	return "/" + node_id
+
+    fpath = "/" + noded['name']
+
+    while "parent" in noded :
+	if noded["parent-type"] == '3' :
+	    noded = self._nodefolder[ noded["parent"] ]
+	elif noded["parent-type"] == '1' :
+	    noded = self._nodedict[ noded["parent"] ]
+	fpath = "/" + noded["name"] + fpath
 
     return fpath
 
@@ -613,6 +630,9 @@ def load_node_types(self) :
     if self.debug & 0x01 :
 	print("load_node_types called")
     typeinfo = self._getXMLetree("/WEB/cat.xml")
+    if typeinfo is None :
+	  raise IsyCommunicationError("Load Node Type Info Fail : " \
+			      + self.error_str)   
     if not hasattr(self, '_nodeCategory') or not isinstance(self._nodeCategory, dict):
 	self._nodeCategory = dict ()
     for ncat in typeinfo.iter('nodeCategory'):
@@ -620,6 +640,9 @@ def load_node_types(self) :
 	    self._nodeCategory[ncat.attrib["id"]] = dict ()
 	self._nodeCategory[ncat.attrib["id"]]["name"] = ncat.attrib["name"]
     typeinfo = self._getXMLetree("/WEB/1_fam.xml")
+    if typeinfo is None :
+	  raise IsyCommunicationError("Load Node Type Info Fail : " \
+			      + self.error_str)   
     for ncat in typeinfo.iter('nodeCategory'):
 	for subcat in ncat.iter('nodeSubCategory'):
 	    ## FIX

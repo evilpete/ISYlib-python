@@ -213,7 +213,7 @@ if __name__=="__main__":
 
     r = IsyGetArg(sys.argv)
 
-    myisy= ISY.Isy(debug=0x20,faststart=2,eventupdates=0)
+    myisy= ISY.Isy(debug=0x00,faststart=2,eventupdates=0)
 	# addr=r[0], userl=r[1], userp=r[2] )
     main(myisy)
     exit(0)

@@ -301,7 +301,8 @@ class Isy(IsyUtil):
 		default=os.getenv('ISY_PASS', None),
 		help="Admin Password")
 
-	args, unknown = parser.parse_known_args()
+	args, self.unknown_args = parser.parse_known_args()
+	self.unknown_args
 
 	if args.addr :
 	    self.addr = args.addr
@@ -1208,6 +1209,10 @@ class Isy(IsyUtil):
         configinfo = self._getXMLetree("/rest/config")
         # Isy._printXML(configinfo)
 	# IsyCommunicationError
+
+	if configinfo is None :
+            raise IsyCommunicationError("Load Configuration Fail : " \
+			+ self.error_str)
 
         self.name2control = dict ( )
         self.controls = dict ( )
