@@ -157,6 +157,7 @@ class Isy(IsyUtil):
         _opener = URL.request.build_opener(_handler)
 
     def __init__(self, **kwargs):
+
         #
         # Keyword args
         #
@@ -172,6 +173,11 @@ class Isy(IsyUtil):
         self.cachetime = kwargs.get("cachetime", 0)
         self.faststart = kwargs.get("faststart", 1)
         self.eventupdates = kwargs.get("eventupdates", 0)
+
+        self.parsearg = kwargs.get("parsearg", False)
+
+	if self.parsearg :
+	    self.parse_args()
 
 	self._isy_event = None
 	self.event_heartbeat = 0;
@@ -231,6 +237,7 @@ class Isy(IsyUtil):
             print("debug ", self.debug)
             print("cachetime ", self.cachetime)
             print("faststart ", self.faststart)
+            print("address ", self.addr)
 
         # parse   ISY_AUTH as   LOGIN:PASS
 
@@ -268,6 +275,44 @@ class Isy(IsyUtil):
             if  not self._nodedict :
 		self.load_nodes()
             self.start_event_thread()
+
+    def parse_args(self) :
+	import argparse
+
+	parser = argparse.ArgumentParser()
+
+	parser.add_argument("-d", "--debug", dest="debug",
+		default=self.debug,
+		type=int,
+		# action="count",
+		nargs='?',
+		help="debug options")
+
+	parser.add_argument("-a", "--address", dest="addr",
+		default=os.getenv('ISY_ADDR', None),
+		help="hostname or IP device")
+
+	parser.add_argument("-u", "--user", dest="user",
+		default=os.getenv('ISY_USER', None),
+		help="Admin Username")
+
+	parser.add_argument("-p", "--pass", dest="passw",
+		default=os.getenv('ISY_PASS', None),
+		help="Admin Password")
+
+	args, unknown = parser.parse_known_args()
+
+	if args.addr :
+	    self.addr = args.addr
+
+	if args.user :
+	    self.userl = args.user
+
+	if args.passw :
+	    self.userp = args.passw
+
+	if args.debug :
+	    self.debug = args.debug
 
     #
     # Event Subscription Code
@@ -1652,15 +1697,23 @@ class Isy(IsyUtil):
 
         #if isinstance(self._isy_event, ISYEvent) :
 	#    #ISYEvent._stop_event_loop()
-	if hasattr(self._isy_event, "_shut_down") :
-	    self._isy_event._shut_down = 1
+	if hasattr(self, "_isy_event") :
+	    if hasattr(self._isy_event, "_shut_down") :
+		self._isy_event._shut_down = 1
 
-	self.nodeCdict.clear()
-	self.varCdict.clear()
-	self.progCdict.clear()
-	self.folderCdict.clear()
+	if  hasattr(self, "nodeCdict" ) :
+	    self.nodeCdict.clear()
 
-	# the reasion for his is that 
+	if  hasattr(self, "varCdict" ) :
+	    self.varCdict.clear()
+
+	if  hasattr(self, "progCdict" ) :
+	    self.progCdict.clear()
+
+	if  hasattr(self, "folderCdict" ) :
+	    self.folderCdict.clear()
+
+	# the reasion for this is that 
 	#for k in self.nodeCdict.keys() :
 	#    del self.nodeCdict[k]
 	#for k in self.varCdict.keys() :
