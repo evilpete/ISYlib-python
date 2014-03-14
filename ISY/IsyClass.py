@@ -8,6 +8,7 @@
 __author__ = 'Peter Shipley <peter.shipley@gmail.com>'
 __copyright__ = "Copyright (C) 2013 Peter Shipley"
 __license__ = "BSD"
+__version__ = "0.1.20140313"
 
 
 

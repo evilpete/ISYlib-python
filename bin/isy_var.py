@@ -78,7 +78,7 @@ def parseargs():
     return options, args
 
 def set_vars(isy, *arg):
-    print "set_vars arg: ", arg
+    # print "set_vars arg: ", arg
     for ar in arg:
 	name, val  = str(ar).split('=')
 	print "set ", name, " to ", val

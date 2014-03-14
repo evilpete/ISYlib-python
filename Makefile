@@ -49,11 +49,6 @@ lint:
 clean:
 	rm bin/*.pyc ISY/*.pyc
 
-#checkall: ${PLIB} ${PROGS}
-#	for targ in $? ; do \
-#	    ${PERL} -cW $$targ ; \
-#	done
-
 checkin: commit push
 
 commit: README.txt
