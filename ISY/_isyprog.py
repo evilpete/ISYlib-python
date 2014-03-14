@@ -77,7 +77,6 @@ def load_prog(self, progid=None):
 
 
 def get_prog(self, pname) :
-    """ get prog class obj """
     """ Get a Program object for given program name or ID
 
 	args:
@@ -155,7 +154,7 @@ def prog_get_src(self, pname):
     prog_id = self._prog_get_id(pname)
 
     if not prog_id :
-	raise IsyInvalidCmdError("prog_comm: unknown node : " + str(paddr) )
+	raise IsyInvalidCmdError("prog_comm: unknown node : " + str(prog_id) )
 
     r = self.soapcomm("GetSysConf", name="/CONF/D2D/" + prog_id + ".PGM")
 

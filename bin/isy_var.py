@@ -21,12 +21,12 @@ import getopt
 def list_vars_bash(myisy, csh=0):
 
     if csh :
-	fmt = "set {0}={1}"
+        fmt = "set {0}={1}"
     else :
-	fmt = "{0}={1}"
+        fmt = "{0}={1}"
 
     for var in myisy.var_iter() :
-	print fmt.format( var.name, var.value )
+        print fmt.format( var.name, var.value )
 
 def list_vars(myisy) :
     fmt = "{:<4} : {:<19}{:<5}\t{:<5}\t{:}"
@@ -44,7 +44,7 @@ def usage(code, msg=''):
 
 class Options:
     debug = 0
-    olist = 0	# olist cause "list" was taken
+    olist = 0   # olist cause "list" was taken
     bash = 0
     csh = 0
 
@@ -53,8 +53,8 @@ def parseargs():
 
     # shortcut
     if len(sys.argv) == 1:
-	options.olist = 1
-	return options, []
+        options.olist = 1
+        return options, []
 
     try:
         opts, args = getopt.getopt(
@@ -80,15 +80,15 @@ def parseargs():
 def set_vars(isy, *arg):
     # print "set_vars arg: ", arg
     for ar in arg:
-	name, val  = str(ar).split('=')
-	print "set ", name, " to ", val
-	if str(val).isdigit :
-	    try :
-		isy.var_set_value(name, val)
-	    except LookupError :
-		print "bad Var name: ", ar
-	else :
-	    print "bad Value: ", ar
+        name, val  = str(ar).split('=')
+        print "set ", name, " to ", val
+        if str(val).isdigit :
+            try :
+                isy.var_set_value(name, val)
+            except LookupError :
+                print "bad Var name: ", ar
+        else :
+            print "bad Value: ", ar
     return
 
 if __name__ == '__main__':
@@ -97,10 +97,10 @@ if __name__ == '__main__':
     myisy = ISY.Isy( debug=options.debug )
 
     if options.olist :
-	list_vars(myisy)
+        list_vars(myisy)
     elif options.bash or options.csh:
-	list_vars_bash(myisy, options.csh)
+        list_vars_bash(myisy, options.csh)
 
     if len(arg) :
-	set_vars(myisy, *arg)
+        set_vars(myisy, *arg)
 

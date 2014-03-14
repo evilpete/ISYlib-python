@@ -35,7 +35,7 @@ setup(
     packages=find_packages(),
     scripts=[ 'bin/isy_find.py', 'bin/isy_log.py', 'bin/isy_nestset.py',
 		'bin/isy_net_wol.py', 'bin/isy_progs.py',
-		'bin/isy_showevents.py' ],
+		'bin/isy_showevents.py', 'bin/isy_web.py' ],
     data_files=[
 #	('examples', ['bin/isy_find.py', 'bin/isy_progs.py',
 #		'bin/isy_log.py', 'bin/isy_net_wol.py']),

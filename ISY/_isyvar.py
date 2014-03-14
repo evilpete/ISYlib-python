@@ -10,7 +10,7 @@ __license__ = "BSD"
 
 
 from ISY.IsyVarClass import IsyVar
-from ISY.IsyExceptionClass import IsyValueError, IsyResponseError, IsyPropertyError
+from ISY.IsyExceptionClass import IsyValueError, IsyResponseError, IsyPropertyError, IsyRuntimeWarning, IsyWarning
 
 from warnings import warn 
 
@@ -58,7 +58,7 @@ def load_vars(self) :
 	    n =  v.attrib['name']
             if n in self.name2var :
                 warn("Duplicate Var name (0) : (1) (2)".format(n,
-                            vid, self.name2var[n]), RuntimeWarning)
+                            vid, self.name2var[n]), IsyRuntimeWarning)
             else :
                 self.name2var[n] = vid
 
@@ -232,7 +232,7 @@ def _var_get_id(self, vname):
         self.load_vars()
     
     if isinstance(vname, IsyVar) :
-         return vname["id"]
+        return vname["id"]
     else :
         v = str(vname)
     if (v).upper() in self._vardict :

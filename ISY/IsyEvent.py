@@ -14,7 +14,7 @@ __license__ = "BSD"
 import time
 
 import sys
-import os
+# import os
 # import traceback
 import warnings
 # import re
@@ -105,10 +105,11 @@ class ISYEvent(object) :
 		userl = isy admin login
 		userp = isy admin password
         """
-        if self.debug & 0x01 :
-            print("subscribe ", addr)
 
 	addr  = kwargs.get("addr", None)
+
+        if self.debug & 0x01 :
+            print("subscribe ", addr)
 
         if addr in self.connect_list :
 	    # print "addr :", addr
@@ -249,7 +250,7 @@ class ISYEvent(object) :
     def print_event(*arg):
 
         ddat = arg[0]
-        mydat = arg[1]
+        # mydat = arg[1]
         exml = arg[2]
 
         try:

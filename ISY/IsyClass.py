@@ -426,7 +426,7 @@ class Isy(IsyUtil):
 		    print(">>>", self._nodedict[evnt_dat["node"]]["property"])
             else :
                 warn("Event for Unknown node : {0}".format(evnt_dat["node"]), \
-                        RuntimeWarning)
+                        IsyRuntimeWarning)
 
         elif evnt_dat["control"] == "_0" : # HeartBeat
 	    #self.event_heartbeat = time.gmtime()
@@ -513,7 +513,7 @@ class Isy(IsyUtil):
 		    self._vardict[vid]["init"] = int(self._vardict[vid]["init"])
 
                 else :
-                    warn("Event for Unknown Var : {0}".format(vid), RuntimeWarning)
+                    warn("Event for Unknown Var : {0}".format(vid), IsyRuntimeWarning)
 
         elif evnt_dat["control"] == "_2" : # Driver Specific Events
 	    pass
@@ -737,7 +737,7 @@ class Isy(IsyUtil):
 
 		else :
 		    warn("callback for {!s} not callable, deleting callback".format(call_targ),
-			    RuntimeWarning)
+			    IsyRuntimeWarning)
 		    del self.callbacks[call_targ]
 
 	return

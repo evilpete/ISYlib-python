@@ -17,11 +17,11 @@ from ISY.IsyExceptionClass import IsyResponseError, IsyValueError
 ##
 def _load_networking(self, resource_id):
     if self.debug & 0x01 :
-	print("_load_networking {!s} called".resource_id)
+	print("_load_networking {!s} called".format(resource_id))
 
     if not hasattr(self, '_name2id') or not isinstance(self._name2id, dict):
         self._name2id = dict ()
-
+ 
     xurl = "/rest/networking/{!s}".format(resource_id)
     if self.debug & 0x02 :
 	print("_load_networking : xurl = " + xurl)

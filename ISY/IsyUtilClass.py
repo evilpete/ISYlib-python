@@ -188,7 +188,7 @@ class IsyUtil(object):
 	if filename[0] != '/' :
 	    filename = "/USER/WEB/" + filename
 	elif not str(filename).upper().startswith("/USER/WEB/") :
-            raise IsyValueError("sendfile: invalid dst filename : {!s}".format(st))
+            raise IsyValueError("sendfile: invalid dst filename : {!s}".format(filename))
 
 	if not len(data) :
 	    if not src :

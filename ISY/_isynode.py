@@ -11,7 +11,7 @@ __license__ = "BSD"
 
 from ISY.IsyNodeClass import IsyNode, IsyScene, IsyNodeFolder#, _IsyNodeBase
 from ISY.IsyUtilClass import IsySubClass
-from ISY.IsyExceptionClass import IsyPropertyError, IsyResponseError, IsyRuntimeWarning, IsyWarning
+from ISY.IsyExceptionClass import IsyPropertyError, IsyResponseError, IsyRuntimeWarning, IsyWarning, IsyCommunicationError, IsyInvalidCmdError
 import warnings
 # import string
 
@@ -85,7 +85,7 @@ def _gen_member_list(self) :
 		else:
 		    # print("warn bad parenting foldr =", foldr)
 		    warnings.warn("Bad Parent : Folder  {0} {1} : {2}".format( \
-			    foldr["name"], faddr, foldr['parent']), RuntimeWarning)
+			    foldr["name"], faddr, foldr['parent']), IsyRuntimeWarning)
 
 	# Scenes can only belong to Folders
 	for sa in self._nodegroups :
@@ -96,7 +96,7 @@ def _gen_member_list(self) :
 		else:
 		    # print("warn bad parenting s = ", s)
 		    warnings.warn("Bad Parent : Scene  {0} {1} : {2}".format( \
-			    s["name"], sa, s['parent']), RuntimeWarning)
+			    s["name"], sa, s['parent']), IsyRuntimeWarning)
 
 	# A Node can belong only to ONE and only ONE Folder or another Node
 	for naddr in self._nodedict :
@@ -135,7 +135,7 @@ def _gen_folder_list(self, nodeinfo) :
 	    else :
 		fprop = self._nodefolder[xelm.text] = dict()
 	else :
-	    warnings.warn("Error : no address in folder", RuntimeWarning)
+	    warnings.warn("Error : no address in folder", IsyRuntimeWarning)
 	    continue
 
 
@@ -150,9 +150,9 @@ def _gen_folder_list(self, nodeinfo) :
 	n = fprop["name"].upper()
 	self._folder2addr[n] = fprop["address"]
 
-	# name2id to replace name2var as a global lookup table
+	# name2id to replace folder2addr as a global lookup table
 	if n in self._name2id :
-	    print("Dup name2id (Folder) : \"" + n + "\" ",fprop["address"])
+	    print("Dup name2id (Folder) : \"" + n + "\" ", fprop["address"])
 	    print("\t_name2id ", self._name2id[n])
 	else :
 	    self._name2id[n] = ("folder", fprop["address"])
@@ -173,7 +173,7 @@ def _gen_nodegroups(self, nodeinfo) :
 	    else :
 		gprop = self._nodegroups[xelm.text] = dict()
 	else :
-	    warnings.warn("Error : no address in scene", RuntimeWarning)
+	    warnings.warn("Error : no address in scene", IsyRuntimeWarning)
 	    continue
 
 
@@ -202,12 +202,12 @@ def _gen_nodegroups(self, nodeinfo) :
 		n = gprop["name"]
 		if n in self._groups2addr :
 		    warnings.warn("Duplicate group name {0} : {1} {2}".format(n, \
-			    str(gprop["address"]), self._groups2addr[n]), RuntimeWarning)
+			    str(gprop["address"]), self._groups2addr[n]), IsyRuntimeWarning)
 		else :
 		    self._groups2addr[n] = str(gprop["address"])
 
 		if n in self._name2id :
-		    warnings.warn("Dup name2id (Group) : \"" + n + "\" ",gprop["address"] + "\n\t_name2id " + self._name2id[n] , RuntimeWarning)
+		    warnings.warn("Dup name2id (Group) : \"" + n + "\" ", gprop["address"] + "\n\t_name2id " + self._name2id[n], IsyRuntimeWarning)
 		else :
 		    self._name2id[n] = ("group", gprop["address"])
 
@@ -229,7 +229,7 @@ def _gen_nodedict(self, nodeinfo) :
 	    else :
 		idict = self._nodedict[xelm.text] = dict()
 	else :
-	    warnings.warn("Error : no address in node", RuntimeWarning)
+	    warnings.warn("Error : no address in node", IsyRuntimeWarning)
 	    continue
 
 
@@ -280,7 +280,7 @@ def _gen_nodedict(self, nodeinfo) :
 	else :
 	    # should raise an exception
 	    # self._printinfo(inode, "Error : no address in node :")
-	    warnings.warn("Error : no address in node", RuntimeWarning)
+	    warnings.warn("Error : no address in node", IsyRuntimeWarning)
     #print("\n>>>>\t", self._nodedict, "\n<<<<<\n")
 
 
@@ -333,13 +333,13 @@ def node_get_path(self, nodeid) :
 def _node_get_path(self, node_id, node_type) :
 
     if node_type == "node" :
-	noded=self._nodedict[node_id]
+	noded = self._nodedict[node_id]
     elif node_type == "scene" :
-	noded=self._nodegroups[node_id]
+	noded = self._nodegroups[node_id]
     elif node_type == "folder" :
-	noded=self._nodefolder[node_id]
+	noded = self._nodefolder[node_id]
     else :
-	warnings.warn("Internal Error : unknown node type", RuntimeWarning)
+	warnings.warn("Internal Error : unknown node type", IsyRuntimeWarning)
 	return "/" + node_id
 
     fpath = "/" + noded['name']
@@ -481,7 +481,6 @@ def node_get_prop(self, naddr, prop_id) :
 	return self._nodedict[node_id][prop]
     else :
 	raise IsyPropertyError("unknown property " + prop_id)
-    pass
 
 # Set property for a node
 #
@@ -506,7 +505,7 @@ def node_set_prop(self, naddr, prop, val) :
     if not node_id :
 	raise LookupError("node_set_prop: unknown node : " + str(naddr) )
 
-    prop_id = self._get_control_id(prop);
+    prop_id = self._get_control_id(prop)
     if prop_id :
 	# raise TypeError("node_set_prop: unknown prop : " + str(cmd) )
 	if "readOnly" in self.controls[prop_id] and \
@@ -701,7 +700,7 @@ def node_iter(self, **kargs):
     if not self._nodedict :
 	self.load_nodes()
 
-    k = list();
+    k = list()
     if "node" in nodetype :
 	# print "adding node"
 	k.extend( sorted(self._nodedict.keys()) )
@@ -789,7 +788,7 @@ def node_enable(self, naddr, enable=True) :
     calls /rest/nodes/<node-id>/disable
     """
     if self.debug & 0x04 :
-	print("node_enable", naddr, cmd)
+	print("node_enable", naddr, enable)
     (nodetype, node_id) = self._node_get_id(naddr)
 
     if not node_id :
@@ -804,11 +803,11 @@ def node_enable(self, naddr, enable=True) :
     xurl = "/rest/nodes/{!s:}/{!s:}".format(naddr, op) 
     if self.debug & 0x02 : print("xurl = " + xurl)
     resp = self._getXMLetree(xurl)
-    self._printXML(resp)
+    # self._printXML(resp)
     if resp == None or resp.attrib["succeeded"] != 'true' :
 	raise IsyResponseError(
-		"Node Cmd/Property Set error : node=%s prop=%s " %
-		naddr, prop )
+		"Node Cmd/Property Set error : node=%s resp=%s " %
+		naddr, resp )
 
 # Do nothing
 # (syntax check)
