@@ -8,7 +8,9 @@ __all__ = [ 'IsyError', 'IsyNodeError',
 	'IsyResponseError', 'IsyPropertyError', 'IsyValueError',
 	'IsyInvalidCmdError',
 	'IsySoapError', 'IsyTypeError',
-	'IsyCommunicationError']
+	'IsyCommunicationError',
+	'IsyRuntimeWarning', 'IsyWarning'
+	]
 
 
 #
@@ -103,6 +105,14 @@ class IsyInvalidCmdError(IsyError):
 class IsyAttributeError(IsyError, AttributeError):
     """General exception for Isy errors."""
     pass
+
+
+class IsyWarning(Warning) :
+    pass
+
+class IsyRuntimeWarning(IsyWarning, RuntimeWarning) :
+    pass
+
 
 #
 # Do nothing

@@ -11,7 +11,7 @@ __license__ = "BSD"
 
 from ISY.IsyNodeClass import IsyNode, IsyScene, IsyNodeFolder#, _IsyNodeBase
 from ISY.IsyUtilClass import IsySubClass
-from ISY.IsyExceptionClass import IsyPropertyError, IsyResponseError
+from ISY.IsyExceptionClass import IsyPropertyError, IsyResponseError, IsyRuntimeWarning, IsyWarning
 import warnings
 # import string
 
@@ -50,8 +50,8 @@ def load_nodes(self) :
     if nodeinfo is None :
 	  raise IsyCommunicationError("Load Node Info Fail : " \
 			      + self.error_str)   
-    self._gen_nodedict(nodeinfo)
     self._gen_folder_list(nodeinfo)
+    self._gen_nodedict(nodeinfo)
     self._gen_nodegroups(nodeinfo)
     # self._printdict(self._nodedict)
     # print("load_nodes self._node2addr : ", len(self._node2addr))
@@ -261,16 +261,18 @@ def _gen_nodedict(self, nodeinfo) :
 
 		n = idict["name"]
 		if n in self._node2addr :
-		    warn_mess = "Duplicate Node name {0} : {1} {2}".format(\
+		    warn_mess = "Duplicate Node name \"{0}\" :" \
+				+ " \"{1}\"\n\t\"{2}\"".format(\
 				n, idict["address"], self._node2addr[n])
-		    warnings.warn(warn_mess, RuntimeWarning)
+		    warnings.warn(warn_mess, IsyRuntimeWarning)
 		else :
 		    self._node2addr[n] = idict["address"]
 
 		if n in self._name2id :
-		    warn_mess = "Dup name2id (Node) : \"{0}\" {1}\n\t{3}".format(\
-				    n ,idict["address"], self._name2id[n])
-		    warnings.warn(warn_mess, RuntimeWarning)
+		    warn_mess = "Dup name2id (Node) \"{0}\" :" \
+				+ " \"{1}\"\n\t\"{2}\"".format(\
+				n ,idict["address"], self._name2id[n])
+		    warnings.warn(warn_mess, IsyRuntimeWarning)
 		else :
 		    self._name2id[n] = ("node", idict["address"])
 
