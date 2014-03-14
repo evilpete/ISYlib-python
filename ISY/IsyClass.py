@@ -175,8 +175,8 @@ class Isy(IsyUtil):
         self.faststart = kwargs.get("faststart", 1)
         self.eventupdates = kwargs.get("eventupdates", 0)
 
+	# and experiment alt to IsyGetArg
         self.parsearg = kwargs.get("parsearg", False)
-
 	if self.parsearg :
 	    self.parse_args()
 
@@ -277,7 +277,15 @@ class Isy(IsyUtil):
 		self.load_nodes()
             self.start_event_thread()
 
+    # and experimental alternitive to IsyGetArg
     def parse_args(self) :
+	"""
+	    Use argparse to extract common options
+
+	    unused options placed in self.unknown_args
+
+	    this is a alternitive to IsyGetArg
+	"""
 	import argparse
 
 	parser = argparse.ArgumentParser()
@@ -302,7 +310,6 @@ class Isy(IsyUtil):
 		help="Admin Password")
 
 	args, self.unknown_args = parser.parse_known_args()
-	self.unknown_args
 
 	if args.addr :
 	    self.addr = args.addr
