@@ -80,7 +80,7 @@ def _gen_member_list(self) :
 			self._nodefolder[foldr['parent']]['members'] = list()
 		    self._nodefolder[foldr['parent']]['members'].append( foldr['address'])  
 		else:
-		    print("warn bad parenting foldr =", foldr)
+		    # print("warn bad parenting foldr =", foldr)
 		    warnings.warn("Bad Parent : Folder  (0)  (1) : (2)".format( \
 			    foldr["name"], faddr, foldr['parent']), RuntimeWarning)
 
@@ -91,7 +91,7 @@ def _gen_member_list(self) :
 		if s['parent-type'] == '3' and  s['parent'] in self._nodefolder :
 		    self._nodefolder[s['parent']]['members'].append( s['address'])
 		else:
-		    print("warn bad parenting s = ", s)
+		    # print("warn bad parenting s = ", s)
 		    warnings.warn("Bad Parent : Scene  (0)  (1) : (2)".format( \
 			    s["name"], sa, s['parent']), RuntimeWarning)
 
@@ -204,8 +204,7 @@ def _gen_nodegroups(self, nodeinfo) :
 		    self._groups2addr[n] = str(gprop["address"])
 
 		if n in self._name2id :
-		    print("Dup name2id (Group) : \"" + n + "\" ",gprop["address"])
-		    print("\t_name2id ", self._name2id[n])
+		    warnings.warn("Dup name2id (Group) : \"" + n + "\" ",gprop["address"] + "\n\t_name2id " + self._name2id[n] , RuntimeWarning)
 		else :
 		    self._name2id[n] = ("group", gprop["address"])
 
@@ -259,15 +258,16 @@ def _gen_nodedict(self, nodeinfo) :
 
 		n = idict["name"]
 		if n in self._node2addr :
-		    warn_mess = "Duplicate Node name (0) : (1) (2)".format(n, \
-			    idict["address"], self._node2addr[n])
+		    warn_mess = "Duplicate Node name (0) : (1) (2)".format(\
+				n, idict["address"], self._node2addr[n])
 		    warnings.warn(warn_mess, RuntimeWarning)
 		else :
 		    self._node2addr[n] = idict["address"]
 
 		if n in self._name2id :
-		    print("Dup name2id (Node) : \"" + n + "\" ",idict["address"])
-		    print("\t_name2id ", self._name2id[n])
+		    warn_mess = "Dup name2id (Node) : \"{0}\" {1}\n\t{3}".format(\
+				    n ,idict["address"], self._name2id[n])
+		    warnings.warn(warn_mess, RuntimeWarning)
 		else :
 		    self._name2id[n] = ("node", idict["address"])
 
@@ -678,15 +678,15 @@ def node_iter(self, **kargs):
 
     k = list();
     if "node" in nodetype :
-	print "adding node"
+	# print "adding node"
 	k.extend( sorted(self._nodedict.keys()) )
 
     if "scene" in nodetype :
-	print "adding scene"
+	# print "adding scene"
 	k.extend( sorted(self._nodegroups.keys()) )
 
     if "folder" in nodetype :
-	print "adding folder"
+	# print "adding folder"
 	k.extend( sorted(self._nodefolder.keys()) )
 
 #    else :
