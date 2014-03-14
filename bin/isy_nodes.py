@@ -13,7 +13,11 @@ def list_nodes(isy) :
     """ iter though Isy Class object and print returned
 	node's infomation
     """
-    pfmt = "{:<22} {:>12}\t{:<12}{!s:<12}"
+    if "-l" in myisy.unknown_args :
+	pfmt = "{:<22} {:>12}\t{:<12}{!s:<12} {!s:}"
+    else :
+	pfmt = "{:<22} {:>12}\t{:<12}{!s:<12}"
+
     print(pfmt.format("Node Name", "Address", "Status", "Enabled"))
     print(pfmt.format("---------", "-------", "------", "------"))
     for nod in isy :

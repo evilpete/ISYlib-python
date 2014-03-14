@@ -138,10 +138,12 @@ def prog_get_path(self, pname) :
 def _prog_get_path(self, prog_id) :
     fpath = self._progdict[prog_id]['name']
     pgm = self._progdict[ self._progdict[prog_id]['parentId'] ]
+
     while pgm['id'] != '0001' :
 	fpath = pgm['name'] + "/" + fpath 
 	pgm = self._progdict[ pgm['parentId'] ]
 
+    fpath = "/" + fpath
     return fpath
 
 

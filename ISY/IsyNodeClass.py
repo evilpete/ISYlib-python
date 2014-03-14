@@ -91,7 +91,7 @@ class _IsyNodeBase(IsySubClass):
 
 
     def get_path(self): 
-	return self.isy.node_get_path( self._mydict['id'] )
+	return self.isy._node_get_path(self._mydict['address'], self._objtype)
     path = property(get_path) 
 
     def members_list(self) :

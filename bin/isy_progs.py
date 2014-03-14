@@ -18,6 +18,6 @@ def list_progs(isy) :
 
 
 if __name__ == '__main__' :
-    myisy = ISY.Isy( )
+    myisy = ISY.Isy( parsearg=1 )
     list_progs(myisy)
     exit(0)

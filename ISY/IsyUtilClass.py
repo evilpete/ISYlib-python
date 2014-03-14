@@ -113,7 +113,7 @@ class IsyUtil(object):
 	    # print("res.getcode() ", res.getcode(), len(data))
 	    res.close()
 	except URL.HTTPError, e:       
-	    self.error_str = str("Reponse Code : {0}" ).format(e.code)
+	    self.error_str = str("Reponse Code : {0} : {1}" ).format(e.code, xurl)
 	    return None
 	else :
 	    if len(self.error_str) : self.error_str = ""
