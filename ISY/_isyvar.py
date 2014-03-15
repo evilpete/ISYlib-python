@@ -12,6 +12,7 @@ __license__ = "BSD"
 from ISY.IsyVarClass import IsyVar
 from ISY.IsyExceptionClass import IsyValueError, IsyResponseError, IsyPropertyError, IsyRuntimeWarning, IsyWarning
 
+import xml.etree.ElementTree as ET
 from warnings import warn 
 
 
@@ -284,6 +285,55 @@ def var_iter(self, vartype=0):
                 yield self.get_var(v)
         else :
             yield self.get_var(v)
+
+def var_new(self, varname=None, vartype="int") :
+    """ Make new Vara
+
+	Named args:
+	    varname	
+	    vartype		"integer" or "state"
+	
+    """
+    if varname == None :
+	raise IsyValueError("varname : invalid var name")
+
+    if vartype == "integer" :
+	varpath="/CONF/INTEGER.VAR"
+    elif vartype == "state" :
+	varpath="/CONF/STATE.VAR"
+    else :
+	raise IsyValueError("vartype : invalid type")
+
+    result = self.soapcomm("GetSysConf", name=varpath)
+
+    if result is None  :
+	raise IsyResponseError("Error loading Sys Conf file {0}".format(varpath))
+
+    print result, "\n\n"
+    var_et = ET.fromstring(result) 
+
+    # create a dict with all used Ids, then loop till ya find a unused one
+    tdict = dict()
+    for vdat in var_et.iter("e") :
+	tdict[ vdat.attrib['id'] ] = 1
+
+    maxid = tdict.__len__() + 5
+    newid = -1
+    for i in range(1, maxid) :
+	if str(i) not in tdict :
+	    newid = str(i)
+	    break
+    else :
+	raise RuntimeError( "failed to find free var id")
+    del tdict
+    ET.SubElement(var_et, "e", {'id':newid, 'name':varname} )
+
+    new_var_data =  ET.tostring(var_et)
+
+    print "new_var_data = ", new_var_data
+
+    # self._sendfile(data=new_var_data, filename=varpath, load=y)
+
 
 
 # Do nothing

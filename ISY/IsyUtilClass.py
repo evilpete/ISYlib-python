@@ -177,9 +177,15 @@ class IsyUtil(object):
 	else :
 	    return data
 
-    def sendfile(self, src=None, filename="", data=None, load="n"):
+    def sendfile(self, src=None, filename="", data=None):
 	"""
-	upload file
+	    upload file
+
+
+	    args :
+		data		content for fine to upload
+		src		file to load upload content ( if data is None )
+		filename	name for remote file
 	"""
 
         if self.debug & 0x01 :
@@ -200,24 +206,27 @@ class IsyUtil(object):
 	    with open(src, 'r') as content_file:
 		data = content_file.read()
 	else :
-	    # if self.debug & 0x20 :
-	    print "using provided data as data src"
+	    if self.debug & 0x20 :
+		print "using provided data as data src"
+
+	self._sendfile(filename=filename, data=data, load="n")
 		 
 
+    def _sendfile(self, filename="", data="", load="n"):
 
 	xurl = self.baseurl + "/file/upload/" + filename + "?load=" + load
 	req = URL.Request(xurl, data, {'Content-Type': 'application/xml; charset="utf-8"'})
 
 	try :
 	    res = self._opener.open(req, None)
-	    data = res.read()
-	    # print("res.getcode() ", res.getcode(), len(data))
+	    responce = res.read()
+	    # print("res.getcode() ", res.getcode(), len(responce))
 	    res.close()
 	except URL.HTTPError, e:       
 	    print e.read()
             raise IsySoapError("{!s} : {!s}".format(self.__class__.__name__, e.code))
 	else :
-	    return data
+	    return responce
 		  
 
 
