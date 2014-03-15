@@ -46,10 +46,10 @@ def main(isy):
 
     # print "sys.argv[1:] = {!s}".format( len(sys.argv[1:]) )
 
-    print "unknown_args : ", isy.unknown_args
-    print "sys.argv : ", sys.argv
+    # print "unknown_args : ", isy.unknown_args
+    # print "sys.argv : ", sys.argv
     argv = isy.unknown_args[:]
-    print "argv : ", argv
+    # print "argv : ", argv
 
     if len(argv) == 0 :
         print_listing(isy)
@@ -62,7 +62,7 @@ def main(isy):
 
             srcfile = argv.pop(0) 
 
-            if ( len(argv) > 1 ) :
+            if ( len(argv) > 0 ) :
                 dstfile = argv.pop(0)
             else :
                 dstfile = os.path.basename(srcfile)
@@ -70,49 +70,49 @@ def main(isy):
             print "SEND {!s} {!s}".format(srcfile, dstfile)
 
             res = isy.user_uploadfile(srcfile=srcfile, name=dstfile)
-	    if res :
-		print "res = ", res
+#	    if res :
+#		print "res = ", res
         elif cmd in [ "MKDIR", "MD" ] :
-            if ( len(argv) > 1 ) :
+            if ( len(argv) > 0 ) :
                 dstfile = argv.pop(0)
                 res = isy.user_mkdir(name=dstfile)
-		if res :
-		    print "res = ", res
+#		if res :
+#		    print "res = ", res
             else :
                 print "Missing Arg:\n\t{!s} <dirname>".format(cmd)
         elif cmd in ["RMDIR" , "RD"] :
-            if ( len(argv) > 1 ) :
+            if ( len(argv) > 0 ) :
                 dstdir = argv.pop(0)
                 res = isy.user_rmdir(name=dstdir)
-		if res :
-		    print "res = ", res
+		#if res :
+		#    print "res = ", res
             else :
                 print "Missing Arg:\n\t{!s} <dirname>".format(cmd)
         elif cmd in [ "RM", "DEL", "DELETE"] :
-            if ( len(argv) > 1 ) :
+            if ( len(argv) > 0 ) :
                 dstdir = argv.pop(0)
                 res = isy.user_rm(name=dstdir)
-		if res :
-		    print "res = ", res
+		# if res :
+		 #    print "res = ", res
             else :
                 print "Missing Arg:\n\t{!s} <filename>".format(cmd)
         elif cmd in  ["MV", "RENAME"] :
-            if ( len(argv) > 2 ) :
+            if ( len(argv) > 1 ) :
                 old = argv.pop(0)
                 new = argv.pop(0)
                 res = isy.user_mv(name=old, newName=new)
-		if res :
-		    print "res = ", res
+#		if res :
+#		    print "res = ", res
             else :
                 print "Missing Arg:\n\t{!s} <filename> <filename>".format(cmd)
         elif cmd == "GET" :
             if ( len(argv) < 1 ) :
-                print "Missing Arg:\n\t{!s} <remote_filename> [local_filename>".format(cmd)
+                print "Missing Arg:\n\t{!s} <remote_filename> [local_filename]".format(cmd)
                 exit(0)
 
             name = argv.pop(0)
 
-            if ( len(argv) > 1 ) :
+            if ( len(argv) > 0 ) :
                 dstfile = argv.pop(0)
             elif str(name).upper().startswith("/USER/WEB/") :
                 dstfile = os.path.basename(name)
