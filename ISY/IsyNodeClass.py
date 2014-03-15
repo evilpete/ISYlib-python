@@ -233,7 +233,7 @@ class IsyNode(_IsyNodeBase):
     _getlist = ['address', 'enabled', 'formatted',
             'ELK_ID',
 	    'parent', 'parent-type',
-            'name', 'pnode', 'flag',
+            'name', 'pnode', 'flag', 'wattage',
             'OL', 'RR', 'ST', 'type']
     _setlist = ['RR', 'OL', 'status', 'ramprate', 'onlevel', 'enable']
     _propalias = {'status': 'ST', 'value': 'ST', 'val': 'ST',
@@ -373,6 +373,15 @@ class IsyNode(_IsyNodeBase):
         return self._set_prop("enable", new_bool)
 
     enable = property(get_enable, set_enable, None, "enable/disable a node")
+
+    def get_wattage(self):
+        """ get wattage """
+        return self._get_prop("wattage")
+
+    def set_wattage(self, watts):
+	""" set wattage property """
+	return self.isy.node_set_powerinfo( self._mydict["address"], wattage=watts)
+    wattage = property(get_wattage, set_wattage)
 
 
 

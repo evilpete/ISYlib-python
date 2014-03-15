@@ -809,6 +809,37 @@ def node_enable(self, naddr, enable=True) :
 		"Node Cmd/Property Set error : node=%s resp=%s " %
 		naddr, resp )
 
+def node_set_powerinfo(self, naddr, deviceClass=None,  wattage=None, dcPeriod=None )  :
+    """
+	args :
+	    node             node id
+	    wattage          watts (unsigned int)
+	    dcPeriod         duty cycle
+
+    """
+    if self.debug & 0x04 :
+	print("node_power_info", naddr, deviceClass, wattage, dcPeriod)
+
+    (nodetype, node_id) = self._node_get_id(naddr)
+
+    if not node_id :
+	raise LookupError("node_comm: unknown node : " + str(naddr) )
+
+    if nodetype != "node" :
+	raise IsyPropertyError("Can't set powerinfo on non-node devices")
+
+    if wattage is None :
+	wattage = self._nodedict[naddr]['wattage']
+
+    if deviceClass is None :
+	deviceClass = self._nodedict[naddr]['deviceClass']
+
+    if dcPeriod is None :
+	dcPeriod = self._nodedict[naddr]['dcPeriod']
+
+    return self.soapcomm("SetNodePowerInfo", node=node_id,
+		deviceClass=deviceClass, wattage=wattage, dcPeriod=dcPeriod)
+
 # Do nothing
 # (syntax check)
 #
