@@ -19,7 +19,7 @@ else :
 from pprint import pprint
 
 #__all__ = ['IsyUtil', 'IsySubClass' ]
-__all__ = []
+__all__ = ['format_node_addr']
 
 
 
@@ -76,6 +76,15 @@ def et2d(et) :
     return d
 
 
+def format_node_addr(naddr) :
+    if not isinstance(naddr, str) :
+	 raise IsyValueError("{0} arg not string".format(__name__))
+    addr_el = naddr.upper().split()
+    a = "{0:0>2}' '{1:0>2}' '{2:0>2}' ".format( *addr_el )
+    print a
+
+
+
 
 #
 # Simple Base class for ISY Class
@@ -124,10 +133,14 @@ class IsyUtil(object):
 
     def _gensoap(self, cmd, **kwargs) :
 
-	if len(kwargs) == -1 :
+
+	if self.debug & 0x02 :
+	    print "len kwargs = ", len(kwargs), kwargs
+	if len(kwargs) == 0 :
 	    cmdsoap = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" \
 		+ "<e:Envelope><s:Body>" \
-		+ "<u:{0!s}/>".format(cmd) \
+		+ "<u:{0!s} ".format(cmd) \
+		+ "xmlns:u=\"urn:udi-com:service:X_Insteon_Lighting_Service:1\" />" \
 		+ "</s:Body></e:Envelope>"
 	else :
 	    cmdsoap =  "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" \
@@ -159,8 +172,9 @@ class IsyUtil(object):
 	soap_cmd = self._gensoap(cmd, **kwargs)
 
 	xurl = self.baseurl + "/services"
-	#print "xurl = ", xurl
-	#print "soap_cmd = ", soap_cmd
+	if self.debug & 0x02 :
+	    print "xurl = ", xurl
+	    print "soap_cmd = ", soap_cmd
 
 	req = URL.Request(xurl, soap_cmd, {'Content-Type': 'application/xml; charset="utf-8"'})
 
@@ -168,7 +182,9 @@ class IsyUtil(object):
 	try :
 	    res = self._opener.open(req, None)
 	    data = res.read()
-	    # print("res.getcode() ", res.getcode(), len(data))
+	    if self.debug & 0x02 :
+		print("res.getcode() ", res.getcode(), len(data))
+		print("data ", data)
 	    res.close()
 	except URL.HTTPError, e:       
 	    print "e = ", e

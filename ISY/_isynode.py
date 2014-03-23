@@ -653,8 +653,9 @@ def load_node_types(self) :
 	    # print("ID  name: ", subcat.attrib["name"])
 	    self._nodeCategory[ncat.attrib["id"]][subcat.attrib["id"]] = subcat.attrib["name"]
 	    #self._printinfo(subcat, "subcat :")
-    # print("nodeCategory : ", self._nodeCategory)
-    # self._printdict(self._nodeCategory)
+    if self.debug & 0x100 :
+	print("nodeCategory : ", self._nodeCategory)
+	self._printdict(self._nodeCategory)
 
 def node_get_type(self, typid) :
     """ Take a node's type value and returns a string idnentifying the device """

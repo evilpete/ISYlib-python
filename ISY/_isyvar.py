@@ -286,7 +286,7 @@ def var_iter(self, vartype=0):
         else :
             yield self.get_var(v)
 
-def var_new(self, varname=None, vartype="int") :
+def var_new(self, id=None, varname=None, vartype="int") :
     """ Make new Vara
 
 	Named args:
@@ -309,14 +309,12 @@ def var_new(self, varname=None, vartype="int") :
     if result is None  :
 	raise IsyResponseError("Error loading Sys Conf file {0}".format(varpath))
 
-    print result, "\n\n"
     var_et = ET.fromstring(result) 
 
     # create a dict with all used Ids, then loop till ya find a unused one
     tdict = dict()
     for vdat in var_et.iter("e") :
 	tdict[ vdat.attrib['id'] ] = 1
-
     maxid = tdict.__len__() + 5
     newid = -1
     for i in range(1, maxid) :
@@ -326,13 +324,63 @@ def var_new(self, varname=None, vartype="int") :
     else :
 	raise RuntimeError( "failed to find free var id")
     del tdict
+
+    # now that we have a avalible ID number, create the entery
     ET.SubElement(var_et, "e", {'id':newid, 'name':varname} )
 
     new_var_data =  ET.tostring(var_et)
+    #if self.debug == 0x200 :
 
     print "new_var_data = ", new_var_data
 
-    # self._sendfile(data=new_var_data, filename=varpath, load=y)
+    r = self._sendfile(data=new_var_data, filename=varpath, load="y")
+    return r
+
+
+def _var_delete(self, varid=None, vartype=None) :
+    """
+	Delete Vara
+
+	Named args:
+	    varname	
+	    vartype		"integer" or "state"
+    """
+
+    if varid is None :
+	raise IsyValueError("varid arg in missing")
+    elif isinstance(varid, int) :
+	varid=str(varid)
+
+#    if isinstance(varid, str) and not val.isdigit() ) :
+#	raise IsyValueError("Invalid var id missing")
+
+
+    if vartype == "integer" :
+	varpath="/CONF/INTEGER.VAR"
+    elif vartype == "state" :
+	varpath="/CONF/STATE.VAR"
+    else :
+	raise IsyValueError("vartype : invalid type")
+
+    result = self.soapcomm("GetSysConf", name=varpath)
+
+    if result is None  :
+	raise IsyResponseError("Error loading Sys Conf file {0}".format(varpath))
+
+    var_et = ET.fromstring(result) 
+    for v in var_et.iter("e") :
+	if "id" in v.attrib :
+	    if v.attrib["id"] == varid :
+		var_et.remove(v)
+		break
+    else :
+	warn("Var ID {0} not found".format(varid), IsyRuntimeWarning, 2)
+	return None
+
+    new_var_data =  ET.tostring(var_et)
+
+    r = self._sendfile(data=new_var_data, filename=varpath, load="y")
+    return r
 
 
 

@@ -26,6 +26,8 @@ from warnings import warn
 import logging
 import xml.etree.ElementTree as ET
 
+import json
+
 
 #logging.basicConfig(level=logging.INFO)
 
@@ -124,7 +126,7 @@ class Isy(IsyUtil):
     from ISY._isyclimate import load_clim, clim_get_val, clim_query, clim_iter
     from ISY._isyvar  import load_vars, var_set_value, _var_set_value, \
 		var_get_value, var_addrs, var_ids, get_var, _var_get_id, \
-		var_get_type, var_iter, var_new
+		var_get_type, var_iter, var_new, _var_delete
     from ISY._isyprog import load_prog, get_prog, _prog_get_id, \
 		prog_iter, prog_comm, _prog_comm, prog_get_src, \
 		prog_get_path, _prog_get_path
@@ -759,6 +761,181 @@ class Isy(IsyUtil):
 
 
 
+    def addnode(self, id=None, nname=None, ntype=None, flag="0") :
+	"""
+	    Adds a predefined node for a device with a given address
+
+	    args:
+		id
+		nname
+		ntype
+		flag
+
+	"""
+	if nname is None :
+	    nname = id
+	if id is None :
+	    raise IsyValueError("invalid node id : " + type)
+	if type is None :
+	    raise IsyValueError("invalid node type : " + type)
+
+	return  self.soapcomm("AddNode", id=id, name=nname, type=ntype, flag=flag)
+
+
+    def webcam_get(self) :
+	"""
+	    get webcam list avalible in ISY's ajax web UI
+
+	    returns dict
+	"""
+	#campath="/WEB/CONF/cams.jsn"
+	r = self.soapcomm("GetSysConf", name="/WEB/CONF/cams.jsn")
+	return json.loads(r)
+
+
+
+    def webcam_add(self, brand=None, num=None, ip=None, model='1', name=None, passwd='', port='80', user='') :
+	"""
+	    Add webcam to UI
+
+		args :
+		    brand		brand of cam (one of : Foscam Smarthome Axis Panasonic MJPGstreamer)
+		    ip			IP of cam
+		    port		TCP port for cam (default = 80)
+		    model
+		    name
+		    user
+		    passwd		
+
+	"""
+	if not ( brand is None) and  (brand.lower() not in ["foscam", "smarthome", "axis", "panasonic", "mjpgstreamer"]) :
+	    raise IsyValueError("webcam_add : invalid value for arg 'brand' ")
+	else :
+	    brand = brand.lower()
+
+	if ip is None :
+	    raise IsyValueError("webcam_add : invalid ip")
+
+	if name is None :
+	    name = brand
+
+	camlist = self.webcam_get()
+
+	if 'lastId' in camlist :
+	    maxid = int( camlist['lastId'] ) + 2
+	else :
+	    maxid = camlist.__len__() + 2
+
+	if num is None :
+	    for i in range(1, maxid) : 
+		if str(i) not in camlist :
+		    num = str(i)
+		    break
+	    else :
+		raise RuntimeError( "webcam_add : failed cam index")
+	elif isinstance(num, int) :
+	    num = str(num)
+
+	if self.debug & 0x100 :
+	    print "using num : ", num
+
+	newcam = {'brand': brand, 'ip': ip, 'model': model, 'name': name, 'pass': passwd, 'port': port, 'user': user}
+
+	camlist[num] = newcam
+
+	if self.debug & 0x100 :
+	    print "webcam_add : ",
+	    pprint.pprint(camlist)
+
+	if num > camlist['lastId'] :
+	    if self.debug & 0x100 :
+		print "new lastId = ", num, ":", camlist['lastId'] 
+	    camlist['lastId'] = num
+
+	return self._webcam_set(camlist)
+
+    def webcam_del(self, camid=None) :
+	"""
+	    delete an entery from UI's webcam list
+
+	    arg:
+		camid		index for camera in camlist
+	"""
+	if camid is None :
+	    raise IsyValueError("webcam_del : arg camid is None")
+
+	camlist = self.webcam_get()
+
+	if self.debug & 0x100 :
+	    pprint.pprint(camlist)
+
+	if isinstance(camid, int) :
+	    camid = str(camid)
+
+	if camid not in camlist :
+	    raise IsyValueError("webcam_del : invalid camid")
+
+	del camlist[camid]
+
+	if 'lastId' in camlist :
+	    maxid = int( camlist['lastId'] ) + 2
+	else :
+	    maxid = camlist.__len__() + 2
+
+	lastid = -1
+	for i in range(1, maxid) : 
+	    if str(i) in camlist and lastid < i :
+		    lastid = i
+
+	camlist['lastId'] = str(lastid)
+
+	return self._webcam_set(camlist)
+
+
+
+    def _webcam_set(self, camdict=None) :
+	if camdict is None :
+	    raise IsyValueError("_webcam_set : arg camdict invalid")
+
+	camjson =  json.dumps(camdict, sort_keys=True)
+	r = self._sendfile(data=camjson, filename="/WEB/CONF/cams.jsn", load="n")
+	return r
+
+    def startnodesdiscovery(self, ntype=None) :
+	"""
+	    Puts ISY in discovery (linking) mode
+
+	    args :
+		Type	Optionally, provide the type of node to be discovered 
+	"""
+	soapargs = dict()
+	if ntype is not None :
+	    soapargs['type'] = ntype
+	return self.soapcomm("StartNodesDiscovery", **soapargs)
+
+
+    def stopnodesdiscovery(self, flag="1") :
+	"""
+	    Puts ISY out of discovery (linking) mode
+
+	    The flag decides the operations (reset, crawl, spider) 
+	    to be performed after device(s) are discovered
+
+	    args :
+		NodeOperationsFlag	
+
+
+	    Valid values
+		1 = add the node and reset all previous setting if any
+		2 = unused 
+		3 = add the node, find all the associated nodes, and create all the linkages thereto 
+		4 = add the node, find all the associated nodes, but do not create any linkages 
+
+	"""
+	flag = str(flag)
+	if flag not in ['1', '2', '3', '4'] :
+	    raise IsyValueError("invalid flag value : " + flag)
+	return self.soapcomm("StopNodesDiscovery", flag=flag)
 
 
     #
