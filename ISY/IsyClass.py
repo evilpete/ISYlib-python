@@ -126,7 +126,7 @@ class Isy(IsyUtil):
     from ISY._isyclimate import load_clim, clim_get_val, clim_query, clim_iter
     from ISY._isyvar  import load_vars, var_set_value, _var_set_value, \
 		var_get_value, var_addrs, var_ids, get_var, _var_get_id, \
-		var_get_type, var_iter, var_new, _var_delete
+		var_get_type, var_iter, var_add, var_delete,  _var_delete
     from ISY._isyprog import load_prog, get_prog, _prog_get_id, \
 		prog_iter, prog_comm, _prog_comm, prog_get_src, \
 		prog_get_path, _prog_get_path
@@ -901,7 +901,7 @@ class Isy(IsyUtil):
 	r = self._sendfile(data=camjson, filename="/WEB/CONF/cams.jsn", load="n")
 	return r
 
-    def startnodesdiscovery(self, ntype=None) :
+    def node_discover(self, ntype=None) :
 	"""
 	    Puts ISY in discovery (linking) mode
 
@@ -911,10 +911,24 @@ class Isy(IsyUtil):
 	soapargs = dict()
 	if ntype is not None :
 	    soapargs['type'] = ntype
-	return self.soapcomm("StartNodesDiscovery", **soapargs)
+	return self.soapcomm("DiscoverNodes", **soapargs)
+
+	try :
+	    ret =  self.soapcomm("DiscoverNodes", flag=flag)
+	except IsySoapError, err:
+	    print "err = ", err
+	    print "print err.read : ",  err.read()
+	    if err.code == 805:
+		if self.debug & 0x02 :
+		    print "err = ", err
+		warn("DiscoverNodes : error 501, not in Discovery mode", IsyRuntimeWarning, 2)
+	    else :
+		raise
+	finally :
+	    return True
 
 
-    def stopnodesdiscovery(self, flag="1") :
+    def node_discover_cancel(self, flag="1") :
 	"""
 	    Puts ISY out of discovery (linking) mode
 
@@ -922,7 +936,7 @@ class Isy(IsyUtil):
 	    to be performed after device(s) are discovered
 
 	    args :
-		NodeOperationsFlag	
+		NodeOperationsFlag	enum value '1', '2', '3' or '4' 
 
 
 	    Valid values
@@ -935,7 +949,22 @@ class Isy(IsyUtil):
 	flag = str(flag)
 	if flag not in ['1', '2', '3', '4'] :
 	    raise IsyValueError("invalid flag value : " + flag)
-	return self.soapcomm("StopNodesDiscovery", flag=flag)
+
+
+	try :
+	    ret =  self.soapcomm("CancelNodesDiscovery", flag=flag)
+	except IsySoapError, err:
+	    if self.debug & 0x02 :
+		print "C err = ", err
+		print "C rr.read : ",  err.read()
+	    if err.code == 501:
+		print "Err = ", err
+		warn("CancelNodesDiscovery : error 501, not in Discovery mode", IsyRuntimeWarning, 2)
+	    else :
+		raise
+	finally :
+	    return True
+
 
 
     #

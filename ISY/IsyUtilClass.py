@@ -133,7 +133,6 @@ class IsyUtil(object):
 
     def _gensoap(self, cmd, **kwargs) :
 
-
 	if self.debug & 0x02 :
 	    print "len kwargs = ", len(kwargs), kwargs
 	if len(kwargs) == 0 :
@@ -187,8 +186,10 @@ class IsyUtil(object):
 		print("data ", data)
 	    res.close()
 	except URL.HTTPError, e:       
-	    print "e = ", e
-	    print "data = ", data
+	    if self.debug & 0x02 :
+		print "e.read = ", e.read()
+		print "e = ", e
+		print "data = ", data
             raise IsySoapError("{!s} : {!s}".format(self.__class__.__name__, e.code))
 	else :
 	    return data
@@ -230,7 +231,13 @@ class IsyUtil(object):
 
     def _sendfile(self, filename="", data="", load="n"):
 
-	xurl = self.baseurl + "/file/upload/" + filename + "?load=" + load
+	if ( filename.startswith('/') ) :
+	    xurl = self.baseurl + "/file/upload" + filename + "?load=" + load
+	else :
+	    xurl = self.baseurl + "/file/upload/" + filename + "?load=" + load
+
+        if self.debug & 0x02:
+            print("{0} xurl : {1}".format(__name__, xurl))
 	req = URL.Request(xurl, data, {'Content-Type': 'application/xml; charset="utf-8"'})
 
 	try :

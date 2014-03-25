@@ -12,6 +12,7 @@ __all__ = [ 'IsyError', 'IsyNodeError',
 	'IsyRuntimeWarning', 'IsyWarning'
 	]
 
+from urllib2 import URLError, HTTPError
 
 #
 # The Following was lifted from other modules used as examples
@@ -61,7 +62,7 @@ class IsyCommunicationError(IsyError, URLError):
 #     """General exception for command errors."""
 #     pass
 
-class IsySoapError(IsyError):
+class IsySoapError(IsyError, HTTPError):
     """General exception for SOAP errors."""
     pass
 
