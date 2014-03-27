@@ -14,7 +14,7 @@ opt_tab = 0
 opt_debug = 0
 opt_error = 0
 opt_errorlog = 0
-opt_nonames = 1
+opt_names = 0
 opt_addr = None
 
 time_const=2208988800;
@@ -71,14 +71,15 @@ def log_err(isy) :
 
 def log_sys(isy) :
 
-    nodefmt="%-18s"
-    commfmt="%-10s"
+    nodefmt="{:<12}"
+    commfmt="{:<4}"
 
     header = [ "Node", "Control", "Action", "Time", "UID", "Log Type" ]
 
-    if opt_nonames :
-	nodefmt="{:<12}"
-	commfmt="{:<4}"
+    if opt_names :
+	nodefmt="{:<18}"
+	commfmt="{:<10}"
+	print "opt_names = ", opt_names
 
     if opt_tab :
 	fmt = "{0}\t{1}\t{2}\t{3}\t{4}\t{5}"
@@ -101,6 +102,12 @@ def log_sys(isy) :
     for log_line in isy.log_iter(error = opt_errorlog) :
 	col = str(log_line).split("\t")
 
+	if opt_names :
+	    gn = isy._node_get_name(col[0])
+	    # print "n / gn = ", col[0], " / ", gn
+	    if gn[1] is not None :
+		col[0] = gn[1]
+
 	newtime = int(col[3]) - time_const - time_offset
 	ti = time.localtime(newtime)
 	col[3] = time.strftime(time_fmt, ti)
@@ -116,19 +123,19 @@ def log_sys(isy) :
 
 
 def parseargs():
-    global opt_nonamesr, opt_addr, opt_errorlog, opt_debug, opt_tab, opt_nosec
+    global opt_names, opt_addr, opt_errorlog, opt_debug, opt_tab, opt_nosec
     try:
-        opts, args = getopt.getopt(
-            sys.argv[1:], "ahetsd:",
-            ['help', 'error', 'debug', 'addr', 'tab', 'nosec'])
+	opts, args = getopt.getopt(
+            sys.argv[1:], "ahetnsd:",
+            ['help', 'error', 'debug', 'addr', 'tab', 'nosec', 'names'])
     except getopt.error, e:
         usage(1, e)
  
     for opt, arg in opts:
         if opt in ('-h', '--help'):
             usage(0)
-        elif opt in ('-n', '--nonames'):
-            opt_nonames = 1
+        elif opt in ('-n', '--names'):
+            opt_names = 1
         elif opt in ('-a', '--addr'):
             opt_addr = arg
         elif opt in ('-e', '--error'):

@@ -394,6 +394,26 @@ def get_node(self, node_id) :
     return None
 
 
+def _node_get_name(self, nid):
+    if not self._nodedict :
+	self.load_nodes()
+
+    if isinstance(nid, IsySubClass) :
+	 return nid["name"]
+    else :
+	n = str(nid).strip()
+
+	if n in self._nodedict :
+	    return  ("node", self._nodedict[n]["name"])
+
+	if n in self._nodegroups :
+	    return  ("scene", self._nodegroups[n]["name"])
+
+	if n in self._nodefolder :
+	    return  ("folder", self._nodefolder[n]["name"])
+
+	return (None, n)
+
 def _node_get_id(self, nid):
     """ node/scene/Folder name to node/scene/folder ID """
 
