@@ -44,6 +44,8 @@ import ISY
 __doc__ = __doc__.format( os.path.basename(sys.argv[0])) 
 def main(isy):
 
+    systemconf = 0
+
     # print "sys.argv[1:] = {!s}".format( len(sys.argv[1:]) )
 
     # print "unknown_args : ", isy.unknown_args
@@ -56,6 +58,11 @@ def main(isy):
         # print_listing_sort(isy)
         print_fsstat(isy)
     else :
+
+	if argv.pop in ["-s", "--system"] :
+	    _ = argv.pop(0)
+	    systemconf = 1
+
         cmd = argv.pop(0).upper()
         # print "cmd = ", cmd
         if cmd in ["SEND", "PUT"] :
@@ -114,12 +121,16 @@ def main(isy):
 
             if ( len(argv) > 0 ) :
                 dstfile = argv.pop(0)
-            elif str(name).upper().startswith("/USER/WEB/") :
+            elif str(name).upper().startswith("/") :
                 dstfile = os.path.basename(name)
             else :
                 dstfile = name
 
-            res = isy.user_getfile(name=name)
+	    if systemconf :
+		res = self.soapcomm("GetSysConf", name=varpath)
+	    else :
+		res = isy.user_getfile(name=name)
+
             with open(dstfile, 'w') as fh:
                 fh.write(res)
             print "{!s} bytes written to {!s}".format(len(res), dstfile)
@@ -192,7 +203,7 @@ def print_listing(isy) :
             else :
                 print "dir\t{!s}".format(val["dir-name"])
         elif ( key == 'file' ) :
-            print type(key), type(val)
+            # print type(key), type(val)
             # print "key val = ", key, val
             if isinstance(val, list) :
                 for l in val :
@@ -229,6 +240,6 @@ def help():
 
 if __name__ == "__main__":
 
-    myisy = ISY.Isy(debug=0x00, faststart=2, eventupdates=0, parsearg=1)
+    myisy = ISY.Isy(faststart=2, eventupdates=0, parsearg=1)
     main(myisy)
     exit(0)
