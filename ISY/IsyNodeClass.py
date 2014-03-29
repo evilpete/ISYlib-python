@@ -340,7 +340,7 @@ class IsyNode(_IsyNodeBase):
 
 	    self.isy._node_send(self._mydict["address"], "set", prop, str(new_value))
 
-            self._mydict["property"]["time"] = 0
+            # self._mydict["property"]["time"] = 0
 
             if prop in self._mydict["property"] :
                 # if isinstance(new_value, (int, float))  : # already checked with isdigit

@@ -45,7 +45,7 @@ def load_nodes(self) :
     # self.nodeCdict = dict ()
     # self._node2addr = dict ()
     if self.debug & 0x01 :
-	print("load_nodes pre _getXML")
+	print("load_nodes")
     nodeinfo = self._getXMLetree("/rest/nodes")
     if nodeinfo is None :
 	  raise IsyCommunicationError("Load Node Info Fail : " \
@@ -649,7 +649,7 @@ def load_node_types(self) :
 
     """
     if self.debug & 0x01 :
-	print("load_node_types called")
+	print("load_node_types")
     typeinfo = self._getXMLetree("/WEB/cat.xml")
     if typeinfo is None :
 	  raise IsyCommunicationError("Load Node Type Info Fail : " \

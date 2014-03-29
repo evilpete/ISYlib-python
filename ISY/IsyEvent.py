@@ -254,7 +254,7 @@ class ISYEvent(object) :
         exml = arg[2]
 
         try:
-	    if ddat["control"] in ["_11"] :
+	    if ddat["control"] in ["_0", "_11"] :
 		pass
             elif ddat["control"] in ["ST", "RR", "OL"] :
                 ectrl = EVENT_CTRL.get(ddat["control"], ddat["control"])
@@ -284,7 +284,8 @@ class ISYEvent(object) :
 #               print arg
 
 	    else : 
-		    print "Event Dat : \n\t", ddat, "\n\t", exml
+		    # print "Event Dat : \n\t", ddat, "\n\t", exml
+		    pass
 
             #print ddat
             # print data

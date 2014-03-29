@@ -29,6 +29,8 @@ def load_vars(self) :
         internal function call
 
     """
+    if self.debug & 0x01 :
+	print("load_vars")
     if not hasattr(self, '_vardict') or not isinstance(self._vardict, dict):
         self._vardict = dict ()
 
@@ -402,6 +404,14 @@ def var_add(self, varid=None, varname=None, vartype="int", value=None, initval=N
 
 
 def var_delete(self, varid=None) :
+    """
+	Delete Vara
+
+	arg: 
+	    varid	var name or address id
+
+	note : var and delete are not atomic operations
+    """
     if varid is None :
 	raise IsyValueError("{0} : varid arg in missing".format(__name__))
 
@@ -428,13 +438,14 @@ def var_delete(self, varid=None) :
 
 def _var_delete(self, varid=None, vartype=None ) :
     """
-	Delete Vara
 
 	    Named args:
 		varid		a var id (or list of ids)
 		vartype		"integer" or "state"
 
-	if varid is a list, then all deletions will happen in one atomic operation
+	if varid is a list, then all deletions will happen in one operation
+
+	note : var and delete are not atomic operations
     """
 
 

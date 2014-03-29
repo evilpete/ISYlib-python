@@ -23,7 +23,7 @@ def load_clim(self) :
 
     """
     if self.debug & 0x01 :
-	print("load_clim called")
+	print("load_clim")
     clim_tree = self._getXMLetree("/rest/climate")
     self.climateinfo = dict ()
     if clim_tree == None :

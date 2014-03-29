@@ -24,7 +24,7 @@ def load_prog(self, progid=None):
 
     """
     if self.debug & 0x01 :
-	print("load_prog called")
+	print("load_prog")
 
     if not hasattr(self, '_progdict') or not isinstance(self._progdict, dict):
 	self._progdict = dict ()
@@ -145,6 +145,13 @@ def _prog_get_path(self, prog_id) :
     fpath = "/" + fpath
     return fpath
 
+def prog_addrs(self) :
+    """ 
+	access method for prog address list
+    """
+    if not self._progdict :
+	self.load_prog()
+    return self._progdict.viewkeys()
 
 def prog_get_src(self, pname):
 

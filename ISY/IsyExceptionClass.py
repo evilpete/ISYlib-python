@@ -29,12 +29,16 @@ SubClasses :
     - IsyAttributeError(IsyError):
 
     """
-    def __init__(self, msg, exception=None):
+    def __init__(self, msg, exception=None, httperr=None):
         """Creates an exception. The message is required, but the exception
         is optional."""
         self._msg = msg
         self._exception = exception
+	self.httperr = httperr
         Exception.__init__(self, msg)
+
+    def code(self):
+	return self.httperr.code
 
     def getMessage(self):
         "Return a message for this exception."
@@ -64,6 +68,15 @@ class IsyCommunicationError(IsyError, URLError):
 
 class IsySoapError(IsyError, HTTPError):
     """General exception for SOAP errors."""
+#    def __init__(self, message, Errors):
+#
+#	# Call the base class constructor with the parameters it needs
+#	HTTPError.__init__(self, message)
+#
+#	# Now for your custom code...
+#	self.Errors = Errors
+    
+
     pass
 
 class IsyTypeError(IsyError, TypeError):

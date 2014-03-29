@@ -129,17 +129,18 @@ class Isy(IsyUtil):
 		var_get_type, var_iter, var_add, var_delete,  _var_delete
     from ISY._isyprog import load_prog, get_prog, _prog_get_id, \
 		prog_iter, prog_comm, _prog_comm, prog_get_src, \
-		prog_get_path, _prog_get_path
+		prog_get_path, _prog_get_path, prog_addrs
     from ISY._isynode import load_nodes, _gen_member_list, _gen_folder_list, \
 		_gen_nodegroups, _gen_nodedict, node_names, scene_names, \
 		node_addrs, scene_addrs, get_node, _node_get_id, node_get_prop, \
 		node_set_prop, _node_send, node_comm, _updatenode, \
 		load_node_types, node_get_type, node_iter, _updatenode, \
-		node_get_path, _node_get_path
+		node_get_path, _node_get_path, _node_get_name
     from ISY._isynet_resources import _load_networking, load_net_resource, \
 		_net_resource_get_id, net_resource_run, \
 		net_resource_names, net_resource_iter, \
-		load_net_wol, net_wol, _net_wol_get_id, net_wol_names, net_wol_iter
+		load_net_wol, net_wol, _net_wol_get_id, net_wol_names, net_wol_iter, \
+		net_wol_ids, net_resource_ids
 #    from ISY._isyzb import load_zb, zb_scannetwork, zb_ntable, zb_ping_node, \
 #		zbnode_addrs, zbnode_names, zbnode_iter
 
@@ -173,6 +174,11 @@ class Isy(IsyUtil):
 	# print "AUTH: ", self.addr, self.userl, self.userp
 
         self.debug = kwargs.get("debug", 0)
+
+	if "ISY_DEBUG" in os.environ :
+	    self.debug = self.debug & int(os.environ["ISY_DEBUG"])
+
+
         self.cachetime = kwargs.get("cachetime", 0)
         self.faststart = kwargs.get("faststart", 1)
         self.eventupdates = kwargs.get("eventupdates", 0)
@@ -324,6 +330,8 @@ class Isy(IsyUtil):
 
 	if args.debug :
 	    self.debug = args.debug
+
+	self.parser = parser
 
     #
     # Event Subscription Code
@@ -911,21 +919,9 @@ class Isy(IsyUtil):
 	soapargs = dict()
 	if ntype is not None :
 	    soapargs['type'] = ntype
-	return self.soapcomm("DiscoverNodes", **soapargs)
 
-	try :
-	    ret =  self.soapcomm("DiscoverNodes", flag=flag)
-	except IsySoapError, err:
-	    print "err = ", err
-	    print "print err.read : ",  err.read()
-	    if err.code == 805:
-		if self.debug & 0x02 :
-		    print "err = ", err
-		warn("DiscoverNodes : error 501, not in Discovery mode", IsyRuntimeWarning, 2)
-	    else :
-		raise
-	finally :
-	    return True
+	ret =  self.soapcomm("DiscoverNodes", type=ntype)
+	return ret
 
 
     def node_discover_cancel(self, flag="1") :
@@ -937,7 +933,6 @@ class Isy(IsyUtil):
 
 	    args :
 		NodeOperationsFlag	enum value '1', '2', '3' or '4' 
-
 
 	    Valid values
 		1 = add the node and reset all previous setting if any
@@ -951,19 +946,9 @@ class Isy(IsyUtil):
 	    raise IsyValueError("invalid flag value : " + flag)
 
 
-	try :
-	    ret =  self.soapcomm("CancelNodesDiscovery", flag=flag)
-	except IsySoapError, err:
-	    if self.debug & 0x02 :
-		print "C err = ", err
-		print "C rr.read : ",  err.read()
-	    if err.code == 501:
-		print "Err = ", err
-		warn("CancelNodesDiscovery : error 501, not in Discovery mode", IsyRuntimeWarning, 2)
-	    else :
-		raise
-	finally :
-	    return True
+	ret =  self.soapcomm("CancelNodesDiscovery", flag=flag)
+
+	return ret
 
 
 
@@ -1418,7 +1403,7 @@ class Isy(IsyUtil):
 
         """
         if self.debug & 0x01 :
-            print("load_conf pre _getXMLetree")
+            print("load_conf")
         configinfo = self._getXMLetree("/rest/config")
         # Isy._printXML(configinfo)
 	# IsyCommunicationError
@@ -1463,6 +1448,12 @@ class Isy(IsyUtil):
             if not n is None:
                 if isinstance(n.text, str):
                     self.config[v] = n.text
+
+	n = configinfo.find("root/id")
+	if not n is None:
+	    if isinstance(n.text, str):
+		self.config['id'] = n.text
+
 	xelm = configinfo.find("product/id")
 	if not xelm is None:
 	    if hasattr(xelm, 'text') :
@@ -1480,6 +1471,11 @@ class Isy(IsyUtil):
         """ name of ISY platform (readonly) """
         return self.config["platform"]
     platform = property(_get_platform)
+
+    def _get_id(self) :
+        """ id of ISY (readonly) """
+        return self.config["id"]
+    id = property(_get_id)
 
     def _get_app_version(self) :
         """ name of ISY app_version (readonly) """
@@ -1509,6 +1505,8 @@ class Isy(IsyUtil):
 
 	**not implemented **
 	"""
+        if self.debug & 0x01 :
+            print("load_log_type")
 	pass
 
     def load_log_id(self):
@@ -1516,6 +1514,8 @@ class Isy(IsyUtil):
 
 	**not implemented **
 	"""
+        if self.debug & 0x01 :
+            print("load_log_id")
         pass
 
     def log_reset(self, errorlog = 0 ):
