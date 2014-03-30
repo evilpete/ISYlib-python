@@ -218,6 +218,7 @@ def _gen_nodegroups(self, nodeinfo) :
 
 def _gen_nodedict(self, nodeinfo) :
     """ generate node dictionary for load_node() """
+    warn_dup_name_list = list()
     self._node2addr = dict()
     for inode in nodeinfo.iter('node'):
 	# self._printinfo(inode, "\n\n inode")
@@ -261,7 +262,8 @@ def _gen_nodedict(self, nodeinfo) :
 
 		n = idict["name"]
 		if n in self._node2addr :
-		    warn_mess = "Duplicate Node name \"{0}\" :" \
+		    warn_dup_name_list.append( (n ,idict["address"], self._name2id[n]) )
+		    warn_mess = "Duplicate Node name \"{0}\" :".format(n) \
 				+ " \"{1}\"\n\t\"{2}\"".format(\
 				n, idict["address"], self._node2addr[n])
 		    warnings.warn(warn_mess, IsyRuntimeWarning)
@@ -269,7 +271,8 @@ def _gen_nodedict(self, nodeinfo) :
 		    self._node2addr[n] = idict["address"]
 
 		if n in self._name2id :
-		    warn_mess = "Dup name2id (Node) \"{0}\" :" \
+		    warn_dup_name_list.append( (n ,idict["address"], self._name2id[n]) )
+		    warn_mess = "Dup name2id (Node) \"{0}\" :".format(n) \
 				+ " \"{1}\"\n\t\"{2}\"".format(\
 				n ,idict["address"], self._name2id[n])
 		    warnings.warn(warn_mess, IsyRuntimeWarning)

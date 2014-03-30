@@ -296,7 +296,7 @@ class Isy(IsyUtil):
 	"""
 	import argparse
 
-	parser = argparse.ArgumentParser()
+	parser = argparse.ArgumentParser(add_help=False)
 
 	parser.add_argument("-d", "--debug", dest="debug",
 		default=self.debug,
@@ -920,7 +920,7 @@ class Isy(IsyUtil):
 	if ntype is not None :
 	    soapargs['type'] = ntype
 
-	ret =  self.soapcomm("DiscoverNodes", type=ntype)
+	ret =  self.soapcomm("DiscoverNodes", **soapargs )
 	return ret
 
 
@@ -1334,6 +1334,22 @@ class Isy(IsyUtil):
 	    raise IsyValueError("user_uploadfile : invalid name")
 	r = self.sendfile(src=srcfile, filename=name, data=data)
 	return r
+
+    def queryall(self, node=None, flag=None) :
+	"""
+	    Queries a node, a scene, or even the whole network
+
+	    Named args:
+		node : name of node or scene to query (optional)
+		flag : enum { '1', '4', '8' }
+	"""
+	soapargs = dict()
+	if node is not None :
+	    soapargs['node'] = ntype
+	if flag is not None :
+	    soapargs['flag'] = flag
+	r = self.soapcomm("QueryAll", **soapargs)
+
 
     #
     #  Util Funtions

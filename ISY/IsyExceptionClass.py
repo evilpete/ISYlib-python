@@ -38,7 +38,9 @@ SubClasses :
         Exception.__init__(self, msg)
 
     def code(self):
-	return self.httperr.code
+	if self.httperr is not None :
+	    return self.httperr.code
+	return None
 
     def getMessage(self):
         "Return a message for this exception."

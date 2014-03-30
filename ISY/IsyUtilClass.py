@@ -208,7 +208,9 @@ class IsyUtil(object):
 		print "e.read = ", e.read()
 		print "e = ", e
 		print "data = ", data
-            raise IsySoapError("{!s} : {!s}".format(self.__class__.__name__, e.code), httperr=e)
+
+	    mess = "{!s} : {!s} : {!s}".format(cmd, kwargs,  e.code)
+            raise IsySoapError(mess,  httperr=e)
 	else :
 	    return data
 
@@ -264,7 +266,8 @@ class IsyUtil(object):
 	    res.close()
 	except URL.HTTPError, e:       
 	    print e.read()
-            raise IsySoapError("{!s} : {!s}".format(self.__class__.__name__, code=e.code))
+	    mess = "{!s} : {!s} : {!s}".format("/file/upload", filename,  e.code)
+            raise IsySoapError(mess, httperr=e)
 	else :
 	    return responce
 		  
