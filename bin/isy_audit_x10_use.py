@@ -74,7 +74,7 @@ def main(isy):
 
 
 if __name__ == '__main__' :
-    myisy = Isy()
+    myisy = Isy(parsearg=1)
     main(myisy)
     exit(0)
 

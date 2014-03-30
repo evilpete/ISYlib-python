@@ -134,7 +134,7 @@ if __name__ == '__main__' :
     # don't preload node, dont subscribe to updates
     #
     # get login / pass from from Env.
-    myisy = ISY.Isy(faststart=2,eventupdates=0)
+    myisy = ISY.Isy(faststart=2,eventupdates=0,parsearg=1)
 
     # preload programs and vars
     myisy.load_vars()
