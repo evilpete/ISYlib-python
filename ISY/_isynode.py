@@ -270,6 +270,9 @@ def _gen_nodedict(self, nodeinfo) :
 		else :
 		    self._node2addr[n] = idict["address"]
 
+
+		# thinking of replacing _node2addr with _name2id
+		# do to ease managment of the three node types
 		if n in self._name2id :
 		    warn_dup_name_list.append( (n ,idict["address"], self._name2id[n]) )
 		    warn_mess = "Dup name2id (Node) \"{0}\" :".format(n) \

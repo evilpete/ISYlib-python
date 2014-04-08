@@ -126,6 +126,9 @@ class IsyUtil(object):
 	    return None
 	else :
 	    if len(self.error_str) : self.error_str = ""
+	    if self.debug & 0x200  :
+		print res.info() 
+		print data
 	    if len(data) :
 		return ET.fromstring(data)
 	    else :
@@ -166,13 +169,13 @@ class IsyUtil(object):
 	if not isinstance(cmd, str) or not len(cmd) :
 	     raise IsyValueError("SOAP Method name missing")
 
-        if self.debug & 0x01 :
+        if self.debug & 0x02 :
             print "sendcomm : ", cmd 
 
 	soap_cmd = self._gensoap(cmd, **kwargs)
 
 	xurl = self.baseurl + "/services"
-	if self.debug & 0x200 :
+	if self.debug & 0x02 :
 	    print "xurl = ", xurl
 	    print "soap_cmd = ", soap_cmd
 
@@ -188,6 +191,7 @@ class IsyUtil(object):
 	    res.close()
 	except URL.HTTPError, e:       
 
+	    self.error_str = str("Reponse Code : {0} : {1} {2}" ).format(e.code, xurl, cmd)
 	    if (( cmd == "DiscoverNodes" and e.code == 803 ) or
 		( cmd == "CancelNodesDiscovery" and e.code == 501 ) ) :
 
@@ -203,7 +207,7 @@ class IsyUtil(object):
 
 		return e.read()
 
-	    if self.debug & 0x02 :
+	    if self.debug & 0x202 :
 		print "e.code = ", type(e.code), e.code
 		print "e.read = ", e.read()
 		print "e = ", e
@@ -212,6 +216,9 @@ class IsyUtil(object):
 	    mess = "{!s} : {!s} : {!s}".format(cmd, kwargs,  e.code)
             raise IsySoapError(mess,  httperr=e)
 	else :
+	    if len(self.error_str) : self.error_str = ""
+	    if self.debug & 0x200  :
+		print data
 	    return data
 
     def sendfile(self, src=None, filename="", data=None):

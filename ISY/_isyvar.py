@@ -58,7 +58,7 @@ def load_vars(self) :
             self._vardict[vid]["id"] = vid
             self._vardict[vid]["type"] = t
 
-	    n =  v.attrib['name']
+	    n = v.attrib['name']
             if n in self.name2var :
                 warn("Duplicate Var name (0) : (1) (2)".format(n,
                             vid, self.name2var[n]), IsyRuntimeWarning)
@@ -117,6 +117,7 @@ def var_set_value(self, var, val, prop="val") :
     """
     if self.debug & 0x04 :
         print("var_set_value ", val, " : ", prop)
+
     varid = self._var_get_id(var)
 
     if isinstance(val, str) and  not val.isdigit() :
@@ -361,7 +362,7 @@ def var_add(self, varid=None, varname=None, vartype="int", value=None, initval=N
     # now that we have a avalible ID number, create the entery
     ET.SubElement(var_et, "e", {'id':varid, 'name':varname} )
 
-    new_var_data =  ET.tostring(var_et)
+    new_var_data = ET.tostring(var_et, method='html')
 
     r = self._sendfile(data=new_var_data, filename=varpath, load="y")
 
@@ -413,7 +414,7 @@ def var_delete(self, varid=None) :
 	note : var and delete are not atomic operations
     """
     if varid is None :
-	raise IsyValueError("{0} : varid arg in missing".format(__name__))
+	raise IsyValueError("{0} : varid arg is missing".format(__name__))
 
     myvarid = self._var_get_id(varid)
 
@@ -438,7 +439,6 @@ def var_delete(self, varid=None) :
 
 def _var_delete(self, varid=None, vartype=None ) :
     """
-
 	    Named args:
 		varid		a var id (or list of ids)
 		vartype		"integer" or "state"
@@ -450,7 +450,7 @@ def _var_delete(self, varid=None, vartype=None ) :
 
 
     if varid is None :
-	raise IsyValueError("varid arg in missing")
+	raise IsyValueError("varid arg is missing")
     elif isinstance(varid, list) :
 	for i in range( len(varid) ) : # make sure they are all strings
 	    varid[i] = str(varid[i])
@@ -485,12 +485,91 @@ def _var_delete(self, varid=None, vartype=None ) :
 	    if v.attrib["id"] in varid :
 		var_et.remove(v)
 
-    new_var_data =  ET.tostring(var_et)
+    new_var_data = ET.tostring(var_et)
 
     r = self._sendfile(data=new_var_data, filename=varpath, load="y")
 
     return r
 
+
+# untested 
+def var_rename(self, var=None, varname=None ) :
+
+    if not isinstance(varname, str) :
+	raise IsyValueError("varname must me type str")
+
+    varid = self._var_get_id(var)
+
+    if varid is None :
+	raise IsyValueError("Invalid var : {0}".format(var))
+
+    v = varid.split(":")
+
+    print "call _var_rename ", v[0], v[1], varname
+
+    raise IsyError("var_rename not complete")
+
+def _var_rename(self, varid=None, vartype=None, varname=None ) :
+    """
+	    Named args:
+		varid		a var id
+		vartype		"integer" or "state"
+		varname		New var name
+
+	if varid is a list, then all deletions will happen in one operation
+
+	note : var and delete are not atomic operations
+    """
+
+    if varid is None :
+	raise IsyValueError("varid arg is missing")
+    elif not isinstance(varid, str) :
+	varid = str(varid)
+
+
+#    if isinstance(varid, str) and not val.isdigit() ) :
+#	raise IsyValueError("Invalid var id missing")
+
+
+    vartype = str(vartype)
+    if vartype == "integer" or vartype == "1" :
+	varpath="/CONF/INTEGER.VAR"
+    elif vartype == "state"  or vartype == "2" :
+	varpath="/CONF/STATE.VAR"
+    else :
+	raise IsyValueError("vartype : invalid type")
+
+    result = self.soapcomm("GetSysConf", name=varpath)
+
+    if result is None  :
+	raise IsyResponseError("Error loading Sys Conf file {0}".format(varpath))
+
+    var_et = ET.fromstring(result) 
+
+    for v in  var_et.iter("e") :
+	if "id" in v.attrib :
+	    if v.attrib["id"] == varid :
+		v.attrib["name"] = varname
+		break
+
+    new_var_data = ET.tostring(var_et)
+
+    r = self._sendfile(data=new_var_data, filename=varpath, load="y")
+
+    vid = "{0}:{1}".format(vartype, varid)
+
+    if vid in self._vardict :
+	self._vardict[vid]['name'] = varname
+
+    if varname in self.name2var :
+	self.name2var[varname] = vid
+
+#    if varname in self._name2id :
+#	if self._name2id[varname][0] == "var" :
+#	    self._name2id[varname] = ("var", vid)
+
+
+    return r
 
 
 # Do nothing

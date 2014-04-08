@@ -54,7 +54,7 @@ def log_err(isy) :
 	# print "log_line : ", len(col), " : ", "|".join(col)
 	if ( len(col) < 4 ) :
 	    print "BAD log_line : ", len(col), " : ", "|".join(col)
-	    break
+	    continue
 
 	newtime = int(col[0]) - time_const - time_offset
 	ti = time.localtime(newtime)
