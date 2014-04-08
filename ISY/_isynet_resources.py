@@ -105,6 +105,19 @@ def net_resource_get_src(self, rrid):
 
     return r
 
+def net_resource_ids(self):
+    """
+    method to retrieve a list of networking resource ids
+
+	args: none
+
+	returns List of ids or None
+    """
+    if not self._net_resource :
+	self.load_net_resource()
+
+    return self._net_resource.keys()
+
 
 def net_resource_names(self):
     """
@@ -190,11 +203,22 @@ def net_wol_names(self) :
 
 	args: none
 
-    returns List of WOL names and IDs or None
+    returns List of WOL names or None
     """
     if not self._wolinfo :
 	self.load_net_wol()
     return self.name2wol.keys()
+
+def net_wol_ids(self) :
+    """ method to retrieve a list of WOL ids
+
+	args: none
+
+    returns List of WOL names or None
+    """
+    if not self._wolinfo :
+	self.load_net_wol()
+    return self._wolinfo.keys()
 
 
 def net_wol_iter(self):

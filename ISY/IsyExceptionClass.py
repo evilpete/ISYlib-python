@@ -12,6 +12,7 @@ __all__ = [ 'IsyError', 'IsyNodeError',
 	'IsyRuntimeWarning', 'IsyWarning'
 	]
 
+from urllib2 import URLError, HTTPError
 
 #
 # The Following was lifted from other modules used as examples
@@ -28,12 +29,18 @@ SubClasses :
     - IsyAttributeError(IsyError):
 
     """
-    def __init__(self, msg, exception=None):
+    def __init__(self, msg, exception=None, httperr=None):
         """Creates an exception. The message is required, but the exception
         is optional."""
         self._msg = msg
         self._exception = exception
+	self.httperr = httperr
         Exception.__init__(self, msg)
+
+    def code(self):
+	if self.httperr is not None :
+	    return self.httperr.code
+	return None
 
     def getMessage(self):
         "Return a message for this exception."
@@ -61,8 +68,17 @@ class IsyCommunicationError(IsyError, URLError):
 #     """General exception for command errors."""
 #     pass
 
-class IsySoapError(IsyError):
+class IsySoapError(IsyError, HTTPError):
     """General exception for SOAP errors."""
+#    def __init__(self, message, Errors):
+#
+#	# Call the base class constructor with the parameters it needs
+#	HTTPError.__init__(self, message)
+#
+#	# Now for your custom code...
+#	self.Errors = Errors
+    
+
     pass
 
 class IsyTypeError(IsyError, TypeError):

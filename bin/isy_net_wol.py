@@ -40,6 +40,6 @@ def main(isy):
 
 
 if __name__=="__main__":
-    myisy= ISY.Isy(debug=0)
+    myisy= ISY.Isy(parsearg=1)
     main(myisy)
     exit(0)

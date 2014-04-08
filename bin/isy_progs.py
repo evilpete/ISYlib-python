@@ -7,14 +7,14 @@ import ISY
    
 def list_progs(isy) :
 
-    pfmt = "{:<5}{:<24} {:<5} {:<5}{!s:<5}"
-    print(pfmt.format("Id", "Node Name", "Stat", "Run", "Enabled"))
-    print(pfmt.format("-" * 4, "-" * 10, "-" * 4, "-" * 4,"-" * 4))
+    pfmt = "{:<5}{:<24} {:<5} {:<5}{!s:<6} {!s:}"
+    print(pfmt.format("Id", "Node Name", "Stat", "Run", "Enabled", "Path"))
+    print(pfmt.format("-" * 4, "-" * 10, "-" * 4, "-" * 4,"-" * 4, "-" * 4))
     for p in isy.prog_iter():
        if p.folder :
-	   print(pfmt.format(p.id, p.name, p.status, "-", "-"))
+	   print(pfmt.format(p.id, p.name, p.status, "-", "-", p.path + "/" ))
        else:
-	   print(pfmt.format(p.id, p.name, p.status, p.running, p.enabled))
+	   print(pfmt.format(p.id, p.name, p.status, p.running, p.enabled, p.path))
 
 
 if __name__ == '__main__' :

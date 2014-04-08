@@ -100,7 +100,9 @@ from ISY.IsyNodeClass import IsyNode, IsyScene, IsyNodeFolder
 from ISY.IsyVarClass import IsyVar
 from ISY.IsyProgramClass import IsyProgram
 from ISY.IsyExceptionClass import IsyError
+from ISY.IsyDebug import *
 #
+
 
 
 

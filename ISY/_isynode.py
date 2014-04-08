@@ -45,7 +45,7 @@ def load_nodes(self) :
     # self.nodeCdict = dict ()
     # self._node2addr = dict ()
     if self.debug & 0x01 :
-	print("load_nodes pre _getXML")
+	print("load_nodes")
     nodeinfo = self._getXMLetree("/rest/nodes")
     if nodeinfo is None :
 	  raise IsyCommunicationError("Load Node Info Fail : " \
@@ -218,6 +218,7 @@ def _gen_nodegroups(self, nodeinfo) :
 
 def _gen_nodedict(self, nodeinfo) :
     """ generate node dictionary for load_node() """
+    warn_dup_name_list = list()
     self._node2addr = dict()
     for inode in nodeinfo.iter('node'):
 	# self._printinfo(inode, "\n\n inode")
@@ -261,15 +262,20 @@ def _gen_nodedict(self, nodeinfo) :
 
 		n = idict["name"]
 		if n in self._node2addr :
-		    warn_mess = "Duplicate Node name \"{0}\" :" \
+		    warn_dup_name_list.append( (n ,idict["address"], self._name2id[n]) )
+		    warn_mess = "Duplicate Node name \"{0}\" :".format(n) \
 				+ " \"{1}\"\n\t\"{2}\"".format(\
 				n, idict["address"], self._node2addr[n])
 		    warnings.warn(warn_mess, IsyRuntimeWarning)
 		else :
 		    self._node2addr[n] = idict["address"]
 
+
+		# thinking of replacing _node2addr with _name2id
+		# do to ease managment of the three node types
 		if n in self._name2id :
-		    warn_mess = "Dup name2id (Node) \"{0}\" :" \
+		    warn_dup_name_list.append( (n ,idict["address"], self._name2id[n]) )
+		    warn_mess = "Dup name2id (Node) \"{0}\" :".format(n) \
 				+ " \"{1}\"\n\t\"{2}\"".format(\
 				n ,idict["address"], self._name2id[n])
 		    warnings.warn(warn_mess, IsyRuntimeWarning)
@@ -393,6 +399,26 @@ def get_node(self, node_id) :
     #print "And you may ask yourself-Well...How did I get here?"
     return None
 
+
+def _node_get_name(self, nid):
+    if not self._nodedict :
+	self.load_nodes()
+
+    if isinstance(nid, IsySubClass) :
+	 return nid["name"]
+    else :
+	n = str(nid).strip()
+
+	if n in self._nodedict :
+	    return  ("node", self._nodedict[n]["name"])
+
+	if n in self._nodegroups :
+	    return  ("scene", self._nodegroups[n]["name"])
+
+	if n in self._nodefolder :
+	    return  ("folder", self._nodefolder[n]["name"])
+
+	return (None, n)
 
 def _node_get_id(self, nid):
     """ node/scene/Folder name to node/scene/folder ID """
@@ -629,7 +655,7 @@ def load_node_types(self) :
 
     """
     if self.debug & 0x01 :
-	print("load_node_types called")
+	print("load_node_types")
     typeinfo = self._getXMLetree("/WEB/cat.xml")
     if typeinfo is None :
 	  raise IsyCommunicationError("Load Node Type Info Fail : " \
@@ -653,8 +679,9 @@ def load_node_types(self) :
 	    # print("ID  name: ", subcat.attrib["name"])
 	    self._nodeCategory[ncat.attrib["id"]][subcat.attrib["id"]] = subcat.attrib["name"]
 	    #self._printinfo(subcat, "subcat :")
-    # print("nodeCategory : ", self._nodeCategory)
-    # self._printdict(self._nodeCategory)
+    if self.debug & 0x100 :
+	print("nodeCategory : ", self._nodeCategory)
+	self._printdict(self._nodeCategory)
 
 def node_get_type(self, typid) :
     """ Take a node's type value and returns a string idnentifying the device """

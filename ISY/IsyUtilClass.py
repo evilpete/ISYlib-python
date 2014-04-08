@@ -19,7 +19,7 @@ else :
 from pprint import pprint
 
 #__all__ = ['IsyUtil', 'IsySubClass' ]
-__all__ = []
+__all__ = ['format_node_addr']
 
 
 
@@ -76,6 +76,15 @@ def et2d(et) :
     return d
 
 
+def format_node_addr(naddr) :
+    if not isinstance(naddr, str) :
+	 raise IsyValueError("{0} arg not string".format(__name__))
+    addr_el = naddr.upper().split()
+    a = "{0:0>2}' '{1:0>2}' '{2:0>2}' ".format( *addr_el )
+    return a
+
+
+
 
 #
 # Simple Base class for ISY Class
@@ -117,6 +126,9 @@ class IsyUtil(object):
 	    return None
 	else :
 	    if len(self.error_str) : self.error_str = ""
+	    if self.debug & 0x200  :
+		print res.info() 
+		print data
 	    if len(data) :
 		return ET.fromstring(data)
 	    else :
@@ -124,10 +136,13 @@ class IsyUtil(object):
 
     def _gensoap(self, cmd, **kwargs) :
 
-	if len(kwargs) == -1 :
+	if self.debug & 0x200 :
+	    print "len kwargs = ", len(kwargs), kwargs
+	if len(kwargs) == 0 :
 	    cmdsoap = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" \
 		+ "<e:Envelope><s:Body>" \
-		+ "<u:{0!s}/>".format(cmd) \
+		+ "<u:{0!s} ".format(cmd) \
+		+ "xmlns:u=\"urn:udi-com:service:X_Insteon_Lighting_Service:1\" />" \
 		+ "</s:Body></e:Envelope>"
 	else :
 	    cmdsoap =  "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" \
@@ -144,23 +159,25 @@ class IsyUtil(object):
 	# print "cmdsoap = \n", cmdsoap
 	return cmdsoap
 
+    # http://wiki.universal-devices.com/index.php?title=ISY-99i/ISY-26_INSTEON:Errors_And_Error_Messages
     def soapcomm(self, cmd, **kwargs):
 	"""
 	takes a command name and a list of keyword arguments. 
 	each keyword is converted into a xml element
 	"""
 
-        if self.debug & 0x01 :
-            print "sendcomm : ", self.__class__.__name__
-
 	if not isinstance(cmd, str) or not len(cmd) :
 	     raise IsyValueError("SOAP Method name missing")
+
+        if self.debug & 0x02 :
+            print "sendcomm : ", cmd 
 
 	soap_cmd = self._gensoap(cmd, **kwargs)
 
 	xurl = self.baseurl + "/services"
-	#print "xurl = ", xurl
-	#print "soap_cmd = ", soap_cmd
+	if self.debug & 0x02 :
+	    print "xurl = ", xurl
+	    print "soap_cmd = ", soap_cmd
 
 	req = URL.Request(xurl, soap_cmd, {'Content-Type': 'application/xml; charset="utf-8"'})
 
@@ -168,19 +185,45 @@ class IsyUtil(object):
 	try :
 	    res = self._opener.open(req, None)
 	    data = res.read()
-	    # print("res.getcode() ", res.getcode(), len(data))
+	    if self.debug & 0x200 :
+		print("res.getcode() ", res.getcode(), len(data))
+		print("data ", data)
 	    res.close()
 	except URL.HTTPError, e:       
-	    print "e = ", e
-	    print "data = ", data
-            raise IsySoapError("{!s} : {!s}".format(self.__class__.__name__, e.code))
+
+	    self.error_str = str("Reponse Code : {0} : {1} {2}" ).format(e.code, xurl, cmd)
+	    if (( cmd == "DiscoverNodes" and e.code == 803 ) or
+		( cmd == "CancelNodesDiscovery" and e.code == 501 ) ) :
+
+
+		if self.debug & 0x02 :
+		    print "spacial case : {0} : {1}".format(cmd,  e.code)
+		    print "e.code = ", e.code
+		    print "e.msg = ", e.msg
+		    print "e.hdrs = ", e.hdrs
+		    print "e.filename = ", e.filename
+		    print "e.code = ", type(e.code), e.code
+		    print "\n"
+
+		return e.read()
+
+	    if self.debug & 0x202 :
+		print "e.code = ", type(e.code), e.code
+		print "e.read = ", e.read()
+		print "e = ", e
+		print "data = ", data
+
+	    mess = "{!s} : {!s} : {!s}".format(cmd, kwargs,  e.code)
+            raise IsySoapError(mess,  httperr=e)
 	else :
+	    if len(self.error_str) : self.error_str = ""
+	    if self.debug & 0x200  :
+		print data
 	    return data
 
     def sendfile(self, src=None, filename="", data=None):
 	"""
 	    upload file
-
 
 	    args :
 		data		content for fine to upload
@@ -200,8 +243,8 @@ class IsyUtil(object):
 	    if not src :
 		src = filename
 
-	    # if self.debug & 0x20 :
-	    print "using file {!s} as data src".format(src)
+	    if self.debug & 0x20 :
+		print "using file {!s} as data src".format(src)
 
 	    with open(src, 'r') as content_file:
 		data = content_file.read()
@@ -214,7 +257,13 @@ class IsyUtil(object):
 
     def _sendfile(self, filename="", data="", load="n"):
 
-	xurl = self.baseurl + "/file/upload/" + filename + "?load=" + load
+	if ( filename.startswith('/') ) :
+	    xurl = self.baseurl + "/file/upload" + filename + "?load=" + load
+	else :
+	    xurl = self.baseurl + "/file/upload/" + filename + "?load=" + load
+
+        if self.debug & 0x02:
+            print("{0} xurl : {1}".format(__name__, xurl))
 	req = URL.Request(xurl, data, {'Content-Type': 'application/xml; charset="utf-8"'})
 
 	try :
@@ -224,7 +273,8 @@ class IsyUtil(object):
 	    res.close()
 	except URL.HTTPError, e:       
 	    print e.read()
-            raise IsySoapError("{!s} : {!s}".format(self.__class__.__name__, e.code))
+	    mess = "{!s} : {!s} : {!s}".format("/file/upload", filename,  e.code)
+            raise IsySoapError(mess, httperr=e)
 	else :
 	    return responce
 		  

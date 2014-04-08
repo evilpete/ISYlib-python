@@ -29,6 +29,8 @@ def load_vars(self) :
         internal function call
 
     """
+    if self.debug & 0x01 :
+	print("load_vars")
     if not hasattr(self, '_vardict') or not isinstance(self._vardict, dict):
         self._vardict = dict ()
 
@@ -56,7 +58,7 @@ def load_vars(self) :
             self._vardict[vid]["id"] = vid
             self._vardict[vid]["type"] = t
 
-	    n =  v.attrib['name']
+	    n = v.attrib['name']
             if n in self.name2var :
                 warn("Duplicate Var name (0) : (1) (2)".format(n,
                             vid, self.name2var[n]), IsyRuntimeWarning)
@@ -103,17 +105,19 @@ def var_set_value(self, var, val, prop="val") :
     """ Set var value by name or ID
 
         args:
-            var = var name or Id
-            val = new value
-            prop = property to addign value to (default = val)
+            var 		var name or Id
+            val 		new value
+            prop  		init | val (default = val)
 
         raise:
             LookupError :  if var name or Id is invalid
             TypeError :  if property is not 'val or 'init'
 
+	max values are a signed 32bit int ( -214748364 to 2147483647 )
     """
     if self.debug & 0x04 :
         print("var_set_value ", val, " : ", prop)
+
     varid = self._var_get_id(var)
 
     if isinstance(val, str) and  not val.isdigit() :
@@ -145,9 +149,13 @@ def _var_set_value(self, varid, val, prop="val") :
     # pprint.pprint(resp)
     if resp == None or resp.attrib["succeeded"] != 'true' :
         raise IsyResponseError("Var Value Set error : var={!s} prop={!s} val={!s}".format(varid, prop, val))
-    if not self.eventupdates and hasattr(self, '_vardict') :
+
+    #
+    # hasattr(self, '_vardict') :
+    if not self.eventupdates and self._vardict is not None :
         # self._printdict(self._vardict[varid])
-        self._vardict[varid][prop] = int(val)
+	if varid in self._vardict :
+	    self._vardict[varid][prop] = int(val)
         # self._printdict(self._vardict[varid])
     return
 
@@ -286,12 +294,14 @@ def var_iter(self, vartype=0):
         else :
             yield self.get_var(v)
 
-def var_new(self, varname=None, vartype="int") :
-    """ Make new Vara
+def var_add(self, varid=None, varname=None, vartype="int", value=None, initval=None) :
+    """ Adds or replaces a var
 
-	Named args:
-	    varname	
-	    vartype		"integer" or "state"
+	    Named args:
+		varname	
+		vartype		"integer" or "state"
+		initval		inital value (optional)
+		value		current value (optional)
 	
     """
     if varname == None :
@@ -299,7 +309,163 @@ def var_new(self, varname=None, vartype="int") :
 
     if vartype == "integer" :
 	varpath="/CONF/INTEGER.VAR"
+	vtype = "1"
     elif vartype == "state" :
+	varpath="/CONF/STATE.VAR"
+	vtype = "2"
+    else :
+	raise IsyValueError("vartype : invalid type")
+
+    if value is not None :
+	if isinstance(value, int) :
+	    value = str(value)
+	elif not ( isinstance(value, str) and value.isdigit() ) : 
+	    raise IsyValueError("var_add: value must be an int or None")
+
+
+    if initval is not None :
+	if isinstance(initval, int) :
+	    initval = str(initval)
+	elif not ( isinstance(initval, str) and initval.isdigit() ) : 
+	    raise IsyValueError("var_add: initval must be an int None")
+
+    result = self.soapcomm("GetSysConf", name=varpath)
+
+    if result is None  :
+	raise IsyResponseError("Error loading Sys Conf file {0}".format(varpath))
+
+    var_et = ET.fromstring(result) 
+
+    if varid is None :
+	# create a dict with all used Ids, then loop till ya find a unused one
+	tdict = dict()
+	for vdat in var_et.iter("e") :
+	    tdict[ vdat.attrib['id'] ] = 1
+	maxid = tdict.__len__() + 5
+	varid = -1
+	for i in range(1, maxid) :
+	    if str(i) not in tdict :
+		varid = str(i)
+		break
+	else :
+	    raise RuntimeError( "failed to find free var id")
+	del tdict
+    else :
+	if isinstance(varid, int) :
+	    varid = str(varid)
+	elif not ( isinstance(varid, str) and varid.isdigit() ) : 
+	    raise IsyValueError("var_add: varid must be an int or None")
+
+
+    vaddr = vtype + ":" + varid
+
+    # now that we have a avalible ID number, create the entery
+    ET.SubElement(var_et, "e", {'id':varid, 'name':varname} )
+
+    new_var_data = ET.tostring(var_et, method='html')
+
+    r = self._sendfile(data=new_var_data, filename=varpath, load="y")
+
+    # update local cache ( if preloaded )
+    if self._vardict is not None :
+	import time
+
+	if vaddr in self._vardict :
+	    newv = self._vardict[vaddr]
+	else :
+	    newv = dict()
+	    self._vardict[vaddr] = newv
+
+	newv['id'] = vaddr
+	newv['type'] = vtype
+	newv['name'] = varname
+
+	newv['ts'] = time.strftime("%Y%m%d %H:%M:%S", time.localtime()),
+
+	if initval is None :
+	    newv['init'] = 0
+	else :
+	    newv['init'] = value
+
+	if value is None :
+	    newv['val'] = 0
+	else :
+	    newv['val'] = value
+
+
+    # store values ( if given )
+    if value is not None :
+	val = str(value)
+	_var_set_value(self, vaddr, val, prop="val")
+    if initval is not None :
+	val = str(initval)
+	_var_set_value(self, vaddr, val, prop="init")
+
+    return r
+
+
+def var_delete(self, varid=None) :
+    """
+	Delete Vara
+
+	arg: 
+	    varid	var name or address id
+
+	note : var and delete are not atomic operations
+    """
+    if varid is None :
+	raise IsyValueError("{0} : varid arg is missing".format(__name__))
+
+    myvarid = self._var_get_id(varid)
+
+    if isinstance(varid, list) :
+	for i in range( len(varid) ) : # make sure they are all strings
+	    if isinstance(varid[i], str) :
+		varid[i] = str(varid[i])
+    else : # if not a list make is a list
+	varid = [ str(varid) ]
+
+    dellist= { "1" : [],  "2" :  [] }
+
+    for v in varid :
+	vtype, vid = v.split(":")
+	dellist[vtype].append(vid)
+
+    if dellist["1"]  :
+	self._var_delete(dellist["1"], "1" ) 
+
+    if dellist["2"]  :
+	self._var_delete(dellist["2"], "2" ) 
+
+def _var_delete(self, varid=None, vartype=None ) :
+    """
+	    Named args:
+		varid		a var id (or list of ids)
+		vartype		"integer" or "state"
+
+	if varid is a list, then all deletions will happen in one operation
+
+	note : var and delete are not atomic operations
+    """
+
+
+    if varid is None :
+	raise IsyValueError("varid arg is missing")
+    elif isinstance(varid, list) :
+	for i in range( len(varid) ) : # make sure they are all strings
+	    varid[i] = str(varid[i])
+    else : # if not a list make is a list
+	varid = [ str(varid) ]
+
+
+#    if isinstance(varid, str) and not val.isdigit() ) :
+#	raise IsyValueError("Invalid var id missing")
+
+
+    vartype = str(vartype)
+    if vartype == "integer" or vartype == "1" :
+	varpath="/CONF/INTEGER.VAR"
+    elif vartype == "state"  or vartype == "2" :
 	varpath="/CONF/STATE.VAR"
     else :
 	raise IsyValueError("vartype : invalid type")
@@ -309,31 +475,101 @@ def var_new(self, varname=None, vartype="int") :
     if result is None  :
 	raise IsyResponseError("Error loading Sys Conf file {0}".format(varpath))
 
-    print result, "\n\n"
     var_et = ET.fromstring(result) 
 
-    # create a dict with all used Ids, then loop till ya find a unused one
-    tdict = dict()
-    for vdat in var_et.iter("e") :
-	tdict[ vdat.attrib['id'] ] = 1
+#$	varid=str(varid)
 
-    maxid = tdict.__len__() + 5
-    newid = -1
-    for i in range(1, maxid) :
-	if str(i) not in tdict :
-	    newid = str(i)
-	    break
+    # create a list from the iter(element) to tree can be modified
+    for v in list( var_et.iter("e") ) :
+	if "id" in v.attrib :
+	    if v.attrib["id"] in varid :
+		var_et.remove(v)
+
+    new_var_data = ET.tostring(var_et)
+
+    r = self._sendfile(data=new_var_data, filename=varpath, load="y")
+
+    return r
+
+
+# untested 
+def var_rename(self, var=None, varname=None ) :
+
+    if not isinstance(varname, str) :
+	raise IsyValueError("varname must me type str")
+
+    varid = self._var_get_id(var)
+
+    if varid is None :
+	raise IsyValueError("Invalid var : {0}".format(var))
+
+    v = varid.split(":")
+
+    # print "call _var_rename ", v[0], v[1], varname
+
+    raise IsyError("var_rename not complete")
+
+def _var_rename(self, varid=None, vartype=None, varname=None ) :
+    """
+	    Named args:
+		varid		a var id
+		vartype		"integer" or "state"
+		varname		New var name
+
+	if varid is a list, then all deletions will happen in one operation
+
+	note : var and delete are not atomic operations
+    """
+
+    if varid is None :
+	raise IsyValueError("varid arg is missing")
+    elif not isinstance(varid, str) :
+	varid = str(varid)
+
+
+#    if isinstance(varid, str) and not val.isdigit() ) :
+#	raise IsyValueError("Invalid var id missing")
+
+
+    vartype = str(vartype)
+    if vartype == "integer" or vartype == "1" :
+	varpath="/CONF/INTEGER.VAR"
+    elif vartype == "state"  or vartype == "2" :
+	varpath="/CONF/STATE.VAR"
     else :
-	raise RuntimeError( "failed to find free var id")
-    del tdict
-    ET.SubElement(var_et, "e", {'id':newid, 'name':varname} )
+	raise IsyValueError("vartype : invalid type")
 
-    new_var_data =  ET.tostring(var_et)
+    result = self.soapcomm("GetSysConf", name=varpath)
 
-    print "new_var_data = ", new_var_data
+    if result is None  :
+	raise IsyResponseError("Error loading Sys Conf file {0}".format(varpath))
 
-    # self._sendfile(data=new_var_data, filename=varpath, load=y)
+    var_et = ET.fromstring(result) 
 
+    for v in  var_et.iter("e") :
+	if "id" in v.attrib :
+	    if v.attrib["id"] == varid :
+		v.attrib["name"] = varname
+		break
+
+    new_var_data = ET.tostring(var_et)
+
+    r = self._sendfile(data=new_var_data, filename=varpath, load="y")
+
+    vid = "{0}:{1}".format(vartype, varid)
+
+    if vid in self._vardict :
+	self._vardict[vid]['name'] = varname
+
+    if varname in self.name2var :
+	self.name2var[varname] = vid
+
+#    if varname in self._name2id :
+#	if self._name2id[varname][0] == "var" :
+#	    self._name2id[varname] = ("var", vid)
+
+
+    return r
 
 
 # Do nothing
