@@ -505,7 +505,7 @@ def var_rename(self, var=None, varname=None ) :
 
     v = varid.split(":")
 
-    print "call _var_rename ", v[0], v[1], varname
+    # print "call _var_rename ", v[0], v[1], varname
 
     raise IsyError("var_rename not complete")
 
