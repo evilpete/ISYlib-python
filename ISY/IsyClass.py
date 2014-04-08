@@ -11,7 +11,6 @@ __license__ = "BSD"
 __version__ = "0.1.20140313"
 
 
-
 #from xml.dom.minidom import parse, parseString
 # from StringIO import StringIO
 # import xml.etree.ElementTree as # ET
@@ -60,18 +59,31 @@ from ISY.IsyProgramClass import *
 #from ISY.IsyVarClass import IsyVar
 from ISY.IsyExceptionClass import  *
 from ISY.IsyEvent import ISYEvent
+from ISY.IsyDebug import *
 
 # import netrc
 
 # Debug Flags:
-# 0x01 = report loads
-# 0x02 = report urls used
-# 0x04 = report func call
-# 0x08 = Dump loaded data
-# 0x10 = report changes to nodes
-# 0x20 = report soap web
-# 0x40 = report events
-# 0x80 = print __del__()
+# 0x0001 = report loads
+# 0x0002 = report urls call
+# 0x0004 = report func call
+# 0x0008 = Dump loaded data
+#
+# 0x0010 = report changes to nodes
+# 0x0020 = report soap web
+# 0x0040 = report events
+# 0x0080 = print __del__()
+#
+# 0x0100 =
+# 0x0200 = report responce data
+# 0x0400 =
+# 0x0800 =
+#
+# 0x1000 =
+# 0x2000 =
+# 0x4000 =
+# 0x8000 =
+#
 #
 
 # EventUpdate Mask:
@@ -127,9 +139,13 @@ class Isy(IsyUtil):
     from ISY._isyvar  import load_vars, var_set_value, _var_set_value, \
 		var_get_value, var_addrs, var_ids, get_var, _var_get_id, \
 		var_get_type, var_iter, var_add, var_delete,  _var_delete
+
     from ISY._isyprog import load_prog, get_prog, _prog_get_id, \
-		prog_iter, prog_comm, _prog_comm, prog_get_src, \
-		prog_get_path, _prog_get_path, prog_addrs
+		prog_iter, prog_get_src, prog_addrs, \
+		prog_comm, _prog_comm, \
+		prog_get_path, _prog_get_path, \
+		prog_rename, _prog_rename
+
     from ISY._isynode import load_nodes, _gen_member_list, _gen_folder_list, \
 		_gen_nodegroups, _gen_nodedict, node_names, scene_names, \
 		node_addrs, scene_addrs, get_node, _node_get_id, node_get_prop, \
@@ -153,6 +169,7 @@ class Isy(IsyUtil):
         _password_mgr = URL.HTTPPasswordMgrWithDefaultRealm()
         _handler = URL.HTTPBasicAuthHandler(_password_mgr)
         _opener = URL.build_opener(_handler)
+        #_opener = URL.build_opener(_handler, URL.HTTPHandler(debuglevel=1)) 
 
 	# URL.HTTPHandler(debuglevel=1) 
     else:
@@ -179,7 +196,7 @@ class Isy(IsyUtil):
 	    self.debug = self.debug & int(os.environ["ISY_DEBUG"])
 
 
-        self.cachetime = kwargs.get("cachetime", 0)
+        # self.cachetime = kwargs.get("cachetime", 0)
         self.faststart = kwargs.get("faststart", 1)
         self.eventupdates = kwargs.get("eventupdates", 0)
 
@@ -241,10 +258,10 @@ class Isy(IsyUtil):
 #	    self.userl = "admin"
 #	    self.userp = "admin"
 
-        if self.debug & 0x01 :
+        if self.debug & _debug_loads_ :
             print("class Isy __init__")
             print("debug ", self.debug)
-            print("cachetime ", self.cachetime)
+            # print("cachetime ", self.cachetime)
             print("faststart ", self.faststart)
             print("address ", self.addr)
 
@@ -920,6 +937,7 @@ class Isy(IsyUtil):
 	if ntype is not None :
 	    soapargs['type'] = ntype
 
+	# if code =  803 : then already in link mode
 	ret =  self.soapcomm("DiscoverNodes", **soapargs )
 	return ret
 
@@ -946,6 +964,7 @@ class Isy(IsyUtil):
 	    raise IsyValueError("invalid flag value : " + flag)
 
 
+	# if code == 501 then device was alread not in link/Discovery mode
 	ret =  self.soapcomm("CancelNodesDiscovery", flag=flag)
 
 	return ret
@@ -974,7 +993,7 @@ class Isy(IsyUtil):
 	elif idtype == "folder" :
 	    return self.soapcomm("RenameFolder", id=fid, name=nname)
 	elif idtype == "var" :
-	    raise IsyValueError("can not rename vars ( yet )")
+	    return self.var_rename(var=nid, name=nname)
 	elif idtype == "prog" :
 	    raise IsyValueError("can not rename prog ( yet )")
 	else : 
@@ -1480,6 +1499,17 @@ class Isy(IsyUtil):
         #self._printdict(self.controls)
         #print("self.name2control : ", self.name2control)
 
+    def _get_control_id(self, comm):
+        """ command name to command ID """
+	if not self.controls :
+            self.load_conf()
+        c = comm.strip().upper()
+        if c in self.controls :
+            return c
+        if c in self.name2control :
+            return self.name2control[c]
+        return None
+
     ##
     ## property
     ##
@@ -1498,17 +1528,12 @@ class Isy(IsyUtil):
         return self.config["app_version"]
     app_version = property(_get_app_version)
 
-    def _get_control_id(self, comm):
-        """ command name to command ID """
-	if not self.controls :
-            self.load_conf()
-
-        c = comm.strip().upper()
-        if c in self.controls :
-            return c
-        if c in self.name2control :
-            return self.name2control[c]
-        return None
+#    def _get_debug(self) :
+#        """ debug flag for Obj """
+#        return self._debug
+#    def _set_debug(self, val) :
+#	self._debug = val
+#    debug = property(_get_debug,_set_debug)
 
 
     ##
