@@ -104,7 +104,7 @@ def parse_args(isy) :
 #    parser.add_argument("-c", "--copy", dest="copy",
 #                       help="copy config tree to folder")
    
-    parser.add_argument('--verbose', '-v', action='count')
+    parser.add_argument('-v', '--verbose', action='count')
 
     args = parser.parse_args()
     # args, unknown_args = parser.parse_known_args()
@@ -126,7 +126,8 @@ def parse_args(isy) :
     if args.backup_logs : backup_flags |= backup_logs 
     if backup_flags == 0 : backup_flags = backup_all
 
-    print "backup_flags = {0:04b}".format(backup_flags)
+    if debug :
+	print "backup_flags = {0:04b}".format(backup_flags)
     noop    = args.noop
     outfile = args.outfile
     verbose = args.verbose
@@ -172,22 +173,22 @@ def restore_isy(isy) :
 	print "{0} files to be retored".format(len(zff_info))
 
     restore_filter = None
-    # if backup_flags != backup_all :
-    restore_filter_list = list()
+    if backup_flags != backup_all :
+	restore_filter_list = list()
 
-    if (backup_flags & backup_sysconf) :
-	restore_filter_list.append("/CONF")
+	if (backup_flags & backup_sysconf) :
+	    restore_filter_list.append("/CONF")
 
-    if (backup_flags & backup_userweb ) :
-	restore_filter_list.append("/USER/WEB/")
+	if (backup_flags & backup_userweb ) :
+	    restore_filter_list.append("/USER/WEB/")
 
-    if (backup_flags & backup_ui ) :
-	restore_filter_list.append("/WEB/CONF/")
+	if (backup_flags & backup_ui ) :
+	    restore_filter_list.append("/WEB/CONF/")
 
-    if ( backup_flags & backup_logs ) : 
-	restore_filter_list.append("/LOG/")
+	if ( backup_flags & backup_logs ) : 
+	    restore_filter_list.append("/LOG/")
 
-    restore_filter = tuple(restore_filter_list)
+	restore_filter = tuple(restore_filter_list)
 
     for z in zff_info :
 	if restore_filter and not z.filename.startswith( restore_filter ) :
@@ -205,7 +206,7 @@ def restore_isy(isy) :
 		    z.file_size,
 		    z.external_attr,
 		    ( (z.external_attr >> 16L) & 0x0FFF ),
-		    date_ime2str(z.date_time)
+		    date_time2str(z.date_time)
 		)
 
 	if ( not z.filename.startswith("/") ) :
@@ -216,10 +217,10 @@ def restore_isy(isy) :
 	if not noop :
 	    fdata = zff.read(z)
 	    try :
-		r = isy._sendfile(data=fdata, filename=z.filename, load="n")
+		r = isy._sendfile(data=fdata, filename=z.filename, load="y")
 	    except IsySoapError, se :
 		if se.code() == 403 :
-		    print "Error restoring z.filename".format(se.code())
+		    print "Error restoring {0} : Forbidden ( code=403 )".format(z.filename)
 		else :
 		    raise
 
