@@ -84,7 +84,7 @@ class _IsyNodeBase(IsySubClass):
             # self._mydict["property"]["time"] = 0
             if "ST" in  self._mydict["property"] :
                 self._mydict["property"]["ST"]["value"] = 0
-                self._mydict["property"]["ST"]["formatted"] = "off"
+                self._mydict["property"]["ST"]["formatted"] = "Off"
 
     def beep(self) :
         self.isy._node_send(self._mydict["address"], "cmd", "BEEP")
