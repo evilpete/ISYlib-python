@@ -636,7 +636,7 @@ class Isy(IsyUtil):
 		    if "property" in self.nodedict[node_id] :
 			self.nodedict[node_id]["property"].clear()
 			del self.nodedict[node_id]["property"]
-		    if self._node2addr node_name in self._node2addr :
+		    if self._node2addr and node_name in self._node2addr :
 			self._node2addr[ node_name ]
 		    if self._name2id and node_name in self._name2id :
 			self._name2id[ node_name ]
