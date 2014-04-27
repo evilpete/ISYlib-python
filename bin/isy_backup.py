@@ -192,7 +192,8 @@ def restore_isy(isy) :
 
     for z in zff_info :
 	if restore_filter and not z.filename.startswith( restore_filter ) :
-	    print "skipping {0:<30} : Not in restore path".format(z.filename)
+	    if vebose :
+		print "skipping {0:<30} : Not in restore path".format(z.filename)
 	    continue
 
 	if (z.external_attr & 0x0010) or z.filename.endswith("/") :
