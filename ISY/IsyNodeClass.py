@@ -229,6 +229,10 @@ class IsyNode(_IsyNodeBase):
         funtions:
 	    get_rr:
 	    set_rr:
+
+    Bugs: Results are undefined for Node class objects that
+	    represent a deleteed node 
+
     """
     _getlist = ['address', 'enabled', 'formatted',
             'ELK_ID',

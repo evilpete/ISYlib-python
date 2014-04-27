@@ -35,6 +35,10 @@ SubClasses :
         self._msg = msg
         self._exception = exception
 	self.httperr = httperr
+	if self.httperr is not None :
+	    self.httperrbody = httperr.read()
+	else :
+	    self.httperrbody = None
         Exception.__init__(self, msg)
 
     def code(self):
@@ -99,6 +103,10 @@ class IsyLookupError(IsyError, LookupError):
 
 class IsyPropertyError(IsyError, LookupError):
     """General exception for property errors."""
+    pass
+
+class IsyInternalError(IsyError):
+    """General exception for Internal errors."""
     pass
 
 class IsyValueError(IsyError, ValueError):
