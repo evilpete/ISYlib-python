@@ -53,6 +53,11 @@ def load_vars(self) :
         # self._printdict(self._vardict)
 
         vinfo = self._getXMLetree("/rest/vars/definitions/" + t)
+
+	# can return None if there are not vars
+	if vinfo is None :
+	    return
+
         for v in vinfo.iter("e") :
             # self._printinfo(v, "e :")
             vid = t + ":" + v.attrib["id"]
