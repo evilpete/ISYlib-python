@@ -124,14 +124,24 @@ class IsyUtil(object):
 	except URL.HTTPError, e:       
 	    self.error_str = str("Reponse Code : {0} : {1}" ).format(e.code, xurl)
 	    return None
+
+	if len(self.error_str) : self.error_str = ""
+	if self.debug & 0x200  :
+	    print res.info() 
+	    print data
+	et = None
+	if len(data) :
+	    try :
+		et =  ET.fromstring(data)
+	    except ET.ParseError as e :
+		print "Etree ParseError "
+		print "data = ", data,
+		print "e.message = ", e.message
+		# raise
+	    finally :
+		return et
+
 	else :
-	    if len(self.error_str) : self.error_str = ""
-	    if self.debug & 0x200  :
-		print res.info() 
-		print data
-	    if len(data) :
-		return ET.fromstring(data)
-	    else :
 		return None
 
     def _gensoap(self, cmd, **kwargs) :
@@ -192,8 +202,10 @@ class IsyUtil(object):
 	except URL.HTTPError, e:       
 
 	    self.error_str = str("Reponse Code : {0} : {1} {2}" ).format(e.code, xurl, cmd)
-	    if (( cmd == "DiscoverNodes" and e.code == 803 ) or
-		( cmd == "CancelNodesDiscovery" and e.code == 501 ) ) :
+	    if (( cmd == "DiscoverNodes" and e.code == 803 ) 
+		or ( cmd == "CancelNodesDiscovery" and e.code == 501 )
+		# or ( cmd == "RemoveNode" and e.code == 501 )
+		) :
 
 
 		if self.debug & 0x02 :
@@ -209,11 +221,12 @@ class IsyUtil(object):
 
 	    if self.debug & 0x202 :
 		print "e.code = ", type(e.code), e.code
-		print "e.read = ", e.read()
+		# print "e.read = ", e.read()
 		print "e = ", e
 		print "data = ", data
 
 	    mess = "{!s} : {!s} : {!s}".format(cmd, kwargs,  e.code)
+	    # This a messy and should change
             raise IsySoapError(mess,  httperr=e)
 	else :
 	    if len(self.error_str) : self.error_str = ""
@@ -272,7 +285,7 @@ class IsyUtil(object):
 	    # print("res.getcode() ", res.getcode(), len(responce))
 	    res.close()
 	except URL.HTTPError, e:       
-	    print e.read()
+	    # print "e.read : ", e.read()
 	    mess = "{!s} : {!s} : {!s}".format("/file/upload", filename,  e.code)
             raise IsySoapError(mess, httperr=e)
 	else :

@@ -266,6 +266,7 @@ class ISYEvent(object) :
                 print("%-7s %-4s\t%-22s\t%-12s\t%s\t%s" % \
                     (ti, ddat["Event-seqnum"], \
                     ectrl, node, ddat["action"], evi))
+		print '_3 ', ddat["control"], ' : ', ddat
             elif  ddat["control"] == "_3" :
 		if ddat['action'] == 'FD' :
 		    print 'new Folder node: ', ddat['node'], ' = ', ddat['eventInfo']['folder']
@@ -372,7 +373,7 @@ class ISYEvent(object) :
                             continue
                     self.process_func(d, self.process_func_arg, x)
                     # self.process_func(d, x)
-            except socket.error :
+            except socket.error as e:
                 print("socket error({0}): {1}".format(e.errno, e.strerror))
                 self.reconnect()
             except IOError as e:

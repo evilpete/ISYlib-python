@@ -136,9 +136,13 @@ class Isy(IsyUtil):
 
     # import functions
     from ISY._isyclimate import load_clim, clim_get_val, clim_query, clim_iter
-    from ISY._isyvar  import load_vars, var_set_value, _var_set_value, \
-                var_get_value, var_addrs, var_ids, get_var, _var_get_id, \
-                var_get_type, var_iter, var_add, var_delete,  _var_delete
+    from ISY._isyvar  import load_vars, \
+                var_get_value, var_set_value, _var_set_value, \
+		var_addrs, var_ids, get_var, _var_get_id, \
+                var_get_type, var_iter, var_add, \
+		var_delete,  _var_delete, \
+                var_rename, _var_rename, \
+		var_refresh_value
 
     from ISY._isyprog import load_prog, get_prog, _prog_get_id, \
                 prog_iter, prog_get_src, prog_addrs, \
@@ -151,7 +155,12 @@ class Isy(IsyUtil):
                 node_addrs, scene_addrs, get_node, _node_get_id, node_get_prop, \
                 node_set_prop, _node_send, node_comm, _updatenode, \
                 load_node_types, node_get_type, node_iter, _updatenode, \
-                node_get_path, _node_get_path, _node_get_name
+                node_get_path, _node_get_path, _node_get_name, \
+		node_set_powerinfo, node_enable, \
+		node_del, _node_remove, \
+		node_restore, node_restore_all
+
+
     from ISY._isynet_resources import _load_networking, load_net_resource, \
                 _net_resource_get_id, net_resource_run, \
                 net_resource_names, net_resource_iter, \
@@ -608,6 +617,36 @@ class Isy(IsyUtil):
                     pass
             
 
+            elif evnt_dat['action'] == 'ND' :
+		node_id = evnt_dat["node"]
+		node_dat = evnt_dat['eventInfo']['node']
+		if node_id in self.nodedict :
+		    self.nodedict[node_id].update(node_dat)
+		else :
+		    self.nodedict[node_id] = node_dat
+
+
+	    #
+	    # At this time results are undefined for
+	    # Node class objects that represent a deleted node 
+	    #
+            elif evnt_dat['action'] == 'NR' :
+		node_id = evnt_dat["node"]
+		if node_id in self.nodedict :
+		    node_name = self.nodedict[node_id]["name"]
+		    if "property" in self.nodedict[node_id] :
+			self.nodedict[node_id]["property"].clear()
+			del self.nodedict[node_id]["property"]
+		    if self._node2addr and node_name in self._node2addr :
+			self._node2addr[ node_name ]
+		    if self._name2id and node_name in self._name2id :
+			self._name2id[ node_name ]
+
+		if node_id in self.nodeCdict :
+		    self.nodeCdict[ node_id ]
+
+
+
             elif evnt_dat['action'] == 'FD' :
                 if 'folder' in evnt_dat['eventInfo'] and isinstance(evnt_dat['eventInfo']['folder'], dict) :
                     self._nodefolder[ evnt_dat['node'] ] = evnt_dat['eventInfo']['folder']
@@ -993,9 +1032,10 @@ class Isy(IsyUtil):
         elif idtype == "folder" :
             return self.soapcomm("RenameFolder", id=fid, name=nname)
         elif idtype == "var" :
-            return self.var_rename(var=nid, name=nname)
+            # return self.var_rename(var=nid, name=nname)
+            raise IsyValueError("can not rename var, use var_rename() ")
         elif idtype == "prog" :
-            raise IsyValueError("can not rename prog ( yet )")
+            raise IsyValueError("can not rename prog use prog_rename() ")
         else : 
             raise IsyValueError("node/obj " + objid + " not node (" + idtype + ")" )
 
@@ -1209,7 +1249,7 @@ class Isy(IsyUtil):
     def folder_del_node(self, nid, nodeType=1) :
         """ remove node from folder
 
-            Named args:
+            args:
                 node
                 nodeType
 
@@ -1219,6 +1259,21 @@ class Isy(IsyUtil):
         """
         return self.folder_add_node(nid, nodeType=nodeType, \
                 parent="", parentType=3)
+
+
+    def set_user_credentials(self, name=None, password=None) :
+	"""
+	    Changes the userid and password for a user ( admin )
+
+	    args: 
+		name         user name
+		password     user password 
+	"""
+	if name is None :
+            raise IsyValueError("set_user_credentials : name argument required ")
+	if password is None :
+            raise IsyValueError("set_user_credentials : pass argument required ")
+        return self.soapcomm("SetUserCredentials", name=name, password=password)
 
     def reboot(self) :
         """ Reboot ISY Device
