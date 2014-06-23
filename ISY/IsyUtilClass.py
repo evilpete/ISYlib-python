@@ -124,14 +124,24 @@ class IsyUtil(object):
 	except URL.HTTPError, e:       
 	    self.error_str = str("Reponse Code : {0} : {1}" ).format(e.code, xurl)
 	    return None
+
+	if len(self.error_str) : self.error_str = ""
+	if self.debug & 0x200  :
+	    print res.info() 
+	    print data
+	et = None
+	if len(data) :
+	    try :
+		et =  ET.fromstring(data)
+	    except ET.ParseError as e :
+		print "Etree ParseError "
+		print "data = ", data,
+		print "e.message = ", e.message
+		# raise
+	    finally :
+		return et
+
 	else :
-	    if len(self.error_str) : self.error_str = ""
-	    if self.debug & 0x200  :
-		print res.info() 
-		print data
-	    if len(data) :
-		return ET.fromstring(data)
-	    else :
 		return None
 
     def _gensoap(self, cmd, **kwargs) :

@@ -43,13 +43,19 @@ def load_vars(self) :
     for t in ['1', '2'] :
         vinfo = self._getXMLetree("/rest/vars/get/" + t)
         for v in vinfo.iter("var") :
-            vdat = dict()
+
+	    vid = t + ":" + v.attrib["id"]
+	    if vid in self._vardict :
+		vdat = self._vardict[vid]
+	    else :
+		vdat = dict()
+		self._vardict[vid] = vdat
+
             for vd in list(v) :
                 if vd.tag != "var" :
                     vdat[vd.tag] = vd.text
             vdat["val"] = int(vdat["val"])
             vdat["init"] = int(vdat["init"])
-            self._vardict[t + ":" + v.attrib["id"]] = vdat
         # self._printdict(self._vardict)
 
         vinfo = self._getXMLetree("/rest/vars/definitions/" + t)
@@ -108,6 +114,41 @@ def load_vars(self) :
 #            raise IsyResponseError("ISY command error : varid=" +
 #                str(varid) + " cmd=" + str(cmd_id))
 
+
+def var_refresh_value(self, var) :
+    if self.debug & 0x04 :
+        print("var_refresh_value : ", var)
+
+    if var is None :
+	self.load_vars()
+	return
+
+    varid = self._var_get_id(var)
+
+    if not varid :
+        raise IsyPropertyError("var_refresh: unknown var : " + str(var))
+
+    a = varid.split(':')
+    xurl = "/rest/vars/get/" + a[0] + "/" + a[1]
+    resp = self._getXMLetree(xurl)
+    print "resp", resp
+
+    if resp is None :
+        raise IsyPropertyError("var_refresh: error geting var : " + str(var))
+
+    for vd in list(resp) :
+	if vd.tag in self._vardict[varid] :
+	    self._vardict[varid][vd.tag] = vd,text
+
+    self._vardict[varid]["val"] = int(self._vardict[varid]["val"])
+    self._vardict[varid]["init"] = int(self._vardict[varid]["init"])
+
+    return None
+
+
+
+def _var_refresh_value(self, var) :
+    pass
 
 def var_set_value(self, var, val, prop="val") :
     """ Set var value by name or ID

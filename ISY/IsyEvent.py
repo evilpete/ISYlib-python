@@ -373,7 +373,7 @@ class ISYEvent(object) :
                             continue
                     self.process_func(d, self.process_func_arg, x)
                     # self.process_func(d, x)
-            except socket.error :
+            except socket.error as e:
                 print("socket error({0}): {1}".format(e.errno, e.strerror))
                 self.reconnect()
             except IOError as e:
