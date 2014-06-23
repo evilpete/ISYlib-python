@@ -455,7 +455,8 @@ class IsySubClass(IsyUtil):
             allows Objects properties to be access through iteration
 
         """
-        print("IsyUtil __iter__")
+	if self.debug & 0x80 :
+            print("IsyUtil __iter__")
         for p in self._getlist :
             if p in self._mydict :
                 yield (p , self._get_prop(p))
