@@ -980,21 +980,22 @@ class Isy(IsyUtil):
         r = self._sendfile(data=camjson, filename="/WEB/CONF/cams.jsn", load="n")
         return r
 
-    def node_discover(self, ntype=None) :
+    def set_debug_level(self, level=1) :
         """
-            Puts ISY in discovery (linking) mode
+            Sets the debug options and current level
 
             args :
-                Type    Optionally, provide the type of node to be discovered 
+                option    value 0 -> 3
         """
-        soapargs = dict()
-        if ntype is not None :
-            soapargs['type'] = ntype
-
-        # if code =  803 : then already in link mode
-        ret =  self.soapcomm("DiscoverNodes", **soapargs )
+        ret =  self.soapcomm("SetDebugLevel", option=level )
         return ret
 
+    def get_debug_level(self, level=1) :
+        """
+            Gets the debug options and current level
+        """
+        ret =  self.soapcomm("GetDebugLevel",  )
+        return ret
 
     def node_discover_cancel(self, flag="1") :
         """

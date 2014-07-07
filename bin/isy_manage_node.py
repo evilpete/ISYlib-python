@@ -1,6 +1,11 @@
 #!/usr/local/bin/python2.7
 """
     Node managment
+
+    WORK IN PROGRESS 
+
+    Some command may not work yet
+
 """
 
 __author__ = "Peter Shipley"
@@ -39,6 +44,10 @@ def doit(isy) :
 	    print "Missing Arg:\n\t{!s} <node_id>".format(cmd)
 	exit(0)
 
+    elif cmd in ["MD", "NEWFOLDER", "MKDIR"] :
+	print "Missing COMMAND:\n\t{!s} <folder_id>".format(cmd)
+	exit(0)
+
     elif cmd in ["ENABLE"] :
 	if ( len(argv) > 0 ) :
 	    nodeid = argv.pop(0)
@@ -58,12 +67,14 @@ def doit(isy) :
     else :
 	print "Unknown commands : ", str(" ").join(argv)
 
-
+#
+# TODO deal with  MV node Folder
+#
 def do_rename_nodes(isy, argv) :
     if ( len(argv) > 1 ) :
 	old = argv.pop(0)
 	new = argv.pop(0)
-	isy.node_rename(old, new)
+	isy.rename(old, new)
     else :
 	print "Missing Arg:\n\t{!s} <node_id> <new_name>".format(cmd)
     exit(0)

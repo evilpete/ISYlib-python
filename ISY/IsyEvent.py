@@ -45,6 +45,7 @@ class ISYEvent(object) :
         self._shut_down = 0
         self.connected = False
         self.isy = kwargs.get("isy", None) 
+	self.level = kwargs.get("level", "1") 
 
         self.process_func = kwargs.get("process_func", ISYEvent.print_event)
         self.process_func_arg = kwargs.get("process_func_arg", None)
@@ -94,6 +95,9 @@ class ISYEvent(object) :
         # print self.__class__.__name__
         self._shut_down = 1
 
+    # <?xml version="1.0" encoding="UTF-8"?><s:Envelope><s:Body>
+    # <u:SetDebugLevel xmlns:u="urn:udi-com:service:X_Insteon_Lighting_Service:1">
+    #<option>3</option></u:SetDebugLevel></s:Body></s:Envelope>
     def subscribe(self, **kwargs):
         """ subscribe to Isy device event stream
 
@@ -104,6 +108,7 @@ class ISYEvent(object) :
 		addr = IP address  or hostname of isydevice
 		userl = isy admin login
 		userp = isy admin password
+		level = debug level
         """
 
 	addr  = kwargs.get("addr", None)
@@ -198,7 +203,25 @@ class ISYEvent(object) :
         data = ''.join(L)
 
         ddat = dict()
-        ev = ET.fromstring(data)
+
+	# work around for encoding bug
+	# in eventinfo field
+	if data.find('< ') >= 0 :
+	    data = data.replace('< ', '&lt; ')
+	    data = data.replace('-->', '--&gt;')
+
+	if data.find('<NULL>') :
+	    data = data.replace('<NULL>', '&lt;NULL&gt;')
+
+        # ev = ET.fromstring(data)
+	try :
+	    ev =  ET.fromstring(data)
+	except ET.ParseError as e :
+	    print "Etree ParseError "
+	    print "data = ", data,
+	    print "e.message = ", e.message
+	    raise
+
         #print "_process_event ", data, "\n\n"
 
 
@@ -253,29 +276,221 @@ class ISYEvent(object) :
         # mydat = arg[1]
         exml = arg[2]
 
+# Event Dat : 
+# {'control': 'DOF', 'node': '16 6C D2 7', 'eventInfo': None, 'Event-seqnum': '141', 'action': '0', 'Event-sid': 'uuid:40'} 
+# <?xml version="1.0"?><Event seqnum="141" sid="uuid:40"><control>DOF</control><action>0</action><node>16 6C D2 7</node><eventInfo></eventInfo></Event>
+# 
+	ti = time.strftime('%X')
         try:
-	    if ddat["control"] in ["_0", "_11"] :
+	    if ddat["control"] in ["_0", "_11", "_12", "_19" ] :
 		pass
+
+            elif ddat["control"] == "ERR" :
+		print "{!s:<7} {!s:<4}\t{!s:<22}\t{!s}\t{!s}".format(
+			ti, ddat['Event-seqnum'], 
+			"ERR",
+			ddat['node'], ddat['action'])
+
+		return
+		
+
+            elif ddat["control"] in ["DOF", "DON", "BMAN", "SMAN" ] :
+		action=ddat["control"]
+		status=ddat["node"]
+		print "{!s:<7} {!s:<4}\t{!s}\t{!s}".format(
+			ti, ddat['Event-seqnum'],  action, status)
+
             elif ddat["control"] in ["ST", "RR", "OL"] :
                 ectrl = EVENT_CTRL.get(ddat["control"], ddat["control"])
                 node = ddat["node"]
 
                 evi = ddat["eventInfo"]
-                ti = time.strftime('%X')
                 # print ddat["Event-sid"]
                 print("%-7s %-4s\t%-22s\t%-12s\t%s\t%s" % \
                     (ti, ddat["Event-seqnum"], \
                     ectrl, node, ddat["action"], evi))
-		print '_3 ', ddat["control"], ' : ', ddat
+		# print '_3 ', ddat["control"], ' : ', ddat
+
+            elif  ddat["control"] == "_1" :
+		# 'on': None, 'f': '140630 20:55:55', 's': '31', 'r': '140630 20:55:55', 'nr': None, 'id': '1E'}
+
+		if ddat['action'] == '0' :
+		    print "exml = ", exml
+		    if "nsr" in  ddat["eventInfo"] :
+			action = "Event Status"
+			status ="id={!s} {!s}".format(ddat["eventInfo"]['id'], ddat["eventInfo"]['nsr'])
+		    else :
+			if 'on' in ddat["eventInfo"] :
+			    ena = "enabled"
+			else :
+			    ena = "disabled"
+			if 'rr' in ddat["eventInfo"] :
+			    rr = "rr"
+			else :
+			    rr = "nr"
+			action = "Event Status"
+			status ="id={!s} {!s} {!s} run={!s} fin={!s} status={!s}".format(
+			    ddat["eventInfo"]['id'],
+			    ena, rr,
+			    ddat["eventInfo"]['r'],
+			    ddat["eventInfo"]['f'],
+			    ddat["eventInfo"]['s'])
+
+		if ddat['action'] == '1' :
+		    action = "Get Status"
+		    status = ""
+		elif ddat['action'] == '2' :
+		    action = "Key Change"
+		    status = ddat['node']
+
+		elif ddat['action'] == '3' :
+		    action = "Info String"
+		    status = "{!s}\t{!s} ".format(ddat['node'], ddat["eventInfo"])
+		elif ddat['action'] == '4' :
+		    action = "IR Learn Mode"
+		    status = ""
+
+		elif ddat['action'] == '5' :
+		    action = "Schedule"
+		    status = ddat['node']
+
+		elif ddat['action'] == '6' :
+		    action = "Var Stat"
+		    status = "{!s} {!s}:{!s} {!s} {!s}".format(
+			ddat['node'],
+			ddat['eventInfo']['var']['var-type'],
+			ddat['eventInfo']['var']['var-id'],
+			ddat['eventInfo']['var']['val'],
+			ddat['eventInfo']['var']['ts'] )
+		elif ddat['action'] == '7' :
+		    action = "Var Init"
+		    status = "{!s} {!s}:{!s} {!s}".format(
+			ddat['node'],
+			ddat['eventInfo']['var']['var-type'],
+			ddat['eventInfo']['var']['var-id'],
+			ddat['eventInfo']['var']['init'])
+
+		elif ddat['action'] == '8' :
+		    action  = "Key"
+		    status = ddat['eventInfo']
+		else :
+		    action = ddat['action'],
+		    status = ddat['eventInfo']
+
+		print "{!s:<7} {!s:<4}\t{!s:<22}\t{!s}\t{!s} ".format(
+			ti, ddat['Event-seqnum'],
+			"Trigger Event",
+			action, status)
+
             elif  ddat["control"] == "_3" :
 		if ddat['action'] == 'FD' :
-		    print 'new Folder node: ', ddat['node'], ' = ', ddat['eventInfo']['folder']
+		    action = 'new Folder node: '
+		    status = str("{!s} = {!s}").format(ddat['node'],  ddat['eventInfo']['folder'])
 		elif ddat['action'] == 'FR' :
-		    print 'del Folder node: ', ddat['node']
+		    action = 'del Folder node'
+		    status = ddat['node']
 		elif ddat['action'] == 'FN' :
-		    print 'rename Folder node: ', ddat['node'], ' = ', ddat
+		    action = 'rename Folder node'
+		    status = ddat['node']
+		elif ddat['action'] == 'CE' :
+		    action = 'Clear Node Error'
+		    status = ddat['node']
+		elif ddat['action'] == 'NE' :
+		    action = 'Node Error'
+		    status = ddat['node']
+		elif ddat['action'] == 'WH' :
+		    action = "Pending Device Operation"
+		    status =  ddat['node']
+		elif ddat['action'] == 'WD' :
+		    action = "Programming Device"
+		    status =  ddat['node']
+		elif ddat['action'] == 'SN' :
+		    action = "Discovering Nodes"
+		    status =  ""
+		elif ddat['action'] == 'SC' :
+		    action = "Discovering Nodes Complete"
+		    status =  ""
 		else :
-		    print '_3 : ', ddat
+		    action = ddat['action']
+		    status = "{!s}\t{!s}".format(ddat['node'], ddat['eventInfo'])
+		# "Node Change",
+		print "{!s:<7} {!s:<4}\t{!s:<22}\t{!s}".format(
+			ti, ddat['Event-seqnum'],
+			action, status)
+
+            elif  ddat["control"] == "_4" :
+		status=""
+		action=ddat['action'] 
+		if ddat['action'] == '0' :
+		    action = "Time Change"
+		elif ddat['action'] == '1' :
+		    action = "Time Conf Changed"
+		elif ddat['action'] == '2' :
+		    action = "NTP Setting Change"
+		elif ddat['action'] == '3' :
+		    action = "Notifications Settings Updated"
+		elif ddat['action'] == '4' :
+		    action = "NTP Communications Error"
+		elif ddat['action'] == '5' :
+		    action = "Batch Mode Updated"
+		    status = ddat['eventInfo']['status']
+		elif ddat['action'] == '6' :
+		    action = "Battery Mode Programming Updated"
+		    status = ddat['eventInfo']['status']
+		else :
+		    action = ddat['action'] 
+		    status = ddat['eventInfo']
+
+		print "{!s:<7} {!s:<4}\tSys Conf Updated\t{!s} : {!s}".format(
+		ti, ddat['Event-seqnum'],  action, status)
+
+            elif  ddat["control"] == "_5" :
+		action=ddat['action'] 
+		if ddat['action'] == '0' :
+		    action = "Not Busy"
+		elif ddat['action'] == '1' :
+		    action = "Busy"
+		elif ddat['action'] == '2' :
+		    action = "Idle"
+		elif ddat['action'] == '3' :
+		    action = "Safe Mode"
+
+		print "{!s:<7} {!s:<4}\tSys Status Updated\t{!s}".format(
+		    ti, ddat['Event-seqnum'], action)
+
+
+            elif  ddat["control"] == "_7" :
+		if ddat['action'] == '1' :
+		    action = "Update"
+		elif ddat['action'] == '2.1' :
+		    action = "Device Address Info"
+		elif ddat['action'] == '2.2' :
+		    action = "Device Address Warn"
+		elif ddat['action'] == '2.3' :
+		    action = "Device Address Error"
+		else :
+		    action = ddat['action'] 
+		print "{!s:<7} {!s:<4}\tProgress Report\t{!s} : {!s}".format(ti,  ddat['Event-seqnum'], action, ddat["eventInfo"])
+
+            elif  ddat["control"] == "_10" :
+		action=ddat['action'] 
+		status=ddat['eventInfo']
+
+		if ddat['action'] == '1' :
+		    action="Open ADR Error"
+		    status=""
+		if ddat['action'] == '2' :
+		    action="Open ADR Status Update"
+		    status=ddat['eventInfo']
+		if ddat['action'] == '5' :
+		    action="Flex Your Power Error"
+		    status=""
+		elif ddat['action'] == '6' :
+		    action="Flex Your Power Status"
+		    status=ddat['eventInfo']['active']
+
+		print "{!s:<7} {!s:<4}\tOpenADR / Flex\t{!s}\t{!s}".format(
+		    ti,  ddat['Event-seqnum'], action, status)
 
 
 #            elif  ddat["control"] == "_12" :
@@ -285,14 +500,16 @@ class ISYEvent(object) :
 #               print arg
 
 	    else : 
-		    # print "Event Dat : \n\t", ddat, "\n\t", exml
+		    print "Event Dat : \n\t", ddat, "\n\t", exml
 		    pass
 
             #print ddat
             # print data
-        except Exception:
+        except Exception as e:
             print("Unexpected error:", sys.exc_info()[0])
+            print(e)
             print(ddat)
+	    raise
             # print data
         finally:
             pass

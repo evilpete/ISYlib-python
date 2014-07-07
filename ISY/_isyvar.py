@@ -12,6 +12,7 @@ __license__ = "BSD"
 from ISY.IsyVarClass import IsyVar
 from ISY.IsyExceptionClass import IsyError, IsyInternalError, IsyValueError, \
                             IsyResponseError, IsyPropertyError, \
+			    IsyLookupError, \
                             IsyRuntimeWarning, IsyWarning
 
 import xml.etree.ElementTree as ET
@@ -95,7 +96,7 @@ def load_vars(self) :
 #        if varid in self._vardict :
 #            self._set_var_value(varid, val, init)
 #        else :
-#            raise LookupError("var_set_value: unknown var : " + str(var) )
+#            raise IsyLookupError("var_set_value: unknown var : " + str(var) )
 #
 #
 #    def _set_var_value(self, varid, val, init=0):
@@ -159,7 +160,7 @@ def var_set_value(self, var, val, prop="val") :
             prop                init | val (default = val)
 
         raise:
-            LookupError :  if var name or Id is invalid
+            IsyLookupError :  if var name or Id is invalid
             TypeError :  if property is not 'val or 'init'
 
         max values are a signed 32bit int ( -214748364 to 2147483647 )
@@ -217,12 +218,12 @@ def var_get_value(self, var, prop="val") :
             prop = property to addign value to (default = val)
 
         raise:
-            LookupError :  if var name or Id is invalid
+            IsyLookupError :  if var name or Id is invalid
             TypeError :  if property is not 'val or 'init'
     """
     varid = self._var_get_id(var)
     if not varid :
-        raise LookupError("var_set_value: unknown var : " + str(var))
+        raise IsyLookupError("var_set_value: unknown var : " + str(var))
     if not prop in ['init', 'val'] :
         raise TypeError("var_set_value: unknown propery : " + str(prop))
     if varid in self._vardict :
@@ -262,7 +263,7 @@ def get_var(self, vname) :
         returns : a IsyVar obj
 
         raise:
-            LookupError :  if var name or Id is invalid
+            IsyLookupError :  if var name or Id is invalid
 
     """
     if self.debug & 0x01 :
@@ -282,7 +283,7 @@ def get_var(self, vname) :
     else :
         if self.debug & 0x01 :
             print("Isy get_var no var : \"%s\"" % varid)
-        raise LookupError("no var : " + str(varid))
+        raise IsyLookupError("no var : " + vname + " : " + str(varid))
 
 
 def _var_get_id(self, vname):
