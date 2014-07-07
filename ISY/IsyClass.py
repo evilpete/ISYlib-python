@@ -159,6 +159,7 @@ class Isy(IsyUtil):
 		node_set_powerinfo, node_enable, \
 		node_del, _node_remove, \
 		node_restore, node_restore_all
+		# node_rename, \
 
 
     from ISY._isynet_resources import _load_networking, load_net_resource, \
@@ -846,6 +847,20 @@ class Isy(IsyUtil):
         return  self.soapcomm("AddNode", id=id, name=nname, type=ntype, flag=flag)
 
 
+    def getsystemdatetime(self) :
+        """
+            timestamp of when ISY was last started
+        """
+        r = self.soapcomm("GetSystemDateTime")
+        return (r)
+
+    def startuptime(self) :
+        """
+            timestamp of when ISY was last started
+        """
+        r = self.soapcomm("GetStartupTime")
+        return (r)
+
     def webcam_get(self) :
         """
             get webcam list avalible in ISY's ajax web UI
@@ -965,21 +980,22 @@ class Isy(IsyUtil):
         r = self._sendfile(data=camjson, filename="/WEB/CONF/cams.jsn", load="n")
         return r
 
-    def node_discover(self, ntype=None) :
+    def set_debug_level(self, level=1) :
         """
-            Puts ISY in discovery (linking) mode
+            Sets the debug options and current level
 
             args :
-                Type    Optionally, provide the type of node to be discovered 
+                option    value 0 -> 3
         """
-        soapargs = dict()
-        if ntype is not None :
-            soapargs['type'] = ntype
-
-        # if code =  803 : then already in link mode
-        ret =  self.soapcomm("DiscoverNodes", **soapargs )
+        ret =  self.soapcomm("SetDebugLevel", option=level )
         return ret
 
+    def get_debug_level(self, level=1) :
+        """
+            Gets the debug options and current level
+        """
+        ret =  self.soapcomm("GetDebugLevel",  )
+        return ret
 
     def node_discover_cancel(self, flag="1") :
         """
@@ -1051,10 +1067,14 @@ class Isy(IsyUtil):
 
             calls SOAP RenameNode()
         """
-        (idtype, nid) = self._node_get_id(fid)
+        (idtype, nid) = self._node_get_id(nodeid)
+        if nid == None :
+            raise IsyValueError("unknown node/obj : " + nodeid)
+	print "nodeid ", nodeid
+	print "nid ", nid
         return self.soapcomm("RenameNode", id=nid, name=nname)
 
-#    def node_new(self, id, nname) :
+#    def node_new(self, sid, nname) :
 #       """ create new Folder """
 #       return  self.soapcomm("AddNode", id=1234, name=nname, type="T", flag="Y")
 
@@ -1063,18 +1083,18 @@ class Isy(IsyUtil):
     #
     # need to add code to update name2id and *2addr lookup arrays
     #
-    def scene_rename(self, fid, fname) :
+    def scene_rename(self, sid, fname) :
         """ rename Scene/Group
 
                 args: 
-                    id = a Scene/Group id
+                    sid = a Scene/Group id
                     name = new name 
 
 
             calls SOAP RenameGroup()
         """
-        (idtype, grid) = self._node_get_id(fid)
-        return self.soapcomm("RenameGroup", id=fid, name=fname)
+        (idtype, grid) = self._node_get_id(sid)
+        return self.soapcomm("RenameGroup", id=grid, name=fname)
 
     #
     # need to add code to update name2id and *2addr lookup arrays

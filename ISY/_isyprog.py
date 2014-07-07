@@ -118,8 +118,11 @@ def _prog_get_id(self, pname):
     """
     if isinstance(pname, IsyProgram) :
          return pname["id"]
+    if isinstance(pname, (int, long)) :
+	p = "{0:04X}".format(pname)
     else :
         p = str(pname).strip()
+
     if p.upper() in self._progdict :
         # print("_prog_get_id : " + p + " progdict " + p.upper())
         return p.upper()

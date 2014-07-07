@@ -103,7 +103,7 @@ def main(isy):
 		 #    print "res = ", res
             else :
                 print "Missing Arg:\n\t{!s} <filename>".format(cmd)
-        elif cmd in  ["MV", "RENAME"] :
+        elif cmd in ["MV", "RENAME"] :
             if ( len(argv) > 1 ) :
                 old = argv.pop(0)
                 new = argv.pop(0)

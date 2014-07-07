@@ -20,7 +20,7 @@ import warnings
 ##
 ## Node funtions
 ##
-def load_nodes(self) :
+def load_nodes(self, reload=0) :
     """ Load node list scene list and folder info
 
         args : none
@@ -30,17 +30,22 @@ def load_nodes(self) :
     """
     if not hasattr(self, '_nodedict') or not isinstance(self._nodedict, dict):
          self._nodedict = dict ()
+#	  current_node_set = None
+#     else :
+#	  current_node_set = set( self._nodedict.viewkeys() )
 
     if not hasattr(self, '_nodegroups') or not isinstance(self._nodegroups, dict):
         self._nodegroups  = dict ()
+#    else :
+#	  current_node_set = self._nodegroups.viewkeys()
 
-    if not hasattr(self, '_nodefolder') or not isinstance(self._nodefolder, dict):
+    if reload or not hasattr(self, '_nodefolder') or not isinstance(self._nodefolder, dict):
         self._nodefolder  = dict ()
 
-    if not hasattr(self, '_folder2addr') or not isinstance(self._folder2addr, dict):
+    if reload or not hasattr(self, '_folder2addr') or not isinstance(self._folder2addr, dict):
         self._folder2addr = dict ()
 
-    if not hasattr(self, '_name2id') or not isinstance(self._name2id, dict):
+    if reload or not hasattr(self, '_name2id') or not isinstance(self._name2id, dict):
         self._name2id = dict ()
 
     # self.nodeCdict = dict ()
@@ -51,14 +56,14 @@ def load_nodes(self) :
     if nodeinfo is None :
           raise IsyCommunicationError("Load Node Info Fail : " \
                               + self.error_str)
-    self._gen_folder_list(nodeinfo)
-    self._gen_nodedict(nodeinfo)
-    self._gen_nodegroups(nodeinfo)
+    self._gen_folder_list(nodeinfo, reload=reload)
+    self._gen_nodedict(nodeinfo, reload=reload)
+    self._gen_nodegroups(nodeinfo, reload=reload)
     # self._printdict(self._nodedict)
     # print("load_nodes self._node2addr : ", len(self._node2addr))
     self._gen_member_list()
 
-def _gen_member_list(self) :
+def _gen_member_list(self, reload=0) :
     """ganerates node connecton lists
 
         internal function call
@@ -122,8 +127,11 @@ def _gen_member_list(self) :
                 # next
 
 
+def node_releoad(self) :
+    return self.load_nodes(reload=1)
 
-def _gen_folder_list(self, nodeinfo) :
+
+def _gen_folder_list(self, nodeinfo, reload=0) :
     """ generate folder dictionary for load_node() """
     # self._nodefolder = dict ()
     # self._folder2addr = dict ()
@@ -161,7 +169,7 @@ def _gen_folder_list(self, nodeinfo) :
     #self._printdict(self._nodefolder)
     #self._printdict(self._folder2addr)
 
-def _gen_nodegroups(self, nodeinfo) :
+def _gen_nodegroups(self, nodeinfo, reload=0) :
     """ generate scene / group dictionary for load_node() """
     # self._nodegroups = dict ()
     self._groups2addr = dict ()
@@ -208,7 +216,8 @@ def _gen_nodegroups(self, nodeinfo) :
                     self._groups2addr[n] = str(gprop["address"])
 
                 if n in self._name2id :
-                    warnings.warn("Dup name2id (Group) : \"" + n + "\" ", gprop["address"] + "\n\t_name2id " + self._name2id[n], IsyRuntimeWarning)
+		    pass
+                    # warnings.warn("Dup name2id (Group) : \"" + n + "\" ", gprop["address"] + "\n\t_name2id " + self._name2id[n], IsyRuntimeWarning)
                 else :
                     self._name2id[n] = ("group", gprop["address"])
 
@@ -217,7 +226,7 @@ def _gen_nodegroups(self, nodeinfo) :
             self._printinfo(grp, "Error : no address in group :")
 
 
-def _gen_nodedict(self, nodeinfo) :
+def _gen_nodedict(self, nodeinfo, reload=0) :
     """ generate node dictionary for load_node() """
     warn_dup_name_list = list()
     self._node2addr = dict()
@@ -274,7 +283,7 @@ def _gen_nodedict(self, nodeinfo) :
 
                 # thinking of replacing _node2addr with _name2id
                 # do to ease managment of the three node types
-                if n in self._name2id :
+                if not reload and n in self._name2id :
                     warn_dup_name_list.append( (n ,idict["address"], self._name2id[n]) )
                     warn_mess = "Dup name2id (Node) \"{0}\" :".format(n) \
                                 + " \"{1}\"\n\t\"{2}\"".format(\
@@ -935,6 +944,10 @@ def node_restore_all(self, flag=0) :
     """
     return self.soapcomm("RestoreDevices", flag=flag)
 
+
+# move from ISYClass
+#def node_rename(self, naddr, name) : 
+#    return self.rename(naddr, name)
 
 def node_restore(self, naddr, flag=0) :
     """
