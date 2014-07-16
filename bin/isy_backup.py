@@ -27,7 +27,7 @@ noop = False
 
 local_time = None
 
-debug = 1
+debug = 0
 
 backup_flags   = 0b0000
 backup_sysconf = 0b0001
@@ -36,6 +36,11 @@ backup_ui      = 0b0100
 backup_logs    = 0b1000
 # backup_system  = 0b1000
 backup_all = ( backup_sysconf | backup_userweb | backup_ui )
+
+# this makes the backup not usable for restores
+# but is good for debuging since unzip will not
+# extract file with absolute paths from root 
+zip_noroot = False
 
 reboot_after = False
 
@@ -54,6 +59,7 @@ def parse_args(isy) :
     global verbose
     global backup_flags
     global reboot_after
+    global zip_noroot
 
 
     parser = isy.parser
@@ -101,6 +107,9 @@ def parse_args(isy) :
     parser.add_argument("-f", "--file", dest="outfile",
                         help="backup file")
 
+    parser.add_argument("-N", "--noroot", action='store_true',
+                        help="backup without root origin")
+
 #    parser.add_argument("-c", "--copy", dest="copy",
 #                       help="copy config tree to folder")
    
@@ -132,6 +141,7 @@ def parse_args(isy) :
     outfile = args.outfile
     verbose = args.verbose
     restore = args.restore
+    zip_noroot = args.noroot 
 #    folder = args.folder
 
 
@@ -370,6 +380,10 @@ def add_file(isy, zf, fpath) :
     else :
         if verbose :
             print "{0:<5} : {1}".format(len(dat), fpath)
+
+	if ( zip_noroot ) :
+	    fpath=fpath[1:]
+
 
 	if local_time is None :
 	    local_time =  time.localtime()
