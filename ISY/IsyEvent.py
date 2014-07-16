@@ -204,11 +204,14 @@ class ISYEvent(object) :
 
         ddat = dict()
 
-	# work around for encoding bug
+	# work around for encoding bugs
 	# in eventinfo field
-	if data.find('< ') >= 0 :
-	    data = data.replace('< ', '&lt; ')
+	if data.find('-->') >= 0 :
 	    data = data.replace('-->', '--&gt;')
+
+	if data.find('< ') >= 0 :
+	    # print "< HACK"
+	    data = data.replace('< ', '&lt; ')
 
 	if data.find('<NULL>') :
 	    data = data.replace('<NULL>', '&lt;NULL&gt;')
