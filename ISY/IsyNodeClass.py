@@ -238,6 +238,7 @@ class IsyNode(_IsyNodeBase):
             'ELK_ID',
 	    'parent', 'parent-type',
             'name', 'pnode', 'flag', 'wattage',
+	    'isLoad', 'location', 'description',
             'OL', 'RR', 'ST', 'type']
     _setlist = ['RR', 'OL', 'status', 'ramprate', 'onlevel', 'enable']
     _propalias = {'status': 'ST', 'value': 'ST', 'val': 'ST',
@@ -250,6 +251,8 @@ class IsyNode(_IsyNodeBase):
 
 	# self._objtype = (1, "node")
 	self._objtype = "node"
+
+	self._nodeprops = None
 
 	super(self.__class__, self).__init__(isy, ndict)
 
@@ -286,6 +289,17 @@ class IsyNode(_IsyNodeBase):
             raise IsyPropertyError("no property Attribute {!s}".format(prop))
 
         # check if we have a property
+
+        if prop in ['isLoad', 'location', 'description'] :
+	    if self._nodeprops is None :
+		self._nodeprops = self.isy.node_get_props(self._mydict["address"])
+	    if self._nodeprops is None :
+		return None
+	    if "prop" in self._nodeprops :
+		return self._nodeprops[prop]
+	    else :
+		return None
+
 
         if prop in ['ST', 'OL', 'RR'] :
             # Scene's do not have property values

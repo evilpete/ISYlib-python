@@ -1026,6 +1026,36 @@ class Isy(IsyUtil):
 
 
 
+    def node_get_props(self, naddr) :
+	""""
+	Soap call GetNodeProps
+	"""
+	(nodetype, node_id) = self._node_get_id(naddr)
+
+	if self.debug & 0x04 :
+	    print("node_get_props", naddr)
+
+	if not node_id :
+	    raise LookupError(
+		"node_del: {0} not a node ( {1}={2} )".format(
+			naddr, node_id, nodetype))
+
+	try :
+	    r = self.soapcomm("GetNodeProps", node=node_id) 
+	except IsySoapError, se :
+
+	# if error code is 404 then Node did not exist or was already deleted
+	# this is messy and needs to change or be removed 
+	    code = se.code()
+	    if code == 404 :
+		return None
+	    raise
+	else :
+	    return et2d( ET.fromstring(r))
+
+
+
+
     #
     # need to add code to update name2id and *2addr lookup arrays
     #
