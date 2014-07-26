@@ -997,7 +997,14 @@ class Isy(IsyUtil):
         ret =  self.soapcomm("GetDebugLevel",  )
         return ret
 
-    def node_discover_cancel(self, flag="1") :
+    def node_discover_start(self, nodetype=None) :
+        soapargs = dict()
+        if nodetype is not None :
+            soapargs['type'] = nodetype
+        ret = self.soapcomm("StartNodesDiscovery", **soapargs)
+        return ret
+
+    def node_discover_stop(self, flag="1") :
         """
             Puts ISY out of discovery (linking) mode
 
@@ -1068,7 +1075,7 @@ class Isy(IsyUtil):
 
             calls SOAP RenameNode() / RenameGroup() / RenameFolder()
         """
-        (idtype, nid) = self.getid(objid)
+        (idtype, nid) = self._node_get_id(objid)
         if nid == None :
             raise IsyValueError("unknown node/obj : " + objid)
         if idtype == "node" :
@@ -1180,7 +1187,8 @@ class Isy(IsyUtil):
                 args: 
                     group = a unique (unused) scene_id ID
                     node = id, name or Node Obj
-                    flag = set to 0x10 if node it a controler for Scene/Group
+                    flag = set to 0x10 if node is a controler for Scene/Group
+			   set to 0x20 if node is responder for Scene/Group
 
             Add new Node to Scene/Group 
 
@@ -2011,7 +2019,7 @@ class Isy(IsyUtil):
     #
     def getobj(self, objaddr):
         """ access node obj line a dictionary entery """
-        (idtype, nid) = self.getid(objid)
+        (idtype, nid) = self._node_get_id(objid)
         if nid == None :
             raise IsyValueError("unknown node/obj : " + objid)
         if nid in self.nodeCdict :
