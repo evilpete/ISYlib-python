@@ -555,15 +555,32 @@ class IsyScene(_IsyNodeBase):
 	return  self._rename("RenameGroup",  newname)
 
     def member_del(self, node) :
-	r = self.isy.soapcomm("RemoveFromGroup",
-		node=node._get_prop("address"),
-		group=self._mydict["address"])
+	r = self.isy.scene_del_node(
+		self._mydict["address"],
+		node)
+#	r = self.isy.soapcomm("RemoveFromGroup",
+#		node=node._get_prop("address"),
+#		group=self._mydict["address"])
+	return r
+
+    def member_add_controler(self, node, flag=16) :
+	""" Add Node to scene/group as Responder """
+	return self.member_add(node, flag)
+
+    def member_add_responder(self, node, flag=32) :
+	""" Add Node to scene/group Controller """
+	return self.member_add(node, flag)
 
     def member_add(self, node, flag=16) :
-	r = self.isy.soapcomm("MoveNode",
-		node=node._get_prop("address"),
-		group=self._mydict["address"],
-		flag=16)
+	""" Add Node to scene/group """
+	r = self.isy.scene_add_node(
+		self._mydict["address"],
+		node,
+		flag=0x10) 
+#	r = self.isy.soapcomm("MoveNode",
+#		node=node._get_prop("address"),
+#		group=self._mydict["address"],
+#		flag=16)
 	return r
 
     def member_iter(self, flag=0):
