@@ -1175,6 +1175,8 @@ class Isy(IsyUtil):
             while nid in self._nodefolder or nid in self._nodegroups :
                 iid += 1
                 nid=str(iid)
+	if sname is None :
+	    sname = nid
         self.soapcomm("AddGroup", id=nid, name=sname)
         #
         # add code to update self._nodegroups

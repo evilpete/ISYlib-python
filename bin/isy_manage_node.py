@@ -40,6 +40,23 @@ commands_help = {
     "EXIT" : "exit program",
 }
 
+
+
+scene_commands_help = {
+    "DEL, DELETE" : "Delete Scene",
+    "RM, REMOVE" : "Remove Node from scene",
+    "ADD" : "Add node to scene",
+    "NEW" : "Create new scene",
+    "LS, LIST" : "List Scenes"
+}
+
+folder_commands_help = {
+}
+
+
+prog_commands_help = {
+}
+
 def doit(isy) :
 
     interactive = False
@@ -82,14 +99,27 @@ def run_comm(isy, argv) :
     if cmd in ["LINK", "DISCOVER"] :
 	link_nodes(isy, cmd,  argv)
 
-    elif cmd in ["MV", "RENAME"] :
-	do_rename_nodes(isy ,cmd, argv)
+    elif cmd in [ "NODE" ] :
+	do_node(isy, cmd, argv)
 
+    elif cmd in ["SCENE"] :
+	do_scene(isy, cmd, argv)
+
+    elif cmd in [ "PROG" ] :
+	do_prog(isy, cmd, argv)
+
+    elif cmd in ["FOLDER", "DIR"] :
+	do_folder(isy, cmd, argv)
+
+    # the following are shortcuts
     elif cmd in [ "LS", "LIST" ] :
 	do_list_node(isy, cmd, argv)
 
     elif cmd in [ "RM", "DEL", "DELETE"] :
 	do_del_node(isy, cmd, argv)
+
+    elif cmd in ["MV", "RENAME"] :
+	do_rename_nodes(isy ,cmd, argv)
 
     elif cmd in ["RESTORE"] :
 	do_restore(isy, cmd, argv)
@@ -104,18 +134,9 @@ def run_comm(isy, argv) :
     elif cmd in ["RMDIR"] :
 	pass
 
-    elif cmd in ["FOLDER", "DIR"] :
-	do_folder(isy, cmd, argv)
-
-    elif cmd in ["SCENE"] :
-	do_scene(isy, cmd, argv)
-
     elif cmd in ["ENABLE", "EN" ] :
-	if ( len(argv) > 0 and argv[0] != "?" ) :
-	    nodeid = argv.pop(0)
-	    isy.node_enable(nodeid, enable=1)
-	else :
-	    raise cmdException("Syntax :\n\t{!s} <node_id>".format(cmd))
+	do_node_enable(isy, cmd, argv)
+
 
     elif cmd in ["DISABLE","DIS"] :
 	if ( len(argv) > 0 and argv[0] != "?" ) :
@@ -124,6 +145,7 @@ def run_comm(isy, argv) :
 	else :
 	    raise cmdException("Syntax :\n\t{!s} <node_id>".format(cmd))
 
+    # The following are debug and maintance
     elif cmd in ["ERROR", "ERR"] :
 	# print last ISY error
 	pass
@@ -135,7 +157,6 @@ def run_comm(isy, argv) :
 	    else :
 		verbose = int(argv[0])
 	print "verbose = ", verbose
-
 
     elif cmd in ["REBOOT"] :
 	do_reboot(isy)
@@ -246,11 +267,64 @@ def do_restore(isy, cmd, argv) :
     else :
 	raise cmdException("Syntax :\n\t{!s} <node_id>\n\tto restore all nodes, use 'ALL' as node_id\n".format(cmd))
 
+def do_node_enable(isy, cmd, argv) :
+    if ( len(argv) > 0 and argv[0] != "?" ) :
+	nodeid = argv.pop(0)
+	isy.node_enable(nodeid, enable=1)
+    else :
+	raise cmdException("Syntax :\n\t{!s} <node_id>".format(cmd))
+
+def do_node(isy, cmd, argv) :
+    if ( len(argv) == 0 or ( len(argv) > 0 and argv[0] == "?") ) :
+	raise cmdException("Syntax :\n\t{!s} <node_id>\n".format(cmd))
+
+    subcmd = argv.pop(0).upper()
+
+    if subcmd in [ "ENABLE" ] :
+	do_node_enable(isy, subcmd, argv)
+    elif subcmd in [ "LS", "LIST" ] :
+	do_list_node(isy, subcmd, argv, nodetype=("node"))
+    elif subcmd in ["MV", "RENAME"] :
+	do_rename_nodes(isy, subcmd, argv)
+    elif cmd in [ "RM", "DEL", "DELETE"] :
+	do_del_node(isy, subcmd, argv)
+    elif cmd in ["RESTORE"] :
+	do_restore(isy, subcmd, argv)
+    else :
+	raise cmdException("Syntax :\n\t{!s} cmd <node_id>\n".format(cmd))
+
+
+def do_prog(isy, cmd, argv) :
+    pass
 
 def do_folder(isy, cmd, argv) :
     pass
 
 def do_scene(isy, cmd, argv) :
+    if ( len(argv) == 0 or ( len(argv) > 0 and argv[0] == "?") ) :
+	print_cmds(scene_commands_help)
+	raise cmdException("Syntax :\n\t{!s} cmd <scene_id>\n".format(cmd))
+
+    subcmd = argv.pop(0).upper()
+
+    if subcmd in ["ADD", "DELETE", "DEL", "RM" ] :
+	do_scene_add(isy, subcmd, argv)
+    elif subcmd in ["NEW"] :
+	do_scene_new(isy, subcmd, argv)
+    elif subcmd in ["LS", "LIST"] :
+	do_list_node(isy, subcmd, argv, nodetype=("scene"))
+    else :
+	raise cmdException("Syntax :\n\t{!s} cmd <scene_id>\n".format(cmd))
+
+def do_scene_new(isy, cmd, argv) :
+    if ( len(argv) == 0 or argv[0] == "?" or len(argv) > 1 ) :
+	raise cmdException("Syntax :\n\tSCENE NEW <scene_id>\n".format(cmd))
+
+    sceneid = argv.pop(0)
+
+    r = isy.scene_new(sname=sceneid)
+
+def do_scene_add(isy, cmd, argv) :
     """
 	add/del node to/from scene glue
 	create new scene/group glue
@@ -265,8 +339,6 @@ def do_scene(isy, cmd, argv) :
 	
 	if op in ["ADD", "DELETE", "DEL", "RM" ] :
 	    nodeid = argv.pop(0)
-	    sceneid = argv.pop(0)
-	elif op in ["NEW"] :
 	    sceneid = argv.pop(0)
 	else :
 	    op = "ERR"
@@ -286,22 +358,24 @@ def do_scene(isy, cmd, argv) :
     if op in [ "ADD" ] :
 	# isy.scene_add_node( sceneid, nodeid, nflag)
 	print "isy.scene_add_node", sceneid, nodeid, nflag
-    elif op in [  "DELETE", "DEL", "RM" ] :
+    if op in [  "DELETE", "DEL", "RM" ] :
 	# isy.scene_del_node( sceneid, nodeid)
 	print "isy.scene_del_node", sceneid, nodeid
-    elif op in [ "NEW" ]:
-	pass
     else :
 	raise cmdException("Syntax :\n\t{!s} [ADD|DEL] <scene_id> <node_id> [controller|responder]\n".format(cmd))
 
 
 
-def do_list_node(isy, cmd, argv) :
+def do_list_node(isy, cmd, argv, nodetype=None) :
     """
 	list node glue
     """
+    # "nodetype", ("node", "scene")
     if ( len(argv) > 0 and argv[0] == "?" ) :
 	raise cmdException("Syntax :\n\t{!s} [-l]".format(cmd))
+
+    if nodetype is None :
+	nodetype = ("node", "scene")
 
     if len(argv) > 0 and argv[0] == "-l" :
 	pfmt = "{:<22} {:>12}\t{:<12}{!s:<12} {!s:}"
@@ -316,7 +390,7 @@ def do_list_node(isy, cmd, argv) :
     else :
 	print(pfmt.format("Node Name", "Address", "Status", "Enabled", "Path"))
 	print(pfmt.format("---------", "-------", "------", "------", "----"))
-	for nod in isy :
+	for nod in isy.node_iter(nodetype=nodetype) :
 	    if nod.objtype == "scene" :
 		print(pfmt.format(nod.name, nod.address, "-", "-", "-"))
 	    else :
@@ -332,11 +406,11 @@ def do_reboot(isy) :
     # ask "are you sure ?"
     # isy.reboot(isy)
 
-def print_cmds() :
-    for k, v in commands_help.items() :
+def print_cmds(cmd_list=commands_help) :
+    for k, v in cmd_list.items() :
 	print "    {!s:<22} :\t{!s}".format(k, v)
     print "\nFor more detail on command run command with arg '?'"
-    print "\n* == may not be implemented"
+    print "\n* == may not be implemented\n"
 
 
 if __name__ == '__main__' :
