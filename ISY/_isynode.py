@@ -619,11 +619,11 @@ def node_comm(self, naddr, cmd, *args) :
     #print("self.name2control :", self.name2control)
 
     if not node_id :
-        raise LookupError("node_comm: unknown node : " + str(naddr) )
+        raise LookupError("node_comm: unknown node : {!s}".format(naddr) )
     print("naddr : ", naddr, " : ", node_id)
 
     if not cmd_id :
-        raise TypeError("node_comm: unknown command : " + str(cmd) )
+        raise TypeError("node_comm: unknown command : {!s}".format(cmd) )
 
     #self._node_comm(node_id, cmd_id, args)
     self._node_send(node_id, "cmd", cmd_id, args)

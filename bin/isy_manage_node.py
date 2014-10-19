@@ -26,6 +26,7 @@ commands_help = {
     "RM, DEL, DELETE" : "delete node",
     "RESTORE" : "Restore node settings",
     "MD, NEWFOLDER, MKDIR" : "create new node folder",
+    "NODE" :  "send command to node",
     "RMDIR*" : "delete node folder",
     "ENABLE" : "enable node",
     "DISABLE" : "disable node",
@@ -275,6 +276,28 @@ def do_node_enable(isy, cmd, argv) :
 	raise cmdException("Syntax :\n\t{!s} <node_id>".format(cmd))
 
 def do_node(isy, cmd, argv) :
+
+    node_cmd={
+	"ENABLE" : do_node_enable,
+	"LS" : do_list_node,
+	"LIST" : do_list_node,
+	"MV" : do_rename_nodes,
+	"RENAME" : do_rename_nodes,
+	"DEL" : do_del_node,
+	"RESTORE" : do_restore,
+	"ON" : do_node_on,
+	"OFF" : do_node_off,
+    }
+
+    if ( len(argv) == 0 or ( len(argv) > 0 and argv[0] == "?") ) :
+	cmdlist = ", ".join( node_cmd.keys() )
+	raise cmdException("Syntax :\n\t{!s} <command> [node_id]\n\tAvalible commands :\n\t\t{!s}\n".format(cmd, cmdlist))
+
+    subcmd = argv.pop(0).upper()
+    if subcmd in node_cmd :
+	node_cmd[subcmd](isy, subcmd, argv)
+
+def do_nodes(isy, cmd, argv) :
     if ( len(argv) == 0 or ( len(argv) > 0 and argv[0] == "?") ) :
 	raise cmdException("Syntax :\n\t{!s} <node_id>\n".format(cmd))
 
@@ -290,9 +313,25 @@ def do_node(isy, cmd, argv) :
 	do_del_node(isy, subcmd, argv)
     elif cmd in ["RESTORE"] :
 	do_restore(isy, subcmd, argv)
+    elif cmd in ["ON"] :
+	nodeid = argv.pop(0)
+	isy.node_comm( nodeid, "ON")
+    elif cmd in ["OFF"] :
+	nodeid = argv.pop(0)
+	isy.node_comm( nodeid, "ON")
     else :
 	raise cmdException("Syntax :\n\t{!s} cmd <node_id>\n".format(cmd))
 
+
+def do_node_on(isy, cmd, argv) :
+    nodeid = argv.pop(0)
+    print "TURN", nodeid, "ON"
+    isy.node_comm( nodeid, "ON")
+
+def do_node_off(isy, cmd, argv) :
+    nodeid = argv.pop(0)
+    print "TURN", nodeid, "OFF"
+    isy.node_comm( nodeid, "OFF")
 
 def do_prog(isy, cmd, argv) :
     pass
