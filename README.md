@@ -9,6 +9,10 @@ supporting both object oriented and procedural methods
 
 Also Supports real time cache updating by optionally running a sub-thread subscribing to event stream )
 
+
+Note:
+    This Lib has grown to the point it needs to be restructured / split up
+
 ----
 
 This is a work in progress ( so expect new features )
@@ -121,5 +125,11 @@ ISYlib-python Documentation
 
 * [Using_IsyVar_Class]  (/docs/Using_IsyVar_Class.txt) This class is used to represent varabibles internal to the ISY
 
+
+
+
+Notes:
+    - Todo: Apply Style Guide @: http://www.python.org/dev/peps/pep-0008/
+    - Todo: split up main Class (IsyClass) into several subclasses
 
 
