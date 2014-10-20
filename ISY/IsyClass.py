@@ -439,7 +439,7 @@ class Isy(IsyUtil):
         #
         # Status/property changed
         #
-        if evnt_dat["control"] in ["ST", "RR", "OL"] :
+        if evnt_dat["control"] in ["ST", "RR", "OL","DON"] :
             if evnt_dat["node"] in self._nodedict :
                 # ADD LOCK ON NODE DATA
                 # print("===evnt_dat :", evnt_dat)
