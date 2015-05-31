@@ -121,5 +121,4 @@ ISYlib-python Documentation
 
 * [Using_IsyVar_Class]  (/docs/Using_IsyVar_Class.txt) This class is used to represent varabibles internal to the ISY
 
-
-
+[![Analytics](https://ga-beacon.appspot.com/UA-63572697-1/evilpete/isylib)]
