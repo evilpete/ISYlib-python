@@ -40,6 +40,7 @@ __author__ = 'Peter Shipley <peter.shipley@gmail.com>'
 __copyright__ = "Copyright (C) 2013 Peter Shipley"
 __license__ = "BSD"
 
+import hashlib
 from ISY.IsyUtilClass import IsySubClass, val2bool 
 from ISY.IsyExceptionClass import *
 # from IsyClass import *
@@ -194,18 +195,6 @@ class _IsyNodeBase(IsySubClass):
 #		self[k] = v
 
 
-
-#
-# convers a node Id  to a int
-# eg: "9 4A 5F 2" => 00001001010010100101111100000010 => 155868930
-#
-def node_id_to_int(h) :
-    a = h.split(' ')
-    return  ( int(a[0], 16) << 24 ) | ( int(a[1], 16) << 16 ) | \
-		    ( int(a[2], 16) << 8 ) | int(a[3], 16)
-
-
-
 # def rate
 # def onlevel
 class IsyNode(_IsyNodeBase):
@@ -258,7 +247,7 @@ class IsyNode(_IsyNodeBase):
 #            if "node-flag" in self._mydict :
 #                self.update()
 
-	self._hash = node_id_to_int(self._mydict["address"])
+	self._hash = hashlib.sha256(self._mydict["address"])
 
         if self.debug & 0x01 :
             print("Init Node : \"" + self._mydict["address"] + \
