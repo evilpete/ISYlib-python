@@ -1,3 +1,4 @@
+
 """Simple Python lib for the ISY home automation netapp
 
  This is a Python interface to the ISY rest interface
@@ -8,7 +9,7 @@
 __author__ = 'Peter Shipley <peter.shipley@gmail.com>'
 __copyright__ = "Copyright (C) 2013 Peter Shipley"
 __license__ = "BSD"
-__version__ = "0.1.20140313"
+__version__ = "0.1.20150910"
 
 
 #from xml.dom.minidom import parse, parseString
@@ -158,7 +159,8 @@ class Isy(IsyUtil):
                 node_get_path, _node_get_path, _node_get_name, \
 		node_set_powerinfo, node_enable, \
 		node_del, _node_remove, \
-		node_restore, node_restore_all
+		node_restore, node_restore_all, \
+		node_get_notes 
 		# node_rename, \
 
 
@@ -1033,32 +1035,32 @@ class Isy(IsyUtil):
 
 
 
-    def node_get_props(self, naddr) :
-	""""
-	Soap call GetNodeProps
-	"""
-	(nodetype, node_id) = self._node_get_id(naddr)
-
-	if self.debug & 0x04 :
-	    print("node_get_props", naddr)
-
-	if not node_id :
-	    raise LookupError(
-		"node_del: {0} not a node ( {1}={2} )".format(
-			naddr, node_id, nodetype))
-
-	try :
-	    r = self.soapcomm("GetNodeProps", node=node_id) 
-	except IsySoapError, se :
-
-	# if error code is 404 then Node did not exist or was already deleted
-	# this is messy and needs to change or be removed 
-	    code = se.code()
-	    if code == 404 :
-		return None
-	    raise
-	else :
-	    return et2d( ET.fromstring(r))
+#    def node_get_props(self, naddr) :
+#	""""
+#	Soap call GetNodeProps
+#	"""
+#	(nodetype, node_id) = self._node_get_id(naddr)
+#
+#	if self.debug & 0x04 :
+#	    print("node_get_props", naddr)
+#
+#	if not node_id :
+#	    raise LookupError(
+#		"node_del: {0} not a node ( {1}={2} )".format(
+#			naddr, node_id, nodetype))
+#
+#	try :
+#	    r = self.soapcomm("GetNodeProps", node=node_id) 
+#	except IsySoapError, se :
+#
+#	# if error code is 404 then Node did not exist or was already deleted
+#	# this is messy and needs to change or be removed 
+#	    code = se.code()
+#	    if code == 404 :
+#		return None
+#	    raise
+#	else :
+#	    return et2d( ET.fromstring(r))
 
 
 
