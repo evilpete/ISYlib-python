@@ -4,7 +4,7 @@
     and set vars in a ISY home automation device 
 
     See also : https://github.com/smbaker/pynest
-	       https://github.com/evilpete/ISYlib-python
+               https://github.com/evilpete/ISYlib-python
 
 """
 __author__ = "Peter Shipley"
@@ -27,10 +27,10 @@ uuser=os.getenv('NEST_USER', None)
 upass=os.getenv('NEST_PASS', None)
 
 temperature_vars = ( "away_temperature_high", "away_temperature_low",
-		    "current_temperature", "target_temperature",
-		    "target_temperature_high", "target_temperature_low",
-		    "temperature_lock_high_temp", "temperature_lock_low_temp",
-		    "upper_safety_temp", "lower_safety_temp" )
+                    "current_temperature", "target_temperature",
+                    "target_temperature_high", "target_temperature_low",
+                    "temperature_lock_high_temp", "temperature_lock_low_temp",
+                    "upper_safety_temp", "lower_safety_temp" )
 
 
 #
@@ -55,8 +55,8 @@ def main() :
     n.get_status()
 
     if (args[0]=="show") :
-	n.show_status()
-	exit(0)
+        n.show_status()
+        exit(0)
 
     # consolidate data into a single dict
     nest_values = dict ( )
@@ -65,8 +65,8 @@ def main() :
     nest_values.update(n.status["device"][n.serial] )
 
     if (args[0]=="dump") :
-	pprint.pprint(nest_values)
-	exit(0)
+        pprint.pprint(nest_values)
+        exit(0)
 
     # faststart=1 don't load node data ( we not going to use it )
     myisy= ISY.Isy(debug=0, faststart=1)
@@ -76,54 +76,54 @@ def main() :
     #myisy.load_vars()
 
     auto_args = ( "nest_temp=current_temperature",
-		"nest_humidity=current_humidity",
-		"nest_away=away")
+                "nest_humidity=current_humidity",
+                "nest_away=away")
 
     if (args[0]=="auto") :
-	args.pop(0)
-	args.extend(auto_args)
+        args.pop(0)
+        args.extend(auto_args)
 
     for var_arg in args :
-	(isy_var, src_var) = var_arg.split('=')
+        (isy_var, src_var) = var_arg.split('=')
 
-	# check we got two value names
-	if (not isy_var) or (not src_var):
-	    warn("Invalid arg  : {0}".format(var_arg), RuntimeWarning)
-	    continue
+        # check we got two value names
+        if (not isy_var) or (not src_var):
+            warn("Invalid arg  : {0}".format(var_arg), RuntimeWarning)
+            continue
 
-	# check if net value name is valid
-	if src_var not in nest_values:
-	    warn("Invalid Nest Value : {0}".format(isy_var), RuntimeWarning)
-	    continue
+        # check if net value name is valid
+        if src_var not in nest_values:
+            warn("Invalid Nest Value : {0}".format(isy_var), RuntimeWarning)
+            continue
 
-	# convert temperature to F
-	# we can't convert in place since the value may be used twice
-	if src_var in temperature_vars and not opts.celsius:
-	    set_value = nest_values[src_var] *1.8 + 32.0
-	else :
-	    set_value = nest_values[src_var]
+        # convert temperature to F
+        # we can't convert in place since the value may be used twice
+        if src_var in temperature_vars and not opts.celsius:
+            set_value = nest_values[src_var] *1.8 + 32.0
+        else :
+            set_value = nest_values[src_var]
 
 
-	try :
-	    # this will raise an error if there is a problem with name or set_value 
-	    myisy.var_set_value(isy_var, int(set_value))
+        try :
+            # this will raise an error if there is a problem with name or set_value 
+            myisy.var_set_value(isy_var, int(set_value))
 
-	except IsyPropertyError :
-	    warn("Invalid Isy Var : {0}".format(isy_var), RuntimeWarning)
-	    continue
-	except (IsyValueError , ValueError):
-	    print "invalid value :", nest_values[src_var]
-	    warn("Invalid value for ISY var: {0}".format(set_value),
-		    RuntimeWarning)
-	    continue
-	except :
-	    print("Unexpected error:", sys.exc_info()[0])
-	    warn("Unexpected error: {0}".format(sys.exc_info()[0]),
-		    RuntimeWarning)
-	    exit(0)
-	else :
-	    if opts.verbose :
-		print isy_var,"=", int(set_value)
+        except IsyPropertyError :
+            warn("Invalid Isy Var : {0}".format(isy_var), RuntimeWarning)
+            continue
+        except (IsyValueError , ValueError):
+            print "invalid value :", nest_values[src_var]
+            warn("Invalid value for ISY var: {0}".format(set_value),
+                    RuntimeWarning)
+            continue
+        except :
+            print("Unexpected error:", sys.exc_info()[0])
+            warn("Unexpected error: {0}".format(sys.exc_info()[0]),
+                    RuntimeWarning)
+            exit(0)
+        else :
+            if opts.verbose :
+                print isy_var,"=", int(set_value)
 
     # end of main
     return
@@ -132,9 +132,9 @@ def main() :
 
 # convert time stamp into someting we can pass along
 #    if src_var == "$timestamp" :
-#	ti = nest_values["$timestamp"] // 1000
-#	set_value = time.strftime("%m%d%H%M%S", time.localtime(ti)).lstrip('0')
-#	print "shared timestamp", nest_values["$timestamp"],
+#       ti = nest_values["$timestamp"] // 1000
+#       set_value = time.strftime("%m%d%H%M%S", time.localtime(ti)).lstrip('0')
+#       print "shared timestamp", nest_values["$timestamp"],
 #              time.ctime(ti), set_value
 #
 

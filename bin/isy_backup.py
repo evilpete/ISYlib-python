@@ -65,11 +65,11 @@ def parse_args(isy) :
     parser = isy.parser
 
 #    if "parser" in isy :
-#	parser = isy.parser
+#       parser = isy.parser
 #    else :
-#	if debug :
-#	    print "new parser"
-#	parser = argparse.ArgumentParser()
+#       if debug :
+#           print "new parser"
+#       parser = argparse.ArgumentParser()
 
 
     parser.add_help = True
@@ -102,7 +102,7 @@ def parse_args(isy) :
                         help="restore backup")
 
     parser.add_argument("-h", "--help", action='help',
-			default=argparse.SUPPRESS)
+                        default=argparse.SUPPRESS)
 
     parser.add_argument("-f", "--file", dest="outfile",
                         help="backup file")
@@ -124,7 +124,7 @@ def parse_args(isy) :
 #       exit(0)
 
     if args.restore and not args.outfile:
-	parser.error( '--file is required when --restore is set.' )
+        parser.error( '--file is required when --restore is set.' )
 
     if args.Reboot : reboot_after = True
      
@@ -136,7 +136,7 @@ def parse_args(isy) :
     if backup_flags == 0 : backup_flags = backup_all
 
     if debug :
-	print "backup_flags = {0:04b}".format(backup_flags)
+        print "backup_flags = {0:04b}".format(backup_flags)
     noop    = args.noop
     outfile = args.outfile
     verbose = args.verbose
@@ -148,7 +148,7 @@ def parse_args(isy) :
 
 def restore_isy(isy) :
     if outfile is None :
-	raise argparse.ArgumentTypeError("no restore file given")
+        raise argparse.ArgumentTypeError("no restore file given")
 
     mybackupid = "uuid.{0}.zip".format(isy.id)
 
@@ -157,17 +157,17 @@ def restore_isy(isy) :
     # print isybackup
 
 #    if verbose :
-#	for f in zf.infolist():
-#	    print "{0:<30} : {1:6} : {2:#010x} ({3:#04o}) ".format(
-#		    f.filename,
-#		    f.file_size,
-#		    f.external_attr,
-#		    ( (f.external_attr >> 16L) & 0x0FFF )
-#		)
+#       for f in zf.infolist():
+#           print "{0:<30} : {1:6} : {2:#010x} ({3:#04o}) ".format(
+#                   f.filename,
+#                   f.file_size,
+#                   f.external_attr,
+#                   ( (f.external_attr >> 16L) & 0x0FFF )
+#               )
 
 
     if not (isybackup.startswith("uuid") and isybackup.endswith(".zip") ) :
-	raise SystemExit("Invalid backup\n")
+        raise SystemExit("Invalid backup\n")
 
     td = tempfile.mkdtemp()
 
@@ -180,60 +180,60 @@ def restore_isy(isy) :
 
 
     if verbose :
-	print "{0} files to be retored".format(len(zff_info))
+        print "{0} files to be retored".format(len(zff_info))
 
     restore_filter = None
     if backup_flags != backup_all :
-	restore_filter_list = list()
+        restore_filter_list = list()
 
-	if (backup_flags & backup_sysconf) :
-	    restore_filter_list.append("/CONF")
+        if (backup_flags & backup_sysconf) :
+            restore_filter_list.append("/CONF")
 
-	if (backup_flags & backup_userweb ) :
-	    restore_filter_list.append("/USER/WEB/")
+        if (backup_flags & backup_userweb ) :
+            restore_filter_list.append("/USER/WEB/")
 
-	if (backup_flags & backup_ui ) :
-	    restore_filter_list.append("/WEB/CONF/")
+        if (backup_flags & backup_ui ) :
+            restore_filter_list.append("/WEB/CONF/")
 
-	if ( backup_flags & backup_logs ) : 
-	    restore_filter_list.append("/LOG/")
+        if ( backup_flags & backup_logs ) : 
+            restore_filter_list.append("/LOG/")
 
-	restore_filter = tuple(restore_filter_list)
+        restore_filter = tuple(restore_filter_list)
 
     for z in zff_info :
-	if restore_filter and not z.filename.startswith( restore_filter ) :
-	    if vebose :
-		print "skipping {0:<30} : Not in restore path".format(z.filename)
-	    continue
+        if restore_filter and not z.filename.startswith( restore_filter ) :
+            if vebose :
+                print "skipping {0:<30} : Not in restore path".format(z.filename)
+            continue
 
-	if (z.external_attr & 0x0010) or z.filename.endswith("/") :
-	    if verbose :
-		print "skipping {0:<30} : directory".format(z.filename)
-	    continue
-	    
-	if verbose :
-	    print "{0:<30} : {1:6} : {2:#010x} ({3:04o}) {4}".format(
-		    z.filename, 
-		    z.file_size,
-		    z.external_attr,
-		    ( (z.external_attr >> 16L) & 0x0FFF ),
-		    date_time2str(z.date_time)
-		)
+        if (z.external_attr & 0x0010) or z.filename.endswith("/") :
+            if verbose :
+                print "skipping {0:<30} : directory".format(z.filename)
+            continue
+            
+        if verbose :
+            print "{0:<30} : {1:6} : {2:#010x} ({3:04o}) {4}".format(
+                    z.filename, 
+                    z.file_size,
+                    z.external_attr,
+                    ( (z.external_attr >> 16L) & 0x0FFF ),
+                    date_time2str(z.date_time)
+                )
 
-	if ( not z.filename.startswith("/") ) :
-	    if verbose :
-		print "skipping {0:<30} : not full path".format(z.filename)
-	    contunue
+        if ( not z.filename.startswith("/") ) :
+            if verbose :
+                print "skipping {0:<30} : not full path".format(z.filename)
+            contunue
 
-	if not noop :
-	    fdata = zff.read(z)
-	    try :
-		r = isy._sendfile(data=fdata, filename=z.filename, load="y")
-	    except IsySoapError, se :
-		if se.code() == 403 :
-		    print "Error restoring {0} : Forbidden ( code=403 )".format(z.filename)
-		else :
-		    raise
+        if not noop :
+            fdata = zff.read(z)
+            try :
+                r = isy._sendfile(data=fdata, filename=z.filename, load="y")
+            except IsySoapError, se :
+                if se.code() == 403 :
+                    print "Error restoring {0} : Forbidden ( code=403 )".format(z.filename)
+                else :
+                    raise
 
     zff.close()
 
@@ -254,16 +254,16 @@ def backup_isy(isy) :
     backupid = "uuid.{0}.zip".format(isy.id)
 
     if ( backup_flags & backup_sysconf ) : 
-	zip_get_conf(isy)
+        zip_get_conf(isy)
 
     if ( backup_flags & backup_userweb ) : 
-	zip_get_userweb(isy)
+        zip_get_userweb(isy)
 
     if ( backup_flags & backup_logs ) : 
-	zip_get_logfiles(isy)
+        zip_get_logfiles(isy)
 
     if ( backup_flags & backup_ui ) : 
-	zip_get_ui_conf(isy)
+        zip_get_ui_conf(isy)
 
     tf = tempfile.NamedTemporaryFile(delete=False)
     zf = zipfile.ZipFile(tf, "w")
@@ -284,8 +284,8 @@ def backup_isy(isy) :
     zff.close()
     os.unlink(tf.name)
     if verbose :
-	print "Backup completed"
-	print "output file = ", outfile
+        print "Backup completed"
+        print "output file = ", outfile
 
 
 def zip_get_ui_conf(isy) :
@@ -381,16 +381,16 @@ def add_file(isy, zf, fpath) :
         if verbose :
             print "{0:<5} : {1}".format(len(dat), fpath)
 
-	if ( zip_noroot ) :
-	    fpath=fpath[1:]
+        if ( zip_noroot ) :
+            fpath=fpath[1:]
 
 
-	if local_time is None :
-	    local_time =  time.localtime()
-	zfi = zipfile.ZipInfo(fpath)
-	zfi.date_time = local_time[:6]
-	zfi.compress_type = zipfile.ZIP_STORED
-	zfi.external_attr = ( 0o0644 << 16L )
+        if local_time is None :
+            local_time =  time.localtime()
+        zfi = zipfile.ZipInfo(fpath)
+        zfi.date_time = local_time[:6]
+        zfi.compress_type = zipfile.ZIP_STORED
+        zfi.external_attr = ( 0o0644 << 16L )
         zf.writestr(zfi, dat)
 
 
@@ -413,9 +413,9 @@ if __name__ == '__main__' :
     myisy = ISY.Isy(parsearg=1, faststart=1)
     parse_args(myisy)
     if restore :
-	restore_isy(myisy)
-	if reboot_after :
-	    myisy.reboot()
+        restore_isy(myisy)
+        if reboot_after :
+            myisy.reboot()
     else :
-	backup_isy(myisy)
+        backup_isy(myisy)
     exit(0)

@@ -30,14 +30,14 @@ def load_nodes(self, reload=0) :
     """
     if not hasattr(self, '_nodedict') or not isinstance(self._nodedict, dict):
          self._nodedict = dict ()
-#	  current_node_set = None
+#         current_node_set = None
 #     else :
-#	  current_node_set = set( self._nodedict.viewkeys() )
+#         current_node_set = set( self._nodedict.viewkeys() )
 
     if not hasattr(self, '_nodegroups') or not isinstance(self._nodegroups, dict):
         self._nodegroups  = dict ()
 #    else :
-#	  current_node_set = self._nodegroups.viewkeys()
+#         current_node_set = self._nodegroups.viewkeys()
 
     if reload or not hasattr(self, '_nodefolder') or not isinstance(self._nodefolder, dict):
         self._nodefolder  = dict ()
@@ -216,7 +216,7 @@ def _gen_nodegroups(self, nodeinfo, reload=0) :
                     self._groups2addr[n] = str(gprop["address"])
 
                 if n in self._name2id :
-		    pass
+                    pass
                     # warnings.warn("Dup name2id (Group) : \"" + n + "\" ", gprop["address"] + "\n\t_name2id " + self._name2id[n], IsyRuntimeWarning)
                 else :
                     self._name2id[n] = ("group", gprop["address"])
@@ -830,9 +830,9 @@ def node_get_notes(self, naddr) :
     resp = self._getXMLetree(xurl)
 
     if resp is not None :
-	for notes in resp.iter('NodeProperties') :
-	    for note_val in list(notes) :
-		ret_prop[note_val.tag] = note_val.text
+        for notes in resp.iter('NodeProperties') :
+            for note_val in list(notes) :
+                ret_prop[note_val.tag] = note_val.text
 
     return ret_prop
 #
@@ -924,22 +924,22 @@ def node_del(self, naddr) :
 
     if not node_id :
         raise LookupError(
-	    "node_del: {0} not a node ( {1}={2} )".format(
+            "node_del: {0} not a node ( {1}={2} )".format(
                     naddr, node_id, nodetype))
 
     try :
-	r = self._node_remove(node_id) 
+        r = self._node_remove(node_id) 
     except IsySoapError, se :
 
-	# if error code is 501 then Node did not exist or was already deleted
-	# this is messy and needs to change or be removed 
-	code = se.code()
-	if code == 501 :
-	    return se.httperrbody
+        # if error code is 501 then Node did not exist or was already deleted
+        # this is messy and needs to change or be removed 
+        code = se.code()
+        if code == 501 :
+            return se.httperrbody
 
-	raise
+        raise
     else :
-	return r
+        return r
 
 
 def _node_remove(self, node_id) :

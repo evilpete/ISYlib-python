@@ -6,7 +6,7 @@ Supporting a Simple and OO interface for ISY home automation netapp
 
 
 see also : http://www.universal-devices.com/residential/
-	   http://wiki.universal-devices.com/index.php?title=Main_Page
+           http://wiki.universal-devices.com/index.php?title=Main_Page
 
 NOTE: This Libaray is not written my or supported by universal devices
 
@@ -25,16 +25,16 @@ eg:
 
 Files:
 
-    ISY/*		- ISY Python lib
-    bin/isy_find.py	- Upnp probe for devices on your network
-    bin/isy_nodespy	- List registered devices
-    bin/isy_log.py	- Get event or error logs
+    ISY/*               - ISY Python lib
+    bin/isy_find.py     - Upnp probe for devices on your network
+    bin/isy_nodespy     - List registered devices
+    bin/isy_log.py      - Get event or error logs
     bin/isy_showevents.py - print live stream of events from ISY
-    bin/isy_var.py	- Set, Get or display system vars
-    bin/isy_progs.py	- List/Run registered programs
-    bin/isy_nestset.py	- sync values from a Nest thermostat with an ISY
-    bin/isy_net_res.py	- call registered net resorces on ISY
-    bin/isy_net_wol.py	- send WOL to registered devices
+    bin/isy_var.py      - Set, Get or display system vars
+    bin/isy_progs.py    - List/Run registered programs
+    bin/isy_nestset.py  - sync values from a Nest thermostat with an ISY
+    bin/isy_net_res.py  - call registered net resorces on ISY
+    bin/isy_net_wol.py  - send WOL to registered devices
 
 The example code included it ment to demonstrate API use with minimal  
 code for clarity.
@@ -69,13 +69,13 @@ Internal classes
 
 Exception Classes :
     IsyError
-	IsyCommandError
-	IsyNodeError
-	IsyResponseError
-	IsyPropertyError
-	IsyValueError
-	IsyInvalidCmdError
-	IsyAttributeError
+        IsyCommandError
+        IsyNodeError
+        IsyResponseError
+        IsyPropertyError
+        IsyValueError
+        IsyInvalidCmdError
+        IsyAttributeError
 
     UpnpLimitExpired
 
@@ -109,7 +109,7 @@ from ISY.IsyDebug import *
 
 #__all__ = ['IsyUtil', 'Isy',  'IsyNode', 'IsyProgram', 'IsyVar']
 __all__ = ['Isy', 'IsyUtil', 'IsyUtilClass', 'IsyClass',  'IsyNode', 'IsyVar',
-	    'isy_discover', 'IsyGetArg']
+            'isy_discover', 'IsyGetArg']
 #__all__ = ['IsyUtil', 'Isy']
 
 

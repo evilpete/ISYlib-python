@@ -15,7 +15,7 @@ import ISY
 
 class cmdException(Exception):
     def __init__(self, msg) :
-	Exception.__init__(self, msg)
+        Exception.__init__(self, msg)
 
 
 verbose=0
@@ -65,31 +65,31 @@ def doit(isy) :
     argv = isy.unknown_args[:]
 
     if len(argv) == 0 :
-	print "Entering interactive mode"
-	import shlex
-	interactive = True
+        print "Entering interactive mode"
+        import shlex
+        interactive = True
 
     while 1:
-	try :
+        try :
 
-	    if interactive is True :
-		print "isylib> ",
-		argv = shlex.split(raw_input())
-		if argv is None or len(argv) == 0 :
-		    continue
+            if interactive is True :
+                print "isylib> ",
+                argv = shlex.split(raw_input())
+                if argv is None or len(argv) == 0 :
+                    continue
 
-	    run_comm(isy, argv)
-	except EOFError :
-	    interactive = False
-	    break
-	except cmdException as e :
-	    print e
-	except ISY.IsyError as e :
-	    print "IsyError :"
-	    print "\t", e
-	finally :
-	    if interactive is not True :
-		break
+            run_comm(isy, argv)
+        except EOFError :
+            interactive = False
+            break
+        except cmdException as e :
+            print e
+        except ISY.IsyError as e :
+            print "IsyError :"
+            print "\t", e
+        finally :
+            if interactive is not True :
+                break
 
 
 def run_comm(isy, argv) :
@@ -98,229 +98,229 @@ def run_comm(isy, argv) :
     cmd = argv.pop(0).upper()
 
     if cmd in ["LINK", "DISCOVER"] :
-	link_nodes(isy, cmd,  argv)
+        link_nodes(isy, cmd,  argv)
 
     elif cmd in [ "NODE" ] :
-	do_node(isy, cmd, argv)
+        do_node(isy, cmd, argv)
 
     elif cmd in ["SCENE"] :
-	do_scene(isy, cmd, argv)
+        do_scene(isy, cmd, argv)
 
     elif cmd in [ "PROG" ] :
-	do_prog(isy, cmd, argv)
+        do_prog(isy, cmd, argv)
 
     elif cmd in ["FOLDER", "DIR"] :
-	do_folder(isy, cmd, argv)
+        do_folder(isy, cmd, argv)
 
     # the following are shortcuts
     elif cmd in [ "LS", "LIST" ] :
-	do_list_node(isy, cmd, argv)
+        do_list_node(isy, cmd, argv)
 
     elif cmd in [ "RM", "DEL", "DELETE"] :
-	do_del_node(isy, cmd, argv)
+        do_del_node(isy, cmd, argv)
 
     elif cmd in ["MV", "RENAME"] :
-	do_rename_nodes(isy ,cmd, argv)
+        do_rename_nodes(isy ,cmd, argv)
 
     elif cmd in ["RESTORE"] :
-	do_restore(isy, cmd, argv)
+        do_restore(isy, cmd, argv)
 
     elif cmd in ["MD", "NEWFOLDER", "MKDIR"] :
-	if ( len(argv) > 0 and argv[0] != "?" ) :
-	    foldername = argv.pop(0)
-	    print "newfolder {!s}".format(foldername)
-	else :
-	    raise cmdException("Syntax :\n\t{!s} <foldername>".format(cmd))
+        if ( len(argv) > 0 and argv[0] != "?" ) :
+            foldername = argv.pop(0)
+            print "newfolder {!s}".format(foldername)
+        else :
+            raise cmdException("Syntax :\n\t{!s} <foldername>".format(cmd))
 
     elif cmd in ["RMDIR"] :
-	pass
+        pass
 
     elif cmd in ["ENABLE", "EN" ] :
-	do_node_enable(isy, cmd, argv)
+        do_node_enable(isy, cmd, argv)
 
 
     elif cmd in ["DISABLE","DIS"] :
-	if ( len(argv) > 0 and argv[0] != "?" ) :
-	    nodeid = argv.pop(0)
-	    isy.node_enable(nodeid, enable=0)
-	else :
-	    raise cmdException("Syntax :\n\t{!s} <node_id>".format(cmd))
+        if ( len(argv) > 0 and argv[0] != "?" ) :
+            nodeid = argv.pop(0)
+            isy.node_enable(nodeid, enable=0)
+        else :
+            raise cmdException("Syntax :\n\t{!s} <node_id>".format(cmd))
 
     # The following are debug and maintance
     elif cmd in ["ERROR", "ERR"] :
-	# print last ISY error
-	pass
+        # print last ISY error
+        pass
 
     elif cmd in ["VERBOSE"] :
-	if ( len(argv) > 0 ):
-	    if (argv[0] == "?") :
-		raise cmdException("Syntax :\n\t{!s} [level]".format(cmd))
-	    else :
-		verbose = int(argv[0])
-	print "verbose = ", verbose
+        if ( len(argv) > 0 ):
+            if (argv[0] == "?") :
+                raise cmdException("Syntax :\n\t{!s} [level]".format(cmd))
+            else :
+                verbose = int(argv[0])
+        print "verbose = ", verbose
 
     elif cmd in ["REBOOT"] :
-	do_reboot(isy)
+        do_reboot(isy)
 
     elif cmd in ["DEBUGLEVEL", "DBG"] :
-	do_debuglevel(isy)
+        do_debuglevel(isy)
 
     elif cmd in ["HELP", "?"] :
-	print_cmds()
+        print_cmds()
 
     elif cmd in ["EXIT"] :
-	if ( len(argv) > 0 and argv[0] != "?") :
-	    raise cmdException("Syntax :\n\t{!s}".format(cmd))
-	else :
-	    exit(0)
+        if ( len(argv) > 0 and argv[0] != "?") :
+            raise cmdException("Syntax :\n\t{!s}".format(cmd))
+        else :
+            exit(0)
 
     # DEBUG
     elif cmd in ["TEST"] :
-	if ( len(argv) > 0 and argv[0] != "?") :
-	    do_test(isy, cmd, argv)
-	else :
-	    raise cmdException("+\t{!s} <node_id>".format(cmd))
+        if ( len(argv) > 0 and argv[0] != "?") :
+            do_test(isy, cmd, argv)
+        else :
+            raise cmdException("+\t{!s} <node_id>".format(cmd))
 
     else :
-	print "Unknown command : ", cmd # str(" ").join(argv)
+        print "Unknown command : ", cmd # str(" ").join(argv)
 
 #
 # TODO deal with  MV node Folder
 #
 def do_rename_nodes(isy, cmd, argv) :
     """
-	rename node glue
+        rename node glue
     """
     if ( len(argv) > 1  and argv[0] != "?" ) :
-	old = argv.pop(0)
-	new = argv.pop(0)
-	print cmd, old, new
-	isy.rename(old, new)
+        old = argv.pop(0)
+        new = argv.pop(0)
+        print cmd, old, new
+        isy.rename(old, new)
     else :
-	raise cmdException("Syntax :\n\t{!s} <node_id> <new_name>".format(cmd))
+        raise cmdException("Syntax :\n\t{!s} <node_id> <new_name>".format(cmd))
 
 # DEBUG
 def do_test(isy, cmd, argv) :
     if len(argv) == 1 :
-	raise cmdException("Missing Arg:\n\t{!s} <node_id> <new_name>".format(cmd))
+        raise cmdException("Missing Arg:\n\t{!s} <node_id> <new_name>".format(cmd))
     else :
-	print "TEST ", str(", ").join(argv)
+        print "TEST ", str(", ").join(argv)
 
 
 def link_nodes(isy, cmd, argv) :
     """
-	Link mode glue
+        Link mode glue
     """
     if len(argv) == 0 :
-	do_interactive_link(isy)
+        do_interactive_link(isy)
 
     cmd = argv.pop(0).upper()
 
     if cmd in [ "START" ] :
-	isy.node_discover_start()
+        isy.node_discover_start()
     elif cmd in [ "STOP" ] :
-	isy.node_discover_stop()
+        isy.node_discover_stop()
     elif cmd in [ "?" ] :
-	raise cmdException("Syntax :\n\tLINK [START|STOP]\n"
-	    + "\tPlace PLM into discovery mode\n" )
+        raise cmdException("Syntax :\n\tLINK [START|STOP]\n"
+            + "\tPlace PLM into discovery mode\n" )
     exit(0)
 
 
 def do_interactive_link(isy) :
 
-	isy.load_nodes()
-	old_node_set = set(isy.node_addrs())
+        isy.load_nodes()
+        old_node_set = set(isy.node_addrs())
 
-	print "Entering Linking Mode"
-	isy.node_discover()
-	raw_input("Press Enter to continue...")
+        print "Entering Linking Mode"
+        isy.node_discover()
+        raw_input("Press Enter to continue...")
 
-	isy.node_discover_cancel()
+        isy.node_discover_cancel()
 
-	print "Exited Linking Mode"
-	isy.load_nodes(reload=1)
-	updated_node_set = set(isy.node_addrs() )
+        print "Exited Linking Mode"
+        isy.load_nodes(reload=1)
+        updated_node_set = set(isy.node_addrs() )
 
-	new_node_set = updated_node_set - old_node_set
-	print "New Nodes : ",  str(", ").join(new_node_set)
+        new_node_set = updated_node_set - old_node_set
+        print "New Nodes : ",  str(", ").join(new_node_set)
 
-	exit(0)
+        exit(0)
 def do_del_node(isy, cmd, argv) :
     """
-	Delete node glue
+        Delete node glue
     """
     if ( len(argv) == 0 or argv[0] == '?' or len(argv) > 1) :
-	raise cmdException("Syntax :\n\t{!s} <node_id>".format(cmd))
+        raise cmdException("Syntax :\n\t{!s} <node_id>".format(cmd))
     nodeid = argv.pop(0)
     print "isy.node_del(nodeid)"
 
 
 def do_restore(isy, cmd, argv) :
     """
-	restore node glue
+        restore node glue
     """
     if ( len(argv) > 0 and argv[0] != "?" ) :
-	nodeid = argv.pop(0)
-	if nodeid.upper() == "ALL" :
-	    print "isy.node_restore_all(nodeid)"
-	else  :
-	    print "isy.node_restore(nodeid)"
+        nodeid = argv.pop(0)
+        if nodeid.upper() == "ALL" :
+            print "isy.node_restore_all(nodeid)"
+        else  :
+            print "isy.node_restore(nodeid)"
     else :
-	raise cmdException("Syntax :\n\t{!s} <node_id>\n\tto restore all nodes, use 'ALL' as node_id\n".format(cmd))
+        raise cmdException("Syntax :\n\t{!s} <node_id>\n\tto restore all nodes, use 'ALL' as node_id\n".format(cmd))
 
 def do_node_enable(isy, cmd, argv) :
     if ( len(argv) > 0 and argv[0] != "?" ) :
-	nodeid = argv.pop(0)
-	isy.node_enable(nodeid, enable=1)
+        nodeid = argv.pop(0)
+        isy.node_enable(nodeid, enable=1)
     else :
-	raise cmdException("Syntax :\n\t{!s} <node_id>".format(cmd))
+        raise cmdException("Syntax :\n\t{!s} <node_id>".format(cmd))
 
 def do_node(isy, cmd, argv) :
 
     node_cmd={
-	"ENABLE" : do_node_enable,
-	"LS" : do_list_node,
-	"LIST" : do_list_node,
-	"MV" : do_rename_nodes,
-	"RENAME" : do_rename_nodes,
-	"DEL" : do_del_node,
-	"RESTORE" : do_restore,
-	"ON" : do_node_on,
-	"OFF" : do_node_off,
+        "ENABLE" : do_node_enable,
+        "LS" : do_list_node,
+        "LIST" : do_list_node,
+        "MV" : do_rename_nodes,
+        "RENAME" : do_rename_nodes,
+        "DEL" : do_del_node,
+        "RESTORE" : do_restore,
+        "ON" : do_node_on,
+        "OFF" : do_node_off,
     }
 
     if ( len(argv) == 0 or ( len(argv) > 0 and argv[0] == "?") ) :
-	cmdlist = ", ".join( node_cmd.keys() )
-	raise cmdException("Syntax :\n\t{!s} <command> [node_id]\n\tAvalible commands :\n\t\t{!s}\n".format(cmd, cmdlist))
+        cmdlist = ", ".join( node_cmd.keys() )
+        raise cmdException("Syntax :\n\t{!s} <command> [node_id]\n\tAvalible commands :\n\t\t{!s}\n".format(cmd, cmdlist))
 
     subcmd = argv.pop(0).upper()
     if subcmd in node_cmd :
-	node_cmd[subcmd](isy, subcmd, argv)
+        node_cmd[subcmd](isy, subcmd, argv)
 
 def do_nodes(isy, cmd, argv) :
     if ( len(argv) == 0 or ( len(argv) > 0 and argv[0] == "?") ) :
-	raise cmdException("Syntax :\n\t{!s} <node_id>\n".format(cmd))
+        raise cmdException("Syntax :\n\t{!s} <node_id>\n".format(cmd))
 
     subcmd = argv.pop(0).upper()
 
     if subcmd in [ "ENABLE" ] :
-	do_node_enable(isy, subcmd, argv)
+        do_node_enable(isy, subcmd, argv)
     elif subcmd in [ "LS", "LIST" ] :
-	do_list_node(isy, subcmd, argv, nodetype=("node"))
+        do_list_node(isy, subcmd, argv, nodetype=("node"))
     elif subcmd in ["MV", "RENAME"] :
-	do_rename_nodes(isy, subcmd, argv)
+        do_rename_nodes(isy, subcmd, argv)
     elif cmd in [ "RM", "DEL", "DELETE"] :
-	do_del_node(isy, subcmd, argv)
+        do_del_node(isy, subcmd, argv)
     elif cmd in ["RESTORE"] :
-	do_restore(isy, subcmd, argv)
+        do_restore(isy, subcmd, argv)
     elif cmd in ["ON"] :
-	nodeid = argv.pop(0)
-	isy.node_comm( nodeid, "ON")
+        nodeid = argv.pop(0)
+        isy.node_comm( nodeid, "ON")
     elif cmd in ["OFF"] :
-	nodeid = argv.pop(0)
-	isy.node_comm( nodeid, "ON")
+        nodeid = argv.pop(0)
+        isy.node_comm( nodeid, "ON")
     else :
-	raise cmdException("Syntax :\n\t{!s} cmd <node_id>\n".format(cmd))
+        raise cmdException("Syntax :\n\t{!s} cmd <node_id>\n".format(cmd))
 
 
 def do_node_on(isy, cmd, argv) :
@@ -341,23 +341,23 @@ def do_folder(isy, cmd, argv) :
 
 def do_scene(isy, cmd, argv) :
     if ( len(argv) == 0 or ( len(argv) > 0 and argv[0] == "?") ) :
-	print_cmds(scene_commands_help)
-	raise cmdException("Syntax :\n\t{!s} cmd <scene_id>\n".format(cmd))
+        print_cmds(scene_commands_help)
+        raise cmdException("Syntax :\n\t{!s} cmd <scene_id>\n".format(cmd))
 
     subcmd = argv.pop(0).upper()
 
     if subcmd in ["ADD", "DELETE", "DEL", "RM" ] :
-	do_scene_add(isy, subcmd, argv)
+        do_scene_add(isy, subcmd, argv)
     elif subcmd in ["NEW"] :
-	do_scene_new(isy, subcmd, argv)
+        do_scene_new(isy, subcmd, argv)
     elif subcmd in ["LS", "LIST"] :
-	do_list_node(isy, subcmd, argv, nodetype=("scene"))
+        do_list_node(isy, subcmd, argv, nodetype=("scene"))
     else :
-	raise cmdException("Syntax :\n\t{!s} cmd <scene_id>\n".format(cmd))
+        raise cmdException("Syntax :\n\t{!s} cmd <scene_id>\n".format(cmd))
 
 def do_scene_new(isy, cmd, argv) :
     if ( len(argv) == 0 or argv[0] == "?" or len(argv) > 1 ) :
-	raise cmdException("Syntax :\n\tSCENE NEW <scene_id>\n".format(cmd))
+        raise cmdException("Syntax :\n\tSCENE NEW <scene_id>\n".format(cmd))
 
     sceneid = argv.pop(0)
 
@@ -365,76 +365,76 @@ def do_scene_new(isy, cmd, argv) :
 
 def do_scene_add(isy, cmd, argv) :
     """
-	add/del node to/from scene glue
-	create new scene/group glue
+        add/del node to/from scene glue
+        create new scene/group glue
     """
     if ( len(argv) == 0 or argv[0] == "?" or len(argv) < 3 ) :
-	print "1"
-	op = "ERR"
+        print "1"
+        op = "ERR"
     else :
-	op = "ADD"
-	nflag=0x10
-	op = argv.pop(0).upper()
-	
-	if op in ["ADD", "DELETE", "DEL", "RM" ] :
-	    nodeid = argv.pop(0)
-	    sceneid = argv.pop(0)
-	else :
-	    op = "ERR"
+        op = "ADD"
+        nflag=0x10
+        op = argv.pop(0).upper()
+        
+        if op in ["ADD", "DELETE", "DEL", "RM" ] :
+            nodeid = argv.pop(0)
+            sceneid = argv.pop(0)
+        else :
+            op = "ERR"
 
 
-	# print "a do_scene", op, nodeid, "sceneid",  nflag, "argv=", str(",").join(argv)
+        # print "a do_scene", op, nodeid, "sceneid",  nflag, "argv=", str(",").join(argv)
 
-	if len(argv) > 0 :
-	    optflag = argv.pop(0).upper()
-	    if optflag in [ "CONTROLLER", "0X10", "16" ] or optflag.startswith("CON") :
-		nflag=0x10
-	    elif optflag in [ "RESPONDER", "0X20", "32" ] or optflag.startswith("RES") :
-		nflag=0x20
-	    else :
-		op = "ERR"
+        if len(argv) > 0 :
+            optflag = argv.pop(0).upper()
+            if optflag in [ "CONTROLLER", "0X10", "16" ] or optflag.startswith("CON") :
+                nflag=0x10
+            elif optflag in [ "RESPONDER", "0X20", "32" ] or optflag.startswith("RES") :
+                nflag=0x20
+            else :
+                op = "ERR"
 
     if op in [ "ADD" ] :
-	# isy.scene_add_node( sceneid, nodeid, nflag)
-	print "isy.scene_add_node", sceneid, nodeid, nflag
+        # isy.scene_add_node( sceneid, nodeid, nflag)
+        print "isy.scene_add_node", sceneid, nodeid, nflag
     if op in [  "DELETE", "DEL", "RM" ] :
-	# isy.scene_del_node( sceneid, nodeid)
-	print "isy.scene_del_node", sceneid, nodeid
+        # isy.scene_del_node( sceneid, nodeid)
+        print "isy.scene_del_node", sceneid, nodeid
     else :
-	raise cmdException("Syntax :\n\t{!s} [ADD|DEL] <scene_id> <node_id> [controller|responder]\n".format(cmd))
+        raise cmdException("Syntax :\n\t{!s} [ADD|DEL] <scene_id> <node_id> [controller|responder]\n".format(cmd))
 
 
 
 def do_list_node(isy, cmd, argv, nodetype=None) :
     """
-	list node glue
+        list node glue
     """
     # "nodetype", ("node", "scene")
     if ( len(argv) > 0 and argv[0] == "?" ) :
-	raise cmdException("Syntax :\n\t{!s} [-l]".format(cmd))
+        raise cmdException("Syntax :\n\t{!s} [-l]".format(cmd))
 
     if nodetype is None :
-	nodetype = ("node", "scene")
+        nodetype = ("node", "scene")
 
     if len(argv) > 0 and argv[0] == "-l" :
-	pfmt = "{:<22} {:>12}\t{:<12}{!s:<12} {!s:}"
+        pfmt = "{:<22} {:>12}\t{:<12}{!s:<12} {!s:}"
     else :
-	pfmt = "{:<22} {:>12}\t{:<12}{!s:<12}"
+        pfmt = "{:<22} {:>12}\t{:<12}{!s:<12}"
 
     # see isy_nodes.py
     if len(argv) > 0 :
-	nodeid = argv.pop(0)
-	node = isy.get_node(nodeid)
-	print node.name, node.address, node.formatted, node.enabled, node.ramprate
+        nodeid = argv.pop(0)
+        node = isy.get_node(nodeid)
+        print node.name, node.address, node.formatted, node.enabled, node.ramprate
     else :
-	print(pfmt.format("Node Name", "Address", "Status", "Enabled", "Path"))
-	print(pfmt.format("---------", "-------", "------", "------", "----"))
-	for nod in isy.node_iter(nodetype=nodetype) :
-	    if nod.objtype == "scene" :
-		print(pfmt.format(nod.name, nod.address, "-", "-", "-"))
-	    else :
-		print(pfmt.format(nod.name, nod.address,
-			nod.formatted, nod.enabled, nod.path))
+        print(pfmt.format("Node Name", "Address", "Status", "Enabled", "Path"))
+        print(pfmt.format("---------", "-------", "------", "------", "----"))
+        for nod in isy.node_iter(nodetype=nodetype) :
+            if nod.objtype == "scene" :
+                print(pfmt.format(nod.name, nod.address, "-", "-", "-"))
+            else :
+                print(pfmt.format(nod.name, nod.address,
+                        nod.formatted, nod.enabled, nod.path))
 
 
 def do_debuglevel(isy) :
@@ -447,7 +447,7 @@ def do_reboot(isy) :
 
 def print_cmds(cmd_list=commands_help) :
     for k, v in cmd_list.items() :
-	print "    {!s:<22} :\t{!s}".format(k, v)
+        print "    {!s:<22} :\t{!s}".format(k, v)
     print "\nFor more detail on command run command with arg '?'"
     print "\n* == may not be implemented\n"
 

@@ -62,16 +62,16 @@ class IsyVar(IsySubClass):
         """ sets var init value
         this can also be set via the property : init
         """
-	if new_value == self._mydict["init"] :
-	    return
+        if new_value == self._mydict["init"] :
+            return
         self.isy._var_set_value(self._mydict['id'], new_value, "init")
 
     init = property(get_var_init, set_var_init)
 
 
     def refresh(self):
-	"reload val from isy"
-	return self.isy.var_refresh_value(self._mydict["id"])
+        "reload val from isy"
+        return self.isy.var_refresh_value(self._mydict["id"])
 
     def get_var_value(self):
         """ returns var value
@@ -82,18 +82,18 @@ class IsyVar(IsySubClass):
         """ sets var value
         this can also be set via the property : value
         """
-	if new_value == self._mydict["val"] :
-	    return
+        if new_value == self._mydict["val"] :
+            return
         self.isy._var_set_value(self._mydict['id'], new_value)
     value = property(get_var_value, set_var_value)
 
     def get_callback(self) :
-	return self.isy.callback_get(self._mydict["id"])
+        return self.isy.callback_get(self._mydict["id"])
     def set_callback(self, func, *args) :
-	if func == None :
-	    return self.isy.callback_del(self._mydict["id"])
-	else :
-	    return self.isy.callback_set(self._mydict["id"], func, args)
+        if func == None :
+            return self.isy.callback_del(self._mydict["id"])
+        else :
+            return self.isy.callback_set(self._mydict["id"], func, args)
     callback = property(get_callback, set_callback)
 
 #    def get_var_id(self):
@@ -106,13 +106,13 @@ class IsyVar(IsySubClass):
 
 
 #    def rename(self, newname) :
-#	self.isy.call_soap_method("RenameNode",
-#			self._mydict["address"], newwname)
+#       self.isy.call_soap_method("RenameNode",
+#                       self._mydict["address"], newwname)
 
     # Not fully Implemented
     def __cast(self, other):
         if isinstance(other, self.__class__): return other._mydict["val"]
-	if isinstance(other, str) and other.isdigit() : return int( other )
+        if isinstance(other, str) and other.isdigit() : return int( other )
         else: return other
 
     def bit_length(self): return int(self._mydict["val"]).bit_length()
@@ -152,7 +152,7 @@ class IsyVar(IsySubClass):
 
     # mathematical operator
     def __add__(self, n):
-	#print "__add__"
+        #print "__add__"
         if isinstance(n, self.__class__):
             return (self._mydict["val"] + n._mydict["val"])
         elif isinstance(n, type(self._mydict["val"])):
@@ -166,7 +166,7 @@ class IsyVar(IsySubClass):
     def __iadd__(self, n):
         if isinstance(n, self.__class__): self._mydict["val"] += n._mydict["val"]
         else: self._mydict["val"] += int(n)
-	self.isy._var_set_value(self._mydict['id'], self._mydict["val"])
+        self.isy._var_set_value(self._mydict['id'], self._mydict["val"])
         return self
 
     # mathematical operator
@@ -180,7 +180,7 @@ class IsyVar(IsySubClass):
     def __isub__(self, n):
         if isinstance(n, self.__class__): self._mydict["val"] -= n._mydict["val"]
         else: self._mydict["val"] -= int(n)
-	self.isy._var_set_value(self._mydict['id'], self._mydict["val"])
+        self.isy._var_set_value(self._mydict['id'], self._mydict["val"])
         return self
 
     # Mult &  div
@@ -192,8 +192,8 @@ class IsyVar(IsySubClass):
     def __imul__(self, n):
 
     # mathematical operator
-	self._mydict["val"] *= n
-	self.isy._var_set_value(self._mydict['id'], self._mydict["val"])
+        self._mydict["val"] *= n
+        self.isy._var_set_value(self._mydict['id'], self._mydict["val"])
         return self
 
     def __floordiv__(self, n): return self._mydict["val"] // self.__cast(n)
@@ -203,8 +203,8 @@ class IsyVar(IsySubClass):
     def __ifloordiv__(self, n):
 
     # mathematical operator
-	self._mydict["val"] = self._mydict["val"] // n
-	self.isy._var_set_value(self._mydict['id'], self._mydict["val"])
+        self._mydict["val"] = self._mydict["val"] // n
+        self.isy._var_set_value(self._mydict['id'], self._mydict["val"])
         return self
 
     def __truediv__(self, n): return (self._mydict["val"] / self.__cast(n))
@@ -215,22 +215,22 @@ class IsyVar(IsySubClass):
     def __itruediv__(self, n):
 
     # mathematical operator
-	self._mydict["val"] /= self.__cast(n)
-	self.isy._var_set_value(self._mydict['id'], self._mydict["val"])
-	return self
+        self._mydict["val"] /= self.__cast(n)
+        self.isy._var_set_value(self._mydict['id'], self._mydict["val"])
+        return self
     __idiv__ = __itruediv__
 
     def __imod__(self, n):
 
     # mathematical operator
-	self._mydict["val"] %= self.__cast(n) 
-	self.isy._var_set_value(self._mydict['id'], self._mydict["val"])
+        self._mydict["val"] %= self.__cast(n) 
+        self.isy._var_set_value(self._mydict['id'], self._mydict["val"])
         return self
 
 #   def __ipow__(self, n):
     # mathematical operator
-#	self._mydict["val"] **= self.__cast(n) 
-#	self.isy._var_set_value(self._mydict['id'], self._mydict["val"])
+#       self._mydict["val"] **= self.__cast(n) 
+#       self.isy._var_set_value(self._mydict['id'], self._mydict["val"])
 #        return self
 
     def __neg__(self): return - self._mydict["val"]
@@ -241,36 +241,36 @@ class IsyVar(IsySubClass):
     def __and__(self, n): return self._mydict["val"] & self.__cast(n)
 
     def __iand__(self, n): 
-	self._mydict["val"] &= self.__cast(n) 
-	self.isy._var_set_value(self._mydict['id'], self._mydict["val"])
-	return self
+        self._mydict["val"] &= self.__cast(n) 
+        self.isy._var_set_value(self._mydict['id'], self._mydict["val"])
+        return self
 
     def __or__(self, n): return self._mydict["val"] | self.__cast(n)
     __ror__ = __or__
 
     def __ior__(self, n):
-	self._mydict["val"] |= self.__cast(n)
-	self.isy._var_set_value(self._mydict['id'], self._mydict["val"])
-	return self
+        self._mydict["val"] |= self.__cast(n)
+        self.isy._var_set_value(self._mydict['id'], self._mydict["val"])
+        return self
 
     def __ixor__(self, n):
-	self._mydict["val"] ^= self.__cast(n)
-	self.isy._var_set_value(self._mydict['id'], self._mydict["val"])
-	return self
+        self._mydict["val"] ^= self.__cast(n)
+        self.isy._var_set_value(self._mydict['id'], self._mydict["val"])
+        return self
 
     def __xor__(self, n): return self._mydict["val"] ^ self.__cast(n)
 
     def __invert__(self): return ~ self._mydict["val"] 
 
     def __irshift__(self, n):
-	self._mydict["val"] >>= self.__cast(n)
-	self.isy._var_set_value(self._mydict['id'], self._mydict["val"])
-	return self
+        self._mydict["val"] >>= self.__cast(n)
+        self.isy._var_set_value(self._mydict['id'], self._mydict["val"])
+        return self
 
     def __ilshift__(self, n):
-	self._mydict["val"] >>= self.__cast(n)
-	self.isy._var_set_value(self._mydict['id'], self._mydict["val"])
-	return self
+        self._mydict["val"] >>= self.__cast(n)
+        self.isy._var_set_value(self._mydict['id'], self._mydict["val"])
+        return self
 
 
 

@@ -29,11 +29,11 @@ class IsyProgram(IsySubClass):
 
 
         funtions:
-	    get_prog_enable() : 
-	    set_prog_enable() : 
-	    get_prog_runatstart() :
-	    set_prog_runatstart() :
-	    send_command() :
+            get_prog_enable() : 
+            set_prog_enable() : 
+            get_prog_runatstart() :
+            set_prog_runatstart() :
+            send_command() :
 
             get_prog_ts() :     get timestamp
             get_prog_type() :   get Prog type
@@ -57,52 +57,52 @@ class IsyProgram(IsySubClass):
     _objtype = "program"
 
     def _get_prop(self, prop) :
-	if prop == 'src' :
-	    return self.get_src()
-	return super(self.__class__, self)._get_prop(prop)
+        if prop == 'src' :
+            return self.get_src()
+        return super(self.__class__, self)._get_prop(prop)
 
     def get_prog_enable(self):
-	""" check if prog is enabled (bool) """
+        """ check if prog is enabled (bool) """
         #en = self._get_prop("enabled")
-	#return bool( en == "true" )
-	if "enabled" in self._mydict :
-	    return bool( self._mydict["enabled"] == "true" )
-	return True 
+        #return bool( en == "true" )
+        if "enabled" in self._mydict :
+            return bool( self._mydict["enabled"] == "true" )
+        return True 
     def set_prog_enable(self, en):
-	rval = val2bool(en)
-	#print "set_prog_enable ", rval
-	if "enabled" in self._mydict :
-	    if rval :
-	       self.isy.prog_comm(self._mydict['id'], "enable")
-	    else :
-	       self.isy.prog_comm(self._mydict['id'], "disable")
-	self._mydict["enabled"] = rval
+        rval = val2bool(en)
+        #print "set_prog_enable ", rval
+        if "enabled" in self._mydict :
+            if rval :
+               self.isy.prog_comm(self._mydict['id'], "enable")
+            else :
+               self.isy.prog_comm(self._mydict['id'], "disable")
+        self._mydict["enabled"] = rval
         return rval
     enabled = property(get_prog_enable, set_prog_enable)
 
     def get_prog_runatstart(self):
-	""" check property runAtStartup (bool) """
+        """ check property runAtStartup (bool) """
         #en = self._get_prop("runAtStartup")
-	#return bool( en == "true" )
-	return bool( self._mydict['runAtStartup'] == "true" )
+        #return bool( en == "true" )
+        return bool( self._mydict['runAtStartup'] == "true" )
     def set_prog_runatstart(self, en):
-	rval = val2bool(en)
-	#print "set_prog_enable ", rval
+        rval = val2bool(en)
+        #print "set_prog_enable ", rval
         if rval :
-	   self.isy.prog_comm(self._mydict['id'], "runAtStartup")
+           self.isy.prog_comm(self._mydict['id'], "runAtStartup")
         else :
-	   self.isy.prog_comm(self._mydict['id'], "disableRunAtStartup")
-	self._mydict["runAtStartup"] = rval
+           self.isy.prog_comm(self._mydict['id'], "disableRunAtStartup")
+        self._mydict["runAtStartup"] = rval
         return rval
     runatstart = property(get_prog_runatstart, set_prog_runatstart)
 
     def get_path(self):
-	return self.isy._prog_get_path( self._mydict['id'] )
+        return self.isy._prog_get_path( self._mydict['id'] )
     path = property(get_path)
 
     def get_src(self):
-	""" get D2D source for program """
-	return self.isy.prog_get_src( self._mydict['id'] )
+        """ get D2D source for program """
+        return self.isy.prog_get_src( self._mydict['id'] )
     src = property(get_src)
 
 #    def get_prog_folder(self):

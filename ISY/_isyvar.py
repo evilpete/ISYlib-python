@@ -12,7 +12,7 @@ __license__ = "BSD"
 from ISY.IsyVarClass import IsyVar
 from ISY.IsyExceptionClass import IsyError, IsyInternalError, IsyValueError, \
                             IsyResponseError, IsyPropertyError, \
-			    IsyLookupError, \
+                            IsyLookupError, \
                             IsyRuntimeWarning, IsyWarning
 
 import xml.etree.ElementTree as ET
@@ -45,12 +45,12 @@ def load_vars(self) :
         vinfo = self._getXMLetree("/rest/vars/get/" + t)
         for v in vinfo.iter("var") :
 
-	    vid = t + ":" + v.attrib["id"]
-	    if vid in self._vardict :
-		vdat = self._vardict[vid]
-	    else :
-		vdat = dict()
-		self._vardict[vid] = vdat
+            vid = t + ":" + v.attrib["id"]
+            if vid in self._vardict :
+                vdat = self._vardict[vid]
+            else :
+                vdat = dict()
+                self._vardict[vid] = vdat
 
             for vd in list(v) :
                 if vd.tag != "var" :
@@ -61,9 +61,9 @@ def load_vars(self) :
 
         vinfo = self._getXMLetree("/rest/vars/definitions/" + t)
 
-	# can return None if there are not vars
-	if vinfo is None :
-	    return
+        # can return None if there are not vars
+        if vinfo is None :
+            return
 
         for v in vinfo.iter("e") :
             # self._printinfo(v, "e :")
@@ -121,8 +121,8 @@ def var_refresh_value(self, var) :
         print("var_refresh_value : ", var)
 
     if var is None :
-	self.load_vars()
-	return
+        self.load_vars()
+        return
 
     varid = self._var_get_id(var)
 
@@ -138,8 +138,8 @@ def var_refresh_value(self, var) :
         raise IsyPropertyError("var_refresh: error geting var : " + str(var))
 
     for vd in list(resp) :
-	if vd.tag in self._vardict[varid] :
-	    self._vardict[varid][vd.tag] = vd,text
+        if vd.tag in self._vardict[varid] :
+            self._vardict[varid][vd.tag] = vd,text
 
     self._vardict[varid]["val"] = int(self._vardict[varid]["val"])
     self._vardict[varid]["init"] = int(self._vardict[varid]["init"])

@@ -13,20 +13,20 @@ def main() :
     # server.subscribe('10.1.1.25')
 
     server.subscribe(
-	addr=os.getenv('ISY_ADDR', '10.1.1.36'),
-	userl=os.getenv('ISY_USER', "admin"),
-	userp=os.getenv('ISY_PASS', "admin")
+        addr=os.getenv('ISY_ADDR', '10.1.1.36'),
+        userl=os.getenv('ISY_USER', "admin"),
+        userp=os.getenv('ISY_PASS', "admin")
     )
 
     server.set_process_func(ISYEvent.print_event, "")
 
     try:
-	print('Use Control-C to exit')
-	server.events_loop()   #no return
+        print('Use Control-C to exit')
+        server.events_loop()   #no return
     #    for d in  server.event_iter( ignorelist=["_0", "_11"] ):
-    #	server.print_event(d, "")
+    #   server.print_event(d, "")
     except KeyboardInterrupt:
-	print('Exiting')
+        print('Exiting')
 
 
 

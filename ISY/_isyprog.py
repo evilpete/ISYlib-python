@@ -119,7 +119,7 @@ def _prog_get_id(self, pname):
     if isinstance(pname, IsyProgram) :
          return pname["id"]
     if isinstance(pname, (int, long)) :
-	p = "{0:04X}".format(pname)
+        p = "{0:04X}".format(pname)
     else :
         p = str(pname).strip()
 
@@ -265,7 +265,7 @@ def prog_rename(self, prog=None, progname=None ) :
 
     if self._progdict is not None and progid in self._progdict :
         self._progdict[progid]['name'] = progname
-	self.name2prog[progname] = progid
+        self.name2prog[progname] = progid
 
     return r
 
