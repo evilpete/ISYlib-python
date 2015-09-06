@@ -4,20 +4,20 @@ Devices controlled my the ISY are represented as "nodes" on the ISY device and w
 
 There are three types of Node Object:
 
-    * IsyNode - Node Object 
-	Represent lights, switches, motion sensors 
+    * IsyNode - Node Object
+        Represent lights, switches, motion sensors
     * IsyScene - Scene Object
-	Represents Scenes contains Nodes that comprise a "Scene"
+        Represents Scenes contains Nodes that comprise a "Scene"
     * IsyNodeFolder - Can hold Scene's or Nodes
-	a organizational obj for Scene's and Nodes
+        a organizational obj for Scene's and Nodes
 
-Only IsyNode Objects maintain "state" 
+Only IsyNode Objects maintain "state"
 
     What states are maintined depend on the physical node device itself
     but they can include
-	- on, off of dim level
-	- temperature
-	- wattage
+        - on, off of dim level
+        - temperature
+        - wattage
 
     Nodes can have "members" or subnodes
 
@@ -26,11 +26,11 @@ IsyScene Objects can take commands but do not maintin a queryable state
     A Scene is predefined state for one or more nodes
     scenes can only be comprised of nodes which are call "members"
 
-    only nodes can be members of a scene 
+    only nodes can be members of a scene
 
-IsyNodeFolders are just for organizing  
+IsyNodeFolders are just for organizing
 
-    Nodes, Scenes and Folders can be members of a Folder 
+    Nodes, Scenes and Folders can be members of a Folder
 
 
 
@@ -40,7 +40,7 @@ __author__ = 'Peter Shipley <peter.shipley@gmail.com>'
 __copyright__ = "Copyright (C) 2013 Peter Shipley"
 __license__ = "BSD"
 
-from ISY.IsyUtilClass import IsySubClass, val2bool 
+from ISY.IsyUtilClass import IsySubClass, val2bool
 from ISY.IsyExceptionClass import *
 # from IsyClass import *
 # from IsyNodeClass import *
@@ -60,18 +60,33 @@ class _IsyNodeBase(IsySubClass):
     def on(self, val=255) :
         """ Send On command to a node
 
-            args: 
-                take optional value for on level
+            args:
+                optional value for on level
 
         """
-	if not str(val).isdigit :       
-	    raise IsyTypeError("On Command : Bad Value : node=%s val=%s" %
-		    self._mydict["address"], str(val))
+        self._on(val, "DON")
 
-        self.isy._node_send(self._mydict["address"], "cmd", "DON", val)
-        #if "property" in self._mydict :
-        #    self._mydict["property"]["time"] = 0
-        # self.update()
+    def faston(self, val=255) :
+        """ Send Fast On command to a node
+
+            args:
+                optional value for on level
+
+        """
+        self._on(val, "DFON")
+
+    def _on(self, val, cmd) :
+        if not str(val).isdigit :
+            raise IsyTypeError("On Command : Bad Value : node=%s val=%s" %
+                    self._mydict["address"], str(val))
+
+        if "property" in self._mydict :
+            if "ST" in  self._mydict["property"] :
+                self._mydict["property"]["ST"]["value"] = val
+                self._mydict["property"]["ST"]["formatted"] = "{:.0%}".format(val/255)
+
+        self.isy._node_send(self._mydict["address"], "cmd", cmd, val)
+
 
     def off(self) :
         """ Send Off command to a node
@@ -79,7 +94,20 @@ class _IsyNodeBase(IsySubClass):
             args: None
 
         """
-        self.isy._node_send(self._mydict["address"], "cmd", "DOF")
+        self._off("DOF")
+
+
+    def fastoff(self) :
+        """ Send Fast Off command to a node
+
+            args: None
+
+        """
+        self._off("DFOF")
+
+
+    def _off(self, cmd="DOF") :
+        self.isy._node_send(self._mydict["address"], "cmd", cmd)
         if "property" in self._mydict :
             # self._mydict["property"]["time"] = 0
             if "ST" in  self._mydict["property"] :
@@ -90,12 +118,17 @@ class _IsyNodeBase(IsySubClass):
         self.isy._node_send(self._mydict["address"], "cmd", "BEEP")
 
 
-    def get_path(self): 
-	return self.isy._node_get_path(self._mydict['address'], self._objtype)
-    path = property(get_path) 
+    def get_spoken(self):
+        """ get notes property 'spoken' """
+        return self._get_prop("spoken")
+    spoken = property(get_spoken)
+
+    def get_path(self):
+        return self.isy._node_get_path(self._mydict['address'], self._objtype)
+    path = property(get_path)
 
     def members_list(self) :
-	pass
+        pass
 
     def member_iter(self, flag=0):
         return self.members_list()
@@ -110,21 +143,21 @@ class _IsyNodeBase(IsySubClass):
         return [ ]
 
     def is_dimable(self) :
-	if 'type' in self._mydict :
-	    a = self._mydict["type"].split('.') 
-	    if a[0] == "1" :
-		return True
-	return False
+        if 'type' in self._mydict :
+            a = self._mydict["type"].split('.')
+            if a[0] == "1" :
+                return True
+        return False
     dimable = property(is_dimable)
 
 
     def get_callback(self) :
-	return self.isy.callback_get(self._mydict["address"])
+        return self.isy.callback_get(self._mydict["address"])
     def set_callback(self, func, *args) :
-	if func == None :
-	    return self.isy.callback_del(self._mydict["address"])
-	else :
-	    return self.isy.callback_set(self._mydict["address"], func, args)
+        if func == None :
+            return self.isy.callback_del(self._mydict["address"])
+        else :
+            return self.isy.callback_set(self._mydict["address"], func, args)
     callback = property(get_callback, set_callback)
 
 
@@ -137,20 +170,20 @@ class _IsyNodeBase(IsySubClass):
         return False
 
     def member_add(self, node, flag=0) :
-	r = self.isy.soapcomm("SetParent",
-		node=node._get_prop("address"), nodeType=node.nodeType(),
-		parent=self._mydict["address"], parentType=self.nodeType())
+        r = self.isy.soapcomm("SetParent",
+                node=node._get_prop("address"), nodeType=node.nodeType(),
+                parent=self._mydict["address"], parentType=self.nodeType())
 
     def _rename(self, cmd,  newname) :
         if self.debug & 0x01 :
-	    print("rename : ", self.__class__.__name__, " : ", newname)
-	#if not isinstance(newname, str) or len(newname) == 0 :
-	#    print "newname : ", newname
-	#    raise IsyTypeError("rename : name value not str")
-	r = self.isy.soapcomm(cmd,
-			id=self._mydict["address"], name=newname )
+            print("rename : ", self.__class__.__name__, " : ", newname)
+        #if not isinstance(newname, str) or len(newname) == 0 :
+        #    print "newname : ", newname
+        #    raise IsyTypeError("rename : name value not str")
+        r = self.isy.soapcomm(cmd,
+                        id=self._mydict["address"], name=newname )
 
-	return r
+        return r
 
     # check if scene _contains_ node
     def __contains__(self, other):
@@ -167,31 +200,31 @@ class _IsyNodeBase(IsySubClass):
 
 #    class MemberDicte(dict):
 #
-#	def __getitem__(self, key):
-#	    val = dict.__getitem__(self, key)
-#	    print 'GET', key
-#	    return val
+#       def __getitem__(self, key):
+#           val = dict.__getitem__(self, key)
+#           print 'GET', key
+#           return val
 #
-#	def __setitem__(self, key, val):
-#	    print 'SET', key, val
-#	    dict.__setitem__(self, key, val)
+#       def __setitem__(self, key, val):
+#           print 'SET', key, val
+#           dict.__setitem__(self, key, val)
 #
-#	def __delitem__(self, key):
-#	    print 'DEL', key
-#	    dict.__delitem__(self, key)
+#       def __delitem__(self, key):
+#           print 'DEL', key
+#           dict.__delitem__(self, key)
 #
-#	def __repr__(self):
-#	    dictrepr = dict.__repr__(self)
-#	    return '%s(%s)' % (type(self).__name__, dictrepr)
+#       def __repr__(self):
+#           dictrepr = dict.__repr__(self)
+#           return '%s(%s)' % (type(self).__name__, dictrepr)
 #
-#	def get(self, key, default_val):
-#	    print 'GET', key, default_val
-#	    dict.get(self, key, default_val)
-#	
-#	def update(self, *args, **kwargs):
-#	    print 'update', args, kwargs
-#	    for k, v in dict(*args, **kwargs).iteritems():
-#		self[k] = v
+#       def get(self, key, default_val):
+#           print 'GET', key, default_val
+#           dict.get(self, key, default_val)
+#       
+#       def update(self, *args, **kwargs):
+#           print 'update', args, kwargs
+#           for k, v in dict(*args, **kwargs).iteritems():
+#               self[k] = v
 
 
 
@@ -202,7 +235,7 @@ class _IsyNodeBase(IsySubClass):
 def node_id_to_int(h) :
     a = h.split(' ')
     return  ( int(a[0], 16) << 24 ) | ( int(a[1], 16) << 16 ) | \
-		    ( int(a[2], 16) << 8 ) | int(a[3], 16)
+                    ( int(a[2], 16) << 8 ) | int(a[3], 16)
 
 
 
@@ -227,17 +260,18 @@ class IsyNode(_IsyNodeBase):
             flag
 
         funtions:
-	    get_rr:
-	    set_rr:
+            get_rr:
+            set_rr:
 
     Bugs: Results are undefined for Node class objects that
-	    represent a deleteed node 
+            represent a deleteed node
 
     """
     _getlist = ['address', 'enabled', 'formatted',
             'ELK_ID',
-	    'parent', 'parent-type',
+            'parent', 'parent-type',
             'name', 'pnode', 'flag', 'wattage',
+            'isLoad', 'location', 'description', 'spoken',
             'OL', 'RR', 'ST', 'type']
     _setlist = ['RR', 'OL', 'status', 'ramprate', 'onlevel', 'enable']
     _propalias = {'status': 'ST', 'value': 'ST', 'val': 'ST',
@@ -248,17 +282,19 @@ class IsyNode(_IsyNodeBase):
 
     def __init__(self, isy, ndict) :
 
-	# self._objtype = (1, "node")
-	self._objtype = "node"
+        # self._objtype = (1, "node")
+        self._objtype = "node"
 
-	super(self.__class__, self).__init__(isy, ndict)
+        self._nodeprops = None
+
+        super(self.__class__, self).__init__(isy, ndict)
 
 #        if not self.isy.eventupdates :
 #            #update only nodes
 #            if "node-flag" in self._mydict :
 #                self.update()
 
-	self._hash = node_id_to_int(self._mydict["address"])
+        self._hash = node_id_to_int(self._mydict["address"])
 
         if self.debug & 0x01 :
             print("Init Node : \"" + self._mydict["address"] + \
@@ -281,11 +317,23 @@ class IsyNode(_IsyNodeBase):
             prop = self._propalias[prop]
 
         if not prop in self._getlist :
-#	    if prop in ['parent', 'parent-type'] :
-#		return None
+#           if prop in ['parent', 'parent-type'] :
+#               return None
             raise IsyPropertyError("no property Attribute {!s}".format(prop))
 
         # check if we have a property
+
+        if prop in ['isLoad', 'location', 'description', 'spoken'] :
+            if self._nodeprops is None :
+                self._nodenotes = self.isy.node_get_notes(self._mydict["address"])
+            if self._nodenotes is None :
+                return None
+            if prop in self._nodenotes :
+                return self._nodenotes[prop]
+            else :
+                # return None
+                return ""
+
 
         if prop in ['ST', 'OL', 'RR'] :
             # Scene's do not have property values
@@ -306,14 +354,14 @@ class IsyNode(_IsyNodeBase):
         else :
 
 #            if prop in self._mydict :
-#		if prop in self._boollist :
-#		    return(val2bool(self._mydict[prop])) 
-#		else :
-#		    return self._mydict[prop]
+#               if prop in self._boollist :
+#                   return(val2bool(self._mydict[prop]))
+#               else :
+#                   return self._mydict[prop]
 #            else :
 #                return None
 
-	    return super(self.__class__, self)._get_prop(prop)
+            return super(self.__class__, self)._get_prop(prop)
 
     def _set_prop(self, prop, new_value):
         """  generic property set """
@@ -325,16 +373,16 @@ class IsyNode(_IsyNodeBase):
             prop = self._propalias[prop]
 
         if not prop in self._setlist :
-	    if prop == "ST" :
-		self.on(new_value)
-		return
-	    else :
-		raise IsyPropertyError("_set_prop : " \
-		    "Invalid property Attribute " + prop)
+            if prop == "ST" :
+                self.on(new_value)
+                return
+            else :
+                raise IsyPropertyError("_set_prop : " \
+                    "Invalid property Attribute " + prop)
 
         if prop == 'enable' :
-	    self._mydict[prop] = bool(new_value)
-	    self.isy.node_enable(self._mydict["address"], bool(new_value))
+            self._mydict[prop] = bool(new_value)
+            self.isy.node_enable(self._mydict["address"], bool(new_value))
 
         elif prop in ['OL', 'RR'] :
             if not str(new_value).isdigit :
@@ -342,13 +390,13 @@ class IsyNode(_IsyNodeBase):
                             self._mydict["address"], prop, str(new_value))
 
 
-	    self.isy._node_send(self._mydict["address"], "set", prop, str(new_value))
+            self.isy._node_send(self._mydict["address"], "set", prop, str(new_value))
 
             # self._mydict["property"]["time"] = 0
 
             if prop in self._mydict["property"] :
                 # if isinstance(new_value, (int, float))  : # already checked with isdigit
-		self._mydict["property"][prop]["value"] = new_value
+                self._mydict["property"][prop]["value"] = new_value
 
         # we need to tie this to some action
         elif prop in self._mydict :
@@ -371,9 +419,9 @@ class IsyNode(_IsyNodeBase):
     def set_enable(self, new_bool):
         """ Set enable status a node
 
-	    args:
-		enable bool
-	"""
+            args:
+                enable bool
+        """
         return self._set_prop("enable", new_bool)
 
     enable = property(get_enable, set_enable, None, "enable/disable a node")
@@ -383,8 +431,8 @@ class IsyNode(_IsyNodeBase):
         return self._get_prop("wattage")
 
     def set_wattage(self, watts):
-	""" set wattage property """
-	return self.isy.node_set_powerinfo( self._mydict["address"], wattage=watts)
+        """ set wattage property """
+        return self.isy.node_set_powerinfo( self._mydict["address"], wattage=watts)
     wattage = property(get_wattage, set_wattage)
 
 
@@ -434,6 +482,18 @@ class IsyNode(_IsyNodeBase):
     status = property(get_status, set_status)
 
 
+    def dim(self) :
+        """
+            decrease brightness of a device by ~3%
+        """
+        self.isy._node_send(self._mydict["address"], "cmd", "DIM")
+
+    def brighten(self) :
+        """
+            increase brightness of a device by ~3%
+        """
+        self.isy._node_send(self._mydict["address"], "cmd", "BRT")
+
     #
     # readonly to node attribute
     #
@@ -441,7 +501,7 @@ class IsyNode(_IsyNodeBase):
 
 
     def rename(self, newname) :
-	return  self._rename("RenameNode",  newname) 
+        return  self._rename("RenameNode",  newname)
 
 
     #
@@ -470,7 +530,7 @@ class IsyNode(_IsyNodeBase):
 
     # use the node address as the hash value
     def __hash__(self) :
-	return( self._hash )
+        return( self._hash )
 
 
 #    def __str__(self):
@@ -503,9 +563,9 @@ class IsyScene(_IsyNodeBase):
                     "group-flag": "flag"}
 
     def __init__(self, *args):
-	#self._objtype = (2, "scene")
-	self._objtype = "scene"
-	super(self.__class__, self).__init__(*args)
+        #self._objtype = (2, "scene")
+        self._objtype = "scene"
+        super(self.__class__, self).__init__(*args)
 
     # status property
     # obj mathod for getting/setting a  Scene's value
@@ -537,27 +597,44 @@ class IsyScene(_IsyNodeBase):
         return False
 
     def rename(self, newname) :
-	""" rename node/scene/folder """
-	return  self._rename("RenameGroup",  newname)
+        """ rename node/scene/folder """
+        return  self._rename("RenameGroup",  newname)
 
     def member_del(self, node) :
-	r = self.isy.soapcomm("RemoveFromGroup",
-		node=node._get_prop("address"),
-		group=self._mydict["address"])
+        r = self.isy.scene_del_node(
+                self._mydict["address"],
+                node)
+#       r = self.isy.soapcomm("RemoveFromGroup",
+#               node=node._get_prop("address"),
+#               group=self._mydict["address"])
+        return r
+
+    def member_add_controler(self, node, flag=16) :
+        """ Add Node to scene/group as Responder """
+        return self.member_add(node, flag)
+
+    def member_add_responder(self, node, flag=32) :
+        """ Add Node to scene/group Controller """
+        return self.member_add(node, flag)
 
     def member_add(self, node, flag=16) :
-	r = self.isy.soapcomm("MoveNode",
-		node=node._get_prop("address"),
-		group=self._mydict["address"],
-		flag=16)
-	return r
+        """ Add Node to scene/group """
+        r = self.isy.scene_add_node(
+                self._mydict["address"],
+                node,
+                flag=0x10)
+#       r = self.isy.soapcomm("MoveNode",
+#               node=node._get_prop("address"),
+#               group=self._mydict["address"],
+#               flag=16)
+        return r
 
     def member_iter(self, flag=0):
-	""" iter though members
-	    Folders iter though their contents (nodes/scenes/folders)
-	    Scene iter though their members	(nodes)
-	    Nodes iter though sub-nodes		(nodes)
-	"""
+        """ iter though members
+            Folders iter though their contents (nodes/scenes/folders)
+            Scene iter though their members     (nodes)
+            Nodes iter though sub-nodes         (nodes)
+        """
         if "members" in self._mydict :
             for k in list(self._mydict["members"].keys()) :
                 if flag and not(flag & self._mydict["members"][k]) :
@@ -587,49 +664,49 @@ class IsyNodeFolder(_IsyNodeBase):
     _propalias = {'id': 'address', 'addr': 'address', "folder-flag": "flag"}
 
     def __init__(self, *args):
-	#self._objtype = (3, "folder")
-	self._objtype = "folder"
-	super(self.__class__, self).__init__(*args)
+        #self._objtype = (3, "folder")
+        self._objtype = "folder"
+        super(self.__class__, self).__init__(*args)
 
     def member_add(self, node, flag=0) :
-	""" add Node/Scene or Folder to Folder Obj
+        """ add Node/Scene or Folder to Folder Obj
 
-		 Args:
-		    node = address, name or Node/Scene/Folder Obj
+                 Args:
+                    node = address, name or Node/Scene/Folder Obj
 
-	      sets Parent for node/scene/folder to current Obj Folder
+              sets Parent for node/scene/folder to current Obj Folder
 
-	    calls SOAP SetParent()
-	"""
-	r = self.isy.soapcomm("SetParent",
-		node=node._get_prop("address"), nodeType=node.nodeType(),
-		parent=self._mydict["address"], parentType=self.nodeType())
-	return r
+            calls SOAP SetParent()
+        """
+        r = self.isy.soapcomm("SetParent",
+                node=node._get_prop("address"), nodeType=node.nodeType(),
+                parent=self._mydict["address"], parentType=self.nodeType())
+        return r
 
     def member_del(self, node) :
-	""" del Node/Scene or Folder to Folder Obj
+        """ del Node/Scene or Folder to Folder Obj
 
-		 Args:
-		    node = address, name or Node/Scene/Folder Obj
+                 Args:
+                    node = address, name or Node/Scene/Folder Obj
 
-	      del node/scene/folder to current Obj Folder
-	      (and moves to base folder)
+              del node/scene/folder to current Obj Folder
+              (and moves to base folder)
 
-	    calls SOAP SetParent()
-	"""
-	r = self.isy.soapcomm("SetParent",
-		node=node._get_prop("address"), nodeType=node.nodeType())
-	return r
+            calls SOAP SetParent()
+        """
+        r = self.isy.soapcomm("SetParent",
+                node=node._get_prop("address"), nodeType=node.nodeType())
+        return r
 
     def rename(self, newname) :
-	""" renames current Obj Folder
+        """ renames current Obj Folder
 
-	    args :
-		name = new folder name
+            args :
+                name = new folder name
 
-	    calls SOAP RenameFolder()
-	"""
-	return self._rename("RenameFolder",  newname)
+            calls SOAP RenameFolder()
+        """
+        return self._rename("RenameFolder",  newname)
 
 
     def __iter__(self):

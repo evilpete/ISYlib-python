@@ -234,6 +234,32 @@ class IsyUtil(object):
 		print data
 	    return data
 
+
+
+    def sendDeviceSpecific(command, s1, s2, s3, s4, stringbuffer) :
+	pass
+#
+#   public Object sendDeviceSpecific(String s, String s1, String s2, String s3, String s4, StringBuffer stringbuffer)
+#    {
+#        UDHTTPResponse udhttpresponse = null;
+#        StringBuffer stringbuffer1 = new StringBuffer();
+#        stringbuffer1.append("<command>").append(s != null ? s : "").append("</command>");
+#        stringbuffer1.append("<node>").append(s1 != null ? s1 : "").append("</node>");
+#        stringbuffer1.append("<p1>").append(s2 != null ? s2 : "").append("</p1>");
+#        stringbuffer1.append("<p2>").append(s3 != null ? s3 : "").append("</p2>");
+#        stringbuffer1.append("<p3>").append(s4 != null ? s4 : "").append("</p3>");
+#        stringbuffer1.append("<flag>0</flag>");
+#        stringbuffer1.append("<CDATA>").append(((CharSequence) (stringbuffer != null ? ((CharSequence) (stringbuffer)) : ""))).append("</CDATA>");
+#        udhttpresponse = submitSOAPRequest("DeviceSpecific", stringbuffer1, (short)2, false, false);
+#        if(udhttpresponse == null)
+#            return null;
+#        if(!udhttpresponse.opStat)
+#            return null;
+#        else
+#            return udhttpresponse.body;
+#    }
+#
+
     def sendfile(self, src=None, filename="", data=None):
 	"""
 	    upload file

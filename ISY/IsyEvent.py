@@ -209,6 +209,9 @@ class ISYEvent(object) :
 	if data.find('-->') >= 0 :
 	    data = data.replace('-->', '--&gt;')
 
+	if data.find('<=') >= 0 :
+	    data = data.replace('<=', '&lt;=')
+
 	if data.find('< ') >= 0 :
 	    # print "< HACK"
 	    data = data.replace('< ', '&lt; ')

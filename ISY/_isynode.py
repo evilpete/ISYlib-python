@@ -483,7 +483,7 @@ def _node_get_id(self, nid):
 # Get property for a node
 #
 def node_get_prop(self, naddr, prop_id) :
-    """ Get node property
+    """ Get node node_get_prop
         args:
             naddr = name, address or node obj
             prop_id = name of property
@@ -619,11 +619,11 @@ def node_comm(self, naddr, cmd, *args) :
     #print("self.name2control :", self.name2control)
 
     if not node_id :
-        raise LookupError("node_comm: unknown node : " + str(naddr) )
+        raise LookupError("node_comm: unknown node : {!s}".format(naddr) )
     print("naddr : ", naddr, " : ", node_id)
 
     if not cmd_id :
-        raise TypeError("node_comm: unknown command : " + str(cmd) )
+        raise TypeError("node_comm: unknown command : {!s}".format(cmd) )
 
     #self._node_comm(node_id, cmd_id, args)
     self._node_send(node_id, "cmd", cmd_id, args)
@@ -807,7 +807,34 @@ def _updatenode(self, naddr) :
         #self._nodedict[naddr]["property"]["time"] = time.gmtime()
 
 
+def node_get_notes(self, naddr) :
+    """ Get node node_get_notes
+        args:
+            naddr = name, address or node obj
 
+        raise:
+            LookupError :  if node name or Id is invalid
+            IsyPropertyError :  if property invalid
+    """
+    if self.debug & 0x04 :
+        print("node_get_notes", naddr)
+
+    (nodetype, node_id) = self._node_get_id(naddr)
+    if not node_id :
+        raise LookupError("node_get_notes: unknown node : {!s}".format(naddr) )
+
+    ret_prop = dict ( )
+
+    xurl = "/rest/nodes/{!s:}/notes".format(node_id)
+    if self.debug & 0x02 : print("xurl = " + xurl)
+    resp = self._getXMLetree(xurl)
+
+    if resp is not None :
+	for notes in resp.iter('NodeProperties') :
+	    for note_val in list(notes) :
+		ret_prop[note_val.tag] = note_val.text
+
+    return ret_prop
 #
 # Send command to Node/Scene
 #
