@@ -2,9 +2,9 @@
 """list ISY vars demo app
 
 Usage: %(program)s [options] [var=val]
- 
+
 Options:
- 
+
     --list
 
 """
@@ -35,7 +35,7 @@ def list_vars(myisy) :
         print fmt.format( var.id, var.name, var.value, var.init, var.ts )
 
 def usage(code, msg=''):
-    print >> sys.stderr, __doc__ 
+    print >> sys.stderr, __doc__
     print "globals ", globals()
     # % globals()
     if msg:
@@ -62,7 +62,7 @@ def parseargs():
             ['bash', 'csh', 'list', 'help', 'debug='])
     except getopt.error, e:
         usage(1, e)
- 
+
     for opt, arg in opts:
         if opt in ('-h', '--help'):
             usage(0)
@@ -73,7 +73,7 @@ def parseargs():
         elif opt in ('-l', '--list'):
             options.olist = 1
         elif opt in ('-d', '--debug'):
-            options.debug = arg 
+            options.debug = arg
 
     return options, args
 

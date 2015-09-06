@@ -4,7 +4,7 @@
 
 Simple example trigger a registared network resource on the ISY
 
-if this script is call without any arg 
+if this script is call without any arg
 we print a list of network resources systems
 
 
@@ -17,12 +17,12 @@ import ISY
 from ISY.IsyExceptionClass import IsyResponseError, IsyValueError
 
 # import pprint
- 
+
 
 
 
 def main(isy):
-       
+
     isy.load_net_resource()
 
     if len(sys.argv[1:]) > 0:

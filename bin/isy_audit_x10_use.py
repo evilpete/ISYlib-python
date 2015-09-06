@@ -10,13 +10,13 @@ __author__ = "Peter Shipley"
 #  report :
 #       All active X10 addresses
 #       All addresses from Registared Nodes
-#       
+#
 #       Any X10 addresses  used but not assocated with Registared Nodes
 #
 # TODO : add option
 
 
-# 
+#
 #
 from ISY.IsyClass import Isy, log_time_offset
 from ISY.IsyEventData import LOG_USERID, LOG_TYPES

@@ -4,7 +4,7 @@ __author__ = "Peter Shipley"
 
 
 import ISY
-   
+
 def list_progs(isy) :
 
     pfmt = "{:<5}{:<24} {:<5} {:<5}{!s:<6} {!s:}"

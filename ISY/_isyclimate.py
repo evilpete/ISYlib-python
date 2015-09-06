@@ -27,7 +27,7 @@ def load_clim(self) :
     clim_tree = self._getXMLetree("/rest/climate")
     self.climateinfo = dict ()
     if clim_tree == None :
-        return 
+        return
     # Isy._printXML(self.climateinfo)
 
     for cl in clim_tree.iter("climate") :
@@ -54,7 +54,7 @@ def clim_query(self):
 def clim_iter(self):
     """ Iterate though climate values
 
-        args:  
+        args:
             None
 
         returns :

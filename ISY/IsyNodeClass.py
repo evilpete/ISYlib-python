@@ -42,7 +42,7 @@ __license__ = "BSD"
 
 import hashlib
 
-from ISY.IsyUtilClass import IsySubClass, val2bool 
+from ISY.IsyUtilClass import IsySubClass, val2bool
 from ISY.IsyExceptionClass import *
 # from IsyClass import *
 # from IsyNodeClass import *
@@ -222,7 +222,7 @@ class _IsyNodeBase(IsySubClass):
 #       def get(self, key, default_val):
 #           print 'GET', key, default_val
 #           dict.get(self, key, default_val)
-#       
+#
 #       def update(self, *args, **kwargs):
 #           print 'update', args, kwargs
 #           for k, v in dict(*args, **kwargs).iteritems():

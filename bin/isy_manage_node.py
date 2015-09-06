@@ -375,7 +375,7 @@ def do_scene_add(isy, cmd, argv) :
         op = "ADD"
         nflag=0x10
         op = argv.pop(0).upper()
-        
+
         if op in ["ADD", "DELETE", "DEL", "RM" ] :
             nodeid = argv.pop(0)
             sceneid = argv.pop(0)

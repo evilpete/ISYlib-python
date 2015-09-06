@@ -132,21 +132,21 @@ class IsyVar(IsySubClass):
     # mathematical operator
     def __abs__(self): return abs(self._mydict["val"])
 
-    #  comparison functions 
+    #  comparison functions
     def __lt__(self, n): return self._mydict["val"] <  self.__cast(n)
-    #  comparison functions 
+    #  comparison functions
     def __le__(self, n): return self._mydict["val"] <= self.__cast(n)
-    #  comparison functions 
+    #  comparison functions
     def __eq__(self, n): return self._mydict["val"] == self.__cast(n)
-    #  comparison functions 
+    #  comparison functions
     def __ne__(self, n): return self._mydict["val"] != self.__cast(n)
-    #  comparison functions 
+    #  comparison functions
     def __gt__(self, n): return self._mydict["val"] >  self.__cast(n)
-    #  comparison functions 
+    #  comparison functions
     def __ge__(self, n): return self._mydict["val"] >= self.__cast(n)
-    #  comparison functions 
+    #  comparison functions
 
-    #  comparison functions 
+    #  comparison functions
     def __cmp__(self, n): return cmp(self._mydict["val"], self.__cast(n))
 
 
@@ -223,13 +223,13 @@ class IsyVar(IsySubClass):
     def __imod__(self, n):
 
     # mathematical operator
-        self._mydict["val"] %= self.__cast(n) 
+        self._mydict["val"] %= self.__cast(n)
         self.isy._var_set_value(self._mydict['id'], self._mydict["val"])
         return self
 
 #   def __ipow__(self, n):
     # mathematical operator
-#       self._mydict["val"] **= self.__cast(n) 
+#       self._mydict["val"] **= self.__cast(n)
 #       self.isy._var_set_value(self._mydict['id'], self._mydict["val"])
 #        return self
 
@@ -240,8 +240,8 @@ class IsyVar(IsySubClass):
     # logic opts
     def __and__(self, n): return self._mydict["val"] & self.__cast(n)
 
-    def __iand__(self, n): 
-        self._mydict["val"] &= self.__cast(n) 
+    def __iand__(self, n):
+        self._mydict["val"] &= self.__cast(n)
         self.isy._var_set_value(self._mydict['id'], self._mydict["val"])
         return self
 
@@ -260,7 +260,7 @@ class IsyVar(IsySubClass):
 
     def __xor__(self, n): return self._mydict["val"] ^ self.__cast(n)
 
-    def __invert__(self): return ~ self._mydict["val"] 
+    def __invert__(self): return ~ self._mydict["val"]
 
     def __irshift__(self, n):
         self._mydict["val"] >>= self.__cast(n)

@@ -21,7 +21,7 @@ def _load_networking(self, resource_id):
 
     if not hasattr(self, '_name2id') or not isinstance(self._name2id, dict):
         self._name2id = dict ()
- 
+
     xurl = "/rest/networking/{!s}".format(resource_id)
     if self.debug & 0x02 :
         print("_load_networking : xurl = " + xurl)
@@ -132,12 +132,12 @@ def net_resource_names(self):
 
     return self.name2net_res.keys()
 
-    
+
 def net_resource_iter(self):
     """ iterate net_resource data
 
         args: none
-    """ 
+    """
     if not self._net_resource :
         self.load_net_resource()
     for k, v in self._net_resource.items() :
@@ -149,7 +149,7 @@ def net_resource_iter(self):
 ## WOL (Wake on LAN) funtions
 ##
 def load_net_wol(self) :
-    """ Load Wake On LAN networking resources 
+    """ Load Wake On LAN networking resources
 
         internal function call
     """

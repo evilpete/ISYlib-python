@@ -4,11 +4,11 @@
 
 Simple example to send a WoL to a registared system on the ISY
 
-if this script is call without any arg 
+if this script is call without any arg
 we print a list of registared WoL systems
 
 if we have any args we treat them as registared WoL Id's
-and attempt to send a WoL packet 
+and attempt to send a WoL packet
 
 """
 __author__ = "Peter Shipley"
@@ -17,7 +17,7 @@ __author__ = "Peter Shipley"
 import sys
 import ISY
 from ISY.IsyExceptionClass import IsyResponseError, IsyValueError
- 
+
 def main(isy):
 
     if len(sys.argv[1:]) > 0:

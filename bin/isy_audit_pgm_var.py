@@ -7,7 +7,7 @@ __author__ = "Peter Shipley"
 #       program name and var ids used
 #
 #       summary list of used vars by ids
-#       summary vars only referanced once 
+#       summary vars only referanced once
 #       summary list of unused vars by ids
 #       summary list of unused vars by name
 #
@@ -23,7 +23,7 @@ opt_skipnovars = True
 import xml.etree.ElementTree as ET
 
 import ISY
-   
+
 def list_prog_vars(isy) :
 
     # get a list of all var Ids and store them as a set
@@ -75,7 +75,7 @@ def list_prog_vars(isy) :
             pname = p.name
         else :
             pname = p.path
-            
+
 
         # if program has vars, print name and list vars it contains.
         if len(var_list) > 0 or  opt_skipnovars != True :
@@ -109,7 +109,7 @@ def list_prog_vars(isy) :
 
     unused_var_set = var_known_set - var_used_all
 
-    # print var Ids that exist that are not referanced 
+    # print var Ids that exist that are not referanced
     unused_var_set_sorted = sorted(unused_var_set,None,varkey)
     print "\nUnused var Ids (", len(unused_var_set), "): ",
     print str(", ").join(unused_var_set_sorted)

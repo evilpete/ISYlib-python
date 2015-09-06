@@ -1,7 +1,7 @@
 #!/usr/local/bin/python2.7
 """
     a demo app that uses pynest to read values from the Nest
-    and set vars in a ISY home automation device 
+    and set vars in a ISY home automation device
 
     See also : https://github.com/smbaker/pynest
                https://github.com/evilpete/ISYlib-python
@@ -105,7 +105,7 @@ def main() :
 
 
         try :
-            # this will raise an error if there is a problem with name or set_value 
+            # this will raise an error if there is a problem with name or set_value
             myisy.var_set_value(isy_var, int(set_value))
 
         except IsyPropertyError :

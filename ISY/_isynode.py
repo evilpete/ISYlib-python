@@ -512,7 +512,7 @@ def node_get_prop(self, naddr, prop_id) :
             return self._nodedict[node_id]["property"]["value"]
         else :
             raise IsyPropertyError("unknown property " + prop_id)
-        
+
     if prop in self._nodedict[node_id] :
         return self._nodedict[node_id][prop]
     else :
@@ -928,11 +928,11 @@ def node_del(self, naddr) :
                     naddr, node_id, nodetype))
 
     try :
-        r = self._node_remove(node_id) 
+        r = self._node_remove(node_id)
     except IsySoapError, se :
 
         # if error code is 501 then Node did not exist or was already deleted
-        # this is messy and needs to change or be removed 
+        # this is messy and needs to change or be removed
         code = se.code()
         if code == 501 :
             return se.httperrbody
@@ -973,7 +973,7 @@ def node_restore_all(self, flag=0) :
 
 
 # move from ISYClass
-#def node_rename(self, naddr, name) : 
+#def node_rename(self, naddr, name) :
 #    return self.rename(naddr, name)
 
 def node_restore(self, naddr, flag=0) :

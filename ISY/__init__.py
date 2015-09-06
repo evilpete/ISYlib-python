@@ -1,4 +1,4 @@
-"""API for the Universal Device's ISY 
+"""API for the Universal Device's ISY
 
 This is a Work in progress
 
@@ -36,7 +36,7 @@ Files:
     bin/isy_net_res.py  - call registered net resorces on ISY
     bin/isy_net_wol.py  - send WOL to registered devices
 
-The example code included it ment to demonstrate API use with minimal  
+The example code included it ment to demonstrate API use with minimal
 code for clarity.
 
 
@@ -48,13 +48,13 @@ This package provides the following classes :
 - Isy - primary class for interacting with a ISY network appliance
     from this class most operations can be made though a simple call interface
 
-- IsyNode - Node Object 
-    Represent lights, switches, motion sensors 
+- IsyNode - Node Object
+    Represent lights, switches, motion sensors
 - IsyScene - Scene Object
     Represents Scenes contains Nodes that comprise a "Scene"
 - IsyNodeFolder - Can hold Scene's or Nodes
     a organizational obj for Scene's and Nodes
-- IsyVar -  ISY device Variable 
+- IsyVar -  ISY device Variable
     Represents a variables that are avalible in the ISY device
 - IsyProgram - ISY device Programs
     Represents a variables that are avalible in the ISY device
@@ -63,7 +63,7 @@ This package provides the following classes :
 Additional support functions
     - isy_discover - use Upnp to discover IP addr or ISY device
 
-Internal classes 
+Internal classes
     - IsyUtil - base class for most ISY classes
     - IsySubClass - base class for sub Objects ( eg: Nodes, Scenes, Vars, Programs )
 

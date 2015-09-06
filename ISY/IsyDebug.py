@@ -13,9 +13,9 @@ _debug_events_    = 0x0040
 _debug_del_       = 0x0040
 #
 # _debug_ = 0x0100 =
-_debug_resp_dat_  = 0x0200 
+_debug_resp_dat_  = 0x0200
 # _debug_ = 0x0400
-# _debug_ = 0x0800 
+# _debug_ = 0x0800
 #
 # _debug_ = 0x1000
 # _debug_ = 0x2000

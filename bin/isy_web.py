@@ -41,7 +41,7 @@ import ISY
 # from ISY.IsyExceptionClass import IsyResponseError, IsyValueError
 # import pprint
 
-__doc__ = __doc__.format( os.path.basename(sys.argv[0])) 
+__doc__ = __doc__.format( os.path.basename(sys.argv[0]))
 def main(isy):
 
     systemconf = 0
@@ -67,7 +67,7 @@ def main(isy):
         # print "cmd = ", cmd
         if cmd in ["SEND", "PUT"] :
 
-            srcfile = argv.pop(0) 
+            srcfile = argv.pop(0)
 
             if ( len(argv) > 0 ) :
                 dstfile = argv.pop(0)
@@ -138,7 +138,7 @@ def main(isy):
         elif cmd == "DF" :
             print_fsstat(isy)
         elif cmd in ["LS", "LIST", "DIR"] :
-            print_listing_sort(isy) 
+            print_listing_sort(isy)
             print_fsstat(isy)
         elif cmd == "HELP" :
             help()
@@ -167,7 +167,7 @@ def print_listing_sort(isy) :
         elif ( key == 'file' ) :
             if isinstance(val, list) :
                 for l in val :
-                    dirn = os.path.dirname(l["file-name"]) 
+                    dirn = os.path.dirname(l["file-name"])
                     if dirn not in mylist :
                         mylist[dirn] = [ ]
 
@@ -175,7 +175,7 @@ def print_listing_sort(isy) :
                         sizeof_fmt(int(l["file-size"])), l["file-name"]))
                     mytotal += int(l["file-size"])
             else :
-                dirn = os.path.dirname(val["file-name"]) 
+                dirn = os.path.dirname(val["file-name"])
                 if dirn not in mylist :
                     mylist[dirn] = [ ]
                 mylist[dirn].append( "\t{!s}\t{!s}".format(
@@ -207,10 +207,10 @@ def print_listing(isy) :
             # print "key val = ", key, val
             if isinstance(val, list) :
                 for l in val :
-                    print "file\t{!s}\t{!s}".format(l["file-size"], 
+                    print "file\t{!s}\t{!s}".format(l["file-size"],
                         l["file-name"])
             else :
-                print "file\t{!s}\t{!s}".format(val["file-size"], 
+                print "file\t{!s}\t{!s}".format(val["file-size"],
                     val["file-name"])
         else :
             print "unknown list type : ", key
@@ -236,7 +236,7 @@ def print_fsstat(isy) :
 
 def help():
     print >> sys.stderr, __doc__
- 
+
 
 if __name__ == "__main__":
 

@@ -81,7 +81,7 @@ class IsySoapError(IsyError, HTTPError):
 #
 #       # Now for your custom code...
 #       self.Errors = Errors
-    
+
 
     pass
 

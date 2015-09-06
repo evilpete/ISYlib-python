@@ -39,7 +39,7 @@ backup_all = ( backup_sysconf | backup_userweb | backup_ui )
 
 # this makes the backup not usable for restores
 # but is good for debuging since unzip will not
-# extract file with absolute paths from root 
+# extract file with absolute paths from root
 zip_noroot = False
 
 reboot_after = False
@@ -47,7 +47,7 @@ reboot_after = False
 from ISY.IsyExceptionClass import IsySoapError
 
 def date_time2str(dt) :
-    return "{0}-{1}-{2} {3}:{4}:{5}".format( *dt )    
+    return "{0}-{1}-{2} {3}:{4}:{5}".format( *dt )
 
 #ISY-Backup.v4.1.2__Fri 2014.03.14 17.46.52.zip
 #uuid.00.21.b9.00.e7.08.zip*
@@ -112,7 +112,7 @@ def parse_args(isy) :
 
 #    parser.add_argument("-c", "--copy", dest="copy",
 #                       help="copy config tree to folder")
-   
+
     parser.add_argument('-v', '--verbose', action='count')
 
     args = parser.parse_args()
@@ -127,12 +127,12 @@ def parse_args(isy) :
         parser.error( '--file is required when --restore is set.' )
 
     if args.Reboot : reboot_after = True
-     
+
     if args.backup_sysconf : backup_flags |= backup_sysconf
     if args.backup_ui : backup_flags |= backup_ui
     if args.backup_userweb : backup_flags |= backup_userweb
     if args.backup_all : backup_flags |=  ( backup_all | backup_logs )
-    if args.backup_logs : backup_flags |= backup_logs 
+    if args.backup_logs : backup_flags |= backup_logs
     if backup_flags == 0 : backup_flags = backup_all
 
     if debug :
@@ -141,7 +141,7 @@ def parse_args(isy) :
     outfile = args.outfile
     verbose = args.verbose
     restore = args.restore
-    zip_noroot = args.noroot 
+    zip_noroot = args.noroot
 #    folder = args.folder
 
 
@@ -195,7 +195,7 @@ def restore_isy(isy) :
         if (backup_flags & backup_ui ) :
             restore_filter_list.append("/WEB/CONF/")
 
-        if ( backup_flags & backup_logs ) : 
+        if ( backup_flags & backup_logs ) :
             restore_filter_list.append("/LOG/")
 
         restore_filter = tuple(restore_filter_list)
@@ -210,10 +210,10 @@ def restore_isy(isy) :
             if verbose :
                 print "skipping {0:<30} : directory".format(z.filename)
             continue
-            
+
         if verbose :
             print "{0:<30} : {1:6} : {2:#010x} ({3:04o}) {4}".format(
-                    z.filename, 
+                    z.filename,
                     z.file_size,
                     z.external_attr,
                     ( (z.external_attr >> 16L) & 0x0FFF ),
@@ -253,16 +253,16 @@ def backup_isy(isy) :
 
     backupid = "uuid.{0}.zip".format(isy.id)
 
-    if ( backup_flags & backup_sysconf ) : 
+    if ( backup_flags & backup_sysconf ) :
         zip_get_conf(isy)
 
-    if ( backup_flags & backup_userweb ) : 
+    if ( backup_flags & backup_userweb ) :
         zip_get_userweb(isy)
 
-    if ( backup_flags & backup_logs ) : 
+    if ( backup_flags & backup_logs ) :
         zip_get_logfiles(isy)
 
-    if ( backup_flags & backup_ui ) : 
+    if ( backup_flags & backup_ui ) :
         zip_get_ui_conf(isy)
 
     tf = tempfile.NamedTemporaryFile(delete=False)
@@ -406,7 +406,7 @@ def add_dir(isy, zf, fpath) :
         print "{0:<5} : {1}".format("dir", fpath)
     zfi = zipfile.ZipInfo(fpath)
     zfi.compress_type = zipfile.ZIP_STORED
-    zfi.external_attr = ( 0o040755 < 16L ) | 0x10 
+    zfi.external_attr = ( 0o040755 < 16L ) | 0x10
     zf.writestr(zfi, '')
 
 if __name__ == '__main__' :

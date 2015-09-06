@@ -236,11 +236,11 @@ class Isy(IsyUtil):
         self._groups2addr = None
         self._node2addr = None
         self._nodeCategory = None
-        self._vardict = None 
+        self._vardict = None
         self._wolinfo = None
         self._net_resource = None
         self.climateinfo  = None
- 
+
         self.isy_status = dict()
         self.zigbee = dict()
 
@@ -396,7 +396,7 @@ class Isy(IsyUtil):
         self._isy_event = ISYEvent()
         self._isy_event.subscribe(addr=self.addr, userp=self.userp, userl=self.userl)
         self._isy_event.set_process_func(self._read_event, self)
- 
+
         self.event_thread = Thread(target=self._isy_event.events_loop, name="event_looper" )
         self.event_thread.daemon = True
         self.event_thread.start()
@@ -585,7 +585,7 @@ class Isy(IsyUtil):
             # action = "SN" -> Discovering Nodes (Linking)
             # action = "SC" -> Node Discovery Complete
             # action = "WR" -> Network Renamed
-            # action = "WH" -> Pending Device Operation  
+            # action = "WH" -> Pending Device Operation
             # action = "WD" -> Programming Device
             # action = "RV" -> Node Revised (UPB)
 
@@ -599,7 +599,7 @@ class Isy(IsyUtil):
                     self._nodegroups[ evnt_dat['node'] ]['name'] = evnt_dat['eventInfo']['newName']
                     self._groups2addr[ evnt_dat['eventInfo']['newName'] ] = evnt_dat['node']
                     del self._groups2addr[ oldname ]
-             
+
                     if evnt_dat['eventInfo']['newName'] in self._name2id :
                         # warn Dup ID
                         if self._name2id[ evnt_dat['eventInfo']['newName'] ][0] == "group" :
@@ -618,7 +618,7 @@ class Isy(IsyUtil):
                     if ( self.debug & 0x40 ) :
                         print("evnt_dat :", evnt_dat)
                     pass
-     
+
 
             elif evnt_dat['action'] == 'ND' :
                 node_id = evnt_dat["node"]
@@ -886,7 +886,7 @@ class Isy(IsyUtil):
                     model
                     name
                     user
-                    passwd       
+                    passwd
 
         """
         if not ( brand is None) and  (brand.lower() not in ["foscam", "smarthome", "axis", "panasonic", "mjpgstreamer"]) :
@@ -1969,7 +1969,7 @@ class Isy(IsyUtil):
 
             if nodeid != None and nodeid in self.callbacks :
                 return self.callbacks[nodeid]
- 
+
         return None
 
     def callback_del(self, nid):
@@ -2179,6 +2179,6 @@ def log_time_offset() :
 if __name__ == "__main__":
     import __main__
     print(__main__.__file__)
-    
+
     print("syntax ok")
     exit(0)

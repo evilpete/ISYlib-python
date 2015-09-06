@@ -303,7 +303,7 @@ def _prog_rename(self, progid=None, progname=None ) :
 
 #    with open("prog-changed.xml", 'w') as fi:
 #        fi.write(new_prog_data)
- 
+
 
     r = self._sendfile(data=new_prog_data, filename=prog_path, load="y")
 

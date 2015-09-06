@@ -1,5 +1,5 @@
-#!/usr/local/bin/python2.7 
-__author__ = "Peter Shipley" 
+#!/usr/local/bin/python2.7
+__author__ = "Peter Shipley"
 
 
 """
@@ -10,7 +10,7 @@ __author__ = "Peter Shipley"
 from scapy.all import *
 
 from threading import Thread
- 
+
 import ISY
 import time
 import socket
@@ -22,7 +22,7 @@ conf.verb=1
 import argparse
 
 last_seen = dict()
-targets_dict = dict() 
+targets_dict = dict()
 
 iface="em0" # eth0
 
@@ -113,7 +113,7 @@ def arp_monitor_callback(pkt):
 
     set_home(True)
 
-    prev_seen = last_seen[eaddr] 
+    prev_seen = last_seen[eaddr]
     last_seen[eaddr] = int(time.time())
     if verbose :
         time_since = last_seen[eaddr] - prev_seen
@@ -132,9 +132,9 @@ def icmp_ping(ip) :
         return (None,None)
 
     if target_mac is None :
-        ans,unans=srp(Ether()/IP(dst=ip)/ICMP(), timeout=2) 
+        ans,unans=srp(Ether()/IP(dst=ip)/ICMP(), timeout=2)
     else :
-        ans,unans=srp(Ether(dst=target_mac)/IP(dst=ip)/ICMP(), timeout=2) 
+        ans,unans=srp(Ether(dst=target_mac)/IP(dst=ip)/ICMP(), timeout=2)
 
     print "icmp_ping : ", ip, " ans = ", len(ans), ", unans = ", len(unans)
     if target_mac is None and ans :
@@ -142,7 +142,7 @@ def icmp_ping(ip) :
         target_mac = re[Ether].src
         print "icmp_ping set target_mac = ", target_mac
     return ans,unans
- 
+
 def arp_ping(ip) :
     global target_mac
     if ip is None :
@@ -157,7 +157,7 @@ def arp_ping(ip) :
     return (ans,unans)
 
 #
-# Send arp and/or pings if we have not heard from the target recently 
+# Send arp and/or pings if we have not heard from the target recently
 #
 def ping_loop() :
     global target_mac
@@ -283,7 +283,7 @@ def parse_args() :
                            help="Network Interface")
 
     args, unknown_args = parser.parse_known_args()
- 
+
     if args.target_ip :
         target_ip = args.target_ip
 

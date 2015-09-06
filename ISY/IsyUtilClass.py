@@ -26,7 +26,7 @@ __all__ = ['format_node_addr']
 def val2bool(en) :
     if isinstance(en, str) :
         rval = (str(en).strip().lower() in ("yes", "y", "true", "t", "1"))
-    else : # if isinstance(en, (long, int, float)) : 
+    else : # if isinstance(en, (long, int, float)) :
         # Punt
         rval = bool(en)
     return(rval)
@@ -92,7 +92,7 @@ def format_node_addr(naddr) :
 class IsyUtil(object):
     def __init__(self) :
         self.debug = 0
-        self.baseurl = "" # never used 
+        self.baseurl = "" # never used
         # self.pp = pprint.PrettyPrinter(indent=4)
 
 
@@ -121,13 +121,13 @@ class IsyUtil(object):
             data = res.read()
             # print("res.getcode() ", res.getcode(), len(data))
             res.close()
-        except URL.HTTPError, e:       
+        except URL.HTTPError, e:
             self.error_str = str("Reponse Code : {0} : {1}" ).format(e.code, xurl)
             return None
 
         if len(self.error_str) : self.error_str = ""
         if self.debug & 0x200  :
-            print res.info() 
+            print res.info()
             print data
         et = None
         if len(data) :
@@ -162,7 +162,7 @@ class IsyUtil(object):
 
             for k, v in kwargs.items() :
                 cmdsoap += "<{0}>{1!s}</{0}>".format(k, v)
-         
+
             cmdsoap += "</u:{0!s}>".format(cmd) \
                     + "</s:Body></s:Envelope>"
 
@@ -172,7 +172,7 @@ class IsyUtil(object):
     # http://wiki.universal-devices.com/index.php?title=ISY-99i/ISY-26_INSTEON:Errors_And_Error_Messages
     def soapcomm(self, cmd, **kwargs):
         """
-        takes a command name and a list of keyword arguments. 
+        takes a command name and a list of keyword arguments.
         each keyword is converted into a xml element
         """
 
@@ -180,7 +180,7 @@ class IsyUtil(object):
              raise IsyValueError("SOAP Method name missing")
 
         if self.debug & 0x02 :
-            print "sendcomm : ", cmd 
+            print "sendcomm : ", cmd
 
         soap_cmd = self._gensoap(cmd, **kwargs)
 
@@ -199,10 +199,10 @@ class IsyUtil(object):
                 print("res.getcode() ", res.getcode(), len(data))
                 print("data ", data)
             res.close()
-        except URL.HTTPError, e:       
+        except URL.HTTPError, e:
 
             self.error_str = str("Reponse Code : {0} : {1} {2}" ).format(e.code, xurl, cmd)
-            if (( cmd == "DiscoverNodes" and e.code == 803 ) 
+            if (( cmd == "DiscoverNodes" and e.code == 803 )
                 or ( cmd == "CancelNodesDiscovery" and e.code == 501 )
                 # or ( cmd == "RemoveNode" and e.code == 501 )
                 ) :
@@ -292,7 +292,7 @@ class IsyUtil(object):
                 print "using provided data as data src"
 
         self._sendfile(filename=filename, data=data, load="n")
-                 
+
 
     def _sendfile(self, filename="", data="", load="n"):
 
@@ -310,13 +310,13 @@ class IsyUtil(object):
             responce = res.read()
             # print("res.getcode() ", res.getcode(), len(responce))
             res.close()
-        except URL.HTTPError, e:       
+        except URL.HTTPError, e:
             # print "e.read : ", e.read()
             mess = "{!s} : {!s} : {!s}".format("/file/upload", filename,  e.code)
             raise IsySoapError(mess, httperr=e)
         else :
             return responce
-                  
+
 
 
     def _printdict(self, d):
@@ -407,10 +407,10 @@ class IsySubClass(IsyUtil):
     def _get_prop(self, prop):
         """ Internal funtion call """
         # print("U _get_prop =", prop)
-        if prop in self._propalias :    
+        if prop in self._propalias :
             prop = self._propalias[prop]
 
-        if prop in self._getlist : 
+        if prop in self._getlist :
             if prop in self._mydict :
                 if prop in self._boollist :
                     return(val2bool(self._mydict[prop]))
@@ -420,7 +420,7 @@ class IsySubClass(IsyUtil):
 
 #    def _set_prop(self, prop, val):
 #       """ Internal funtion call """
-#       if prop in self._propalias :    
+#       if prop in self._propalias :
 #           prop = self._propalias[prop]
 #
 #       if not prop in self._setlist :
@@ -463,7 +463,7 @@ class IsySubClass(IsyUtil):
     objtype = property(_gettype)
 
     def __getitem__(self, prop):
-        """ Internal method 
+        """ Internal method
 
             allows Objects properties to be accessed in  a dict style
 
@@ -471,7 +471,7 @@ class IsySubClass(IsyUtil):
         return self._get_prop(prop)
 
     def __setitem__(self, prop, val):
-        """ Internal method 
+        """ Internal method
 
             allows Objects properties to be accessed/set in a dict style
 
@@ -486,10 +486,10 @@ class IsySubClass(IsyUtil):
         if self.debug & 0x80 :
             print "__del__ ", self.__repr__()
         if hasattr(self, "_mydict") :
-            self._mydict.clear() 
+            self._mydict.clear()
 
     def __iter__(self):
-        """ Internal method 
+        """ Internal method
 
             allows Objects properties to be access through iteration
 
@@ -512,7 +512,7 @@ class IsySubClass(IsyUtil):
 #    def __hash__(self):
 #        #print("_hash__ called")
 #        return str.__hash__(self._get_prop("id]").myval)
- 
+
 #    def __compare__(self, other):
 #        print("__compare__ called")
 #       if isinstance(other, str) :
@@ -532,7 +532,7 @@ class IsySubClass(IsyUtil):
             raise(AttributeError, attr)
 
 
-    # This allows for 
+    # This allows for
     def __eq__(self, other):
         """ smarter test for compairing Obj value """
         #print("IsyUtil __eq__")
@@ -542,7 +542,7 @@ class IsySubClass(IsyUtil):
             return self._get_prop("id") == other
         if type(self) != type(other) :
             return(False)
-            # NotImplemented 
+            # NotImplemented
         if hasattr(other._mydict, "id") :
             return(self._get_prop("id") == other._get_prop("id"))
         return(False)

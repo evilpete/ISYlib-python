@@ -3,7 +3,7 @@ __author__ = "Peter Shipley"
 __license__ = "BSD"
 
 
-# Simple example 
+# Simple example
 #
 #   This script listens for Upnp advertisements from any local ISY
 #   unit and prints results

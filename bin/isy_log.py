@@ -23,9 +23,9 @@ time_const=2208988800;
 def main(isy):
 
     if opt_errorlog :
-        log_err(isy) 
+        log_err(isy)
     else :
-        log_sys(isy) 
+        log_sys(isy)
 
 
 def log_err(isy) :
@@ -130,7 +130,7 @@ def parseargs():
             ['help', 'error', 'debug', 'addr', 'tab', 'nosec', 'names'])
     except getopt.error, e:
         usage(1, e)
- 
+
     for opt, arg in opts:
         if opt in ('-h', '--help'):
             usage(0)
@@ -141,7 +141,7 @@ def parseargs():
         elif opt in ('-e', '--error'):
             opt_errorlog = 1
         elif opt in ('-d', '--debug'):
-            opt_debug = arg 
+            opt_debug = arg
         elif opt in ('-t', '--tab'):
             opt_tab = 1
         elif opt in ('-s', '--nosec'):

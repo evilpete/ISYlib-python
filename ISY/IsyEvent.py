@@ -44,8 +44,8 @@ class ISYEvent(object) :
         self.connect_list = []
         self._shut_down = 0
         self.connected = False
-        self.isy = kwargs.get("isy", None) 
-        self.level = kwargs.get("level", "1") 
+        self.isy = kwargs.get("isy", None)
+        self.level = kwargs.get("level", "1")
 
         self.process_func = kwargs.get("process_func", ISYEvent.print_event)
         self.process_func_arg = kwargs.get("process_func_arg", None)
@@ -282,10 +282,10 @@ class ISYEvent(object) :
         # mydat = arg[1]
         exml = arg[2]
 
-# Event Dat : 
-# {'control': 'DOF', 'node': '16 6C D2 7', 'eventInfo': None, 'Event-seqnum': '141', 'action': '0', 'Event-sid': 'uuid:40'} 
+# Event Dat :
+# {'control': 'DOF', 'node': '16 6C D2 7', 'eventInfo': None, 'Event-seqnum': '141', 'action': '0', 'Event-sid': 'uuid:40'}
 # <?xml version="1.0"?><Event seqnum="141" sid="uuid:40"><control>DOF</control><action>0</action><node>16 6C D2 7</node><eventInfo></eventInfo></Event>
-# 
+#
         ti = time.strftime('%X')
         try:
             if ddat["control"] in ["_0", "_11", "_12", "_19" ] :
@@ -293,12 +293,12 @@ class ISYEvent(object) :
 
             elif ddat["control"] == "ERR" :
                 print "{!s:<7} {!s:<4}\t{!s:<22}\t{!s}\t{!s}".format(
-                        ti, ddat['Event-seqnum'], 
+                        ti, ddat['Event-seqnum'],
                         "ERR",
                         ddat['node'], ddat['action'])
 
                 return
-                
+
 
             elif ddat["control"] in ["DOF", "DON", "BMAN", "SMAN" ] :
                 action=ddat["control"]
@@ -426,7 +426,7 @@ class ISYEvent(object) :
 
             elif  ddat["control"] == "_4" :
                 status=""
-                action=ddat['action'] 
+                action=ddat['action']
                 if ddat['action'] == '0' :
                     action = "Time Change"
                 elif ddat['action'] == '1' :
@@ -444,14 +444,14 @@ class ISYEvent(object) :
                     action = "Battery Mode Programming Updated"
                     status = ddat['eventInfo']['status']
                 else :
-                    action = ddat['action'] 
+                    action = ddat['action']
                     status = ddat['eventInfo']
 
                 print "{!s:<7} {!s:<4}\tSys Conf Updated\t{!s} : {!s}".format(
                 ti, ddat['Event-seqnum'],  action, status)
 
             elif  ddat["control"] == "_5" :
-                action=ddat['action'] 
+                action=ddat['action']
                 if ddat['action'] == '0' :
                     action = "Not Busy"
                 elif ddat['action'] == '1' :
@@ -475,11 +475,11 @@ class ISYEvent(object) :
                 elif ddat['action'] == '2.3' :
                     action = "Device Address Error"
                 else :
-                    action = ddat['action'] 
+                    action = ddat['action']
                 print "{!s:<7} {!s:<4}\tProgress Report\t{!s} : {!s}".format(ti,  ddat['Event-seqnum'], action, ddat["eventInfo"])
 
             elif  ddat["control"] == "_10" :
-                action=ddat['action'] 
+                action=ddat['action']
                 status=ddat['eventInfo']
 
                 if ddat['action'] == '1' :
@@ -505,7 +505,7 @@ class ISYEvent(object) :
 #               print ddat["control"], " : ", ddat
 #               print arg
 
-            else : 
+            else :
                     print "Event Dat : \n\t", ddat, "\n\t", exml
                     pass
 

@@ -29,8 +29,8 @@ class IsyProgram(IsySubClass):
 
 
         funtions:
-            get_prog_enable() : 
-            set_prog_enable() : 
+            get_prog_enable() :
+            set_prog_enable() :
             get_prog_runatstart() :
             set_prog_runatstart() :
             send_command() :
@@ -67,7 +67,7 @@ class IsyProgram(IsySubClass):
         #return bool( en == "true" )
         if "enabled" in self._mydict :
             return bool( self._mydict["enabled"] == "true" )
-        return True 
+        return True
     def set_prog_enable(self, en):
         rval = val2bool(en)
         #print "set_prog_enable ", rval

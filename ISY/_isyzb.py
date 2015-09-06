@@ -1,7 +1,7 @@
 """
 This is a subfile for IsyClass.py
 
-ZigBee Support 
+ZigBee Support
 
 Only applicable to ISY994 Z Series.
 
