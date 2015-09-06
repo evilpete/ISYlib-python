@@ -26,7 +26,7 @@ def _load_networking(self, resource_id):
     if self.debug & 0x02 :
         print("_load_networking : xurl = " + xurl)
     net_res_tree = self._getXMLetree(xurl)
-    if net_res_tree == None :
+    if net_res_tree is None :
         if ( len(self.error_str) ) :
             raise IsyResponseError (self.error_str)
         else:
@@ -81,7 +81,7 @@ def net_resource_run(self, rrid):
 
     rid = self._net_resource_get_id(rrid)
 
-    if rid == None :
+    if rid is None :
         raise IsyValueError("net_resource_run : bad network resources ID : " + rrid)
 
     xurl = "/rest/networking/resources/{!s}".format(rid)
@@ -90,7 +90,7 @@ def net_resource_run(self, rrid):
         print("wol : xurl = " + xurl)
     resp = self._getXMLetree(xurl)
     # self._printXML(resp)
-    if resp == None or  resp.attrib["succeeded"] != 'true' :
+    if resp is None or  resp.attrib["succeeded"] != 'true' :
         raise IsyResponseError("ISY network resources error : rid=" + str(rid))
 
 
@@ -98,7 +98,7 @@ def net_resource_get_src(self, rrid):
 
     rid = self._net_resource_get_id(rrid)
 
-    if rid == None :
+    if rid is None :
         raise IsyValueError("net_resource_get_src: bad network resources ID : " + rrid)
 
     r = self.soapcomm("GetSysConf", name="/CONF/NET/" + rrid + ".RES")
@@ -169,7 +169,7 @@ def net_wol(self, wid) :
 
     # wol_id = str(wid).upper()
 
-    if wol_id == None :
+    if wol_id is None :
         raise IsyValueError("bad wol ID : " + wid)
 
     xurl = "/rest/networking/wol/" + wol_id

@@ -107,8 +107,8 @@ from ISY.IsyDebug import *
 
 
 
-#__all__ = ['IsyUtil', 'Isy',  'IsyNode', 'IsyProgram', 'IsyVar']
-__all__ = ['Isy', 'IsyUtil', 'IsyUtilClass', 'IsyClass',  'IsyNode', 'IsyVar',
+#__all__ = ['IsyUtil', 'Isy', 'IsyNode', 'IsyProgram', 'IsyVar']
+__all__ = ['Isy', 'IsyUtil', 'IsyUtilClass', 'IsyClass', 'IsyNode', 'IsyVar',
             'isy_discover', 'IsyGetArg']
 #__all__ = ['IsyUtil', 'Isy']
 

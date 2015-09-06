@@ -180,7 +180,7 @@ def var_set_value(self, var, val, prop="val") :
 
     if not varid :
         raise IsyPropertyError("var_set_value: unknown var : " + str(var))
-    if not prop in ['init', 'val'] :
+    if prop notin ['init', 'val'] :
         raise IsyPropertyError("var_set_value: unknown propery : " + str(prop))
     self._var_set_value(varid, val, prop)
 
@@ -224,7 +224,7 @@ def var_get_value(self, var, prop="val") :
     varid = self._var_get_id(var)
     if not varid :
         raise IsyLookupError("var_set_value: unknown var : " + str(var))
-    if not prop in ['init', 'val'] :
+    if prop not in ['init', 'val'] :
         raise TypeError("var_set_value: unknown propery : " + str(prop))
     if varid in self._vardict :
         return(self._vardict[varid][prop])
@@ -272,7 +272,7 @@ def get_var(self, vname) :
     varid = self._var_get_id(vname)
     # print("\tvarid : " + varid)
     if varid in self._vardict :
-        if not varid in self.varCdict :
+        if varid not in self.varCdict :
             # print("not varid in self.varCdict:")
             # self._printdict(self._vardict[varid])
             self.varCdict[varid] = IsyVar(self, self._vardict[varid])

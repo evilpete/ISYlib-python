@@ -26,7 +26,7 @@ def load_clim(self) :
         print("load_clim")
     clim_tree = self._getXMLetree("/rest/climate")
     self.climateinfo = dict ()
-    if clim_tree == None :
+    if clim_tree is None :
         return
     # Isy._printXML(self.climateinfo)
 

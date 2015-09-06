@@ -304,7 +304,7 @@ class ISYEvent(object) :
                 action=ddat["control"]
                 status=ddat["node"]
                 print "{!s:<7} {!s:<4}\t{!s}\t{!s}".format(
-                        ti, ddat['Event-seqnum'],  action, status)
+                        ti, ddat['Event-seqnum'], action, status)
 
             elif ddat["control"] in ["ST", "RR", "OL"] :
                 ectrl = EVENT_CTRL.get(ddat["control"], ddat["control"])
@@ -324,7 +324,7 @@ class ISYEvent(object) :
                     print "exml = ", exml
                     if "nsr" in  ddat["eventInfo"] :
                         action = "Event Status"
-                        status ="id={!s} {!s}".format(ddat["eventInfo"]['id'], ddat["eventInfo"]['nsr'])
+                        status = "id={!s} {!s}".format(ddat["eventInfo"]['id'], ddat["eventInfo"]['nsr'])
                     else :
                         if 'on' in ddat["eventInfo"] :
                             ena = "enabled"
@@ -335,7 +335,7 @@ class ISYEvent(object) :
                         else :
                             rr = "nr"
                         action = "Event Status"
-                        status ="id={!s} {!s} {!s} run={!s} fin={!s} status={!s}".format(
+                        status = "id={!s} {!s} {!s} run={!s} fin={!s} status={!s}".format(
                             ddat["eventInfo"]['id'],
                             ena, rr,
                             ddat["eventInfo"]['r'],
@@ -391,7 +391,7 @@ class ISYEvent(object) :
             elif  ddat["control"] == "_3" :
                 if ddat['action'] == 'FD' :
                     action = 'new Folder node: '
-                    status = str("{!s} = {!s}").format(ddat['node'],  ddat['eventInfo']['folder'])
+                    status = str("{!s} = {!s}").format(ddat['node'], ddat['eventInfo']['folder'])
                 elif ddat['action'] == 'FR' :
                     action = 'del Folder node'
                     status = ddat['node']
@@ -406,7 +406,7 @@ class ISYEvent(object) :
                     status = ddat['node']
                 elif ddat['action'] == 'WH' :
                     action = "Pending Device Operation"
-                    status =  ddat['node']
+                    status = ddat['node']
                 elif ddat['action'] == 'WD' :
                     action = "Programming Device"
                     status =  ddat['node']
@@ -448,7 +448,7 @@ class ISYEvent(object) :
                     status = ddat['eventInfo']
 
                 print "{!s:<7} {!s:<4}\tSys Conf Updated\t{!s} : {!s}".format(
-                ti, ddat['Event-seqnum'],  action, status)
+                ti, ddat['Event-seqnum'], action, status)
 
             elif  ddat["control"] == "_5" :
                 action=ddat['action']
@@ -476,7 +476,7 @@ class ISYEvent(object) :
                     action = "Device Address Error"
                 else :
                     action = ddat['action']
-                print "{!s:<7} {!s:<4}\tProgress Report\t{!s} : {!s}".format(ti,  ddat['Event-seqnum'], action, ddat["eventInfo"])
+                print "{!s:<7} {!s:<4}\tProgress Report\t{!s} : {!s}".format(ti, ddat['Event-seqnum'], action, ddat["eventInfo"])
 
             elif  ddat["control"] == "_10" :
                 action=ddat['action']
@@ -496,7 +496,7 @@ class ISYEvent(object) :
                     status=ddat['eventInfo']['active']
 
                 print "{!s:<7} {!s:<4}\tOpenADR / Flex\t{!s}\t{!s}".format(
-                    ti,  ddat['Event-seqnum'], action, status)
+                    ti, ddat['Event-seqnum'], action, status)
 
 
 #            elif  ddat["control"] == "_12" :

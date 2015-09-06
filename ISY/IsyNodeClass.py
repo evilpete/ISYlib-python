@@ -156,7 +156,7 @@ class _IsyNodeBase(IsySubClass):
     def get_callback(self) :
         return self.isy.callback_get(self._mydict["address"])
     def set_callback(self, func, *args) :
-        if func == None :
+        if func is None :
             return self.isy.callback_del(self._mydict["address"])
         else :
             return self.isy.callback_set(self._mydict["address"], func, args)
@@ -176,7 +176,7 @@ class _IsyNodeBase(IsySubClass):
                 node=node._get_prop("address"), nodeType=node.nodeType(),
                 parent=self._mydict["address"], parentType=self.nodeType())
 
-    def _rename(self, cmd,  newname) :
+    def _rename(self, cmd, newname) :
         if self.debug & 0x01 :
             print("rename : ", self.__class__.__name__, " : ", newname)
         #if not isinstance(newname, str) or len(newname) == 0 :
@@ -503,7 +503,7 @@ class IsyNode(_IsyNodeBase):
 
 
     def rename(self, newname) :
-        return  self._rename("RenameNode",  newname)
+        return  self._rename("RenameNode", newname)
 
 
     #
@@ -600,7 +600,7 @@ class IsyScene(_IsyNodeBase):
 
     def rename(self, newname) :
         """ rename node/scene/folder """
-        return  self._rename("RenameGroup",  newname)
+        return  self._rename("RenameGroup", newname)
 
     def member_del(self, node) :
         r = self.isy.scene_del_node(
@@ -708,7 +708,7 @@ class IsyNodeFolder(_IsyNodeBase):
 
             calls SOAP RenameFolder()
         """
-        return self._rename("RenameFolder",  newname)
+        return self._rename("RenameFolder", newname)
 
 
     def __iter__(self):

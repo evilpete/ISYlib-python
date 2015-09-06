@@ -90,7 +90,7 @@ class IsyVar(IsySubClass):
     def get_callback(self) :
         return self.isy.callback_get(self._mydict["id"])
     def set_callback(self, func, *args) :
-        if func == None :
+        if func is None :
             return self.isy.callback_del(self._mydict["id"])
         else :
             return self.isy.callback_set(self._mydict["id"], func, args)

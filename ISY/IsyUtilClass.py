@@ -56,7 +56,7 @@ def et2d(et) :
     children = list(et)
     if et.attrib :
         for k, v in list(et.items()) :
-            d[et.tag + "-" + k] =  v
+            d[et.tag + "-" + k] = v
     if children :
         for child in children :
             if child.tag in d :
@@ -132,7 +132,7 @@ class IsyUtil(object):
         et = None
         if len(data) :
             try :
-                et =  ET.fromstring(data)
+                et = ET.fromstring(data)
             except ET.ParseError as e :
                 print "Etree ParseError "
                 print "data = ", data,
@@ -155,7 +155,7 @@ class IsyUtil(object):
                 + "xmlns:u=\"urn:udi-com:service:X_Insteon_Lighting_Service:1\" />" \
                 + "</s:Body></e:Envelope>"
         else :
-            cmdsoap =  "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" \
+            cmdsoap = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" \
                 + "<s:Envelope><s:Body>" \
                 + "<u:{0!s} ".format(cmd) \
                 + "xmlns:u=\"urn:udi-com:service:X_Insteon_Lighting_Service:1\">"
@@ -209,7 +209,7 @@ class IsyUtil(object):
 
 
                 if self.debug & 0x02 :
-                    print "spacial case : {0} : {1}".format(cmd,  e.code)
+                    print "spacial case : {0} : {1}".format(cmd, e.code)
                     print "e.code = ", e.code
                     print "e.msg = ", e.msg
                     print "e.hdrs = ", e.hdrs
@@ -225,9 +225,9 @@ class IsyUtil(object):
                 print "e = ", e
                 print "data = ", data
 
-            mess = "{!s} : {!s} : {!s}".format(cmd, kwargs,  e.code)
+            mess = "{!s} : {!s} : {!s}".format(cmd, kwargs, e.code)
             # This a messy and should change
-            raise IsySoapError(mess,  httperr=e)
+            raise IsySoapError(mess, httperr=e)
         else :
             if len(self.error_str) : self.error_str = ""
             if self.debug & 0x200  :
@@ -312,7 +312,7 @@ class IsyUtil(object):
             res.close()
         except URL.HTTPError, e:
             # print "e.read : ", e.read()
-            mess = "{!s} : {!s} : {!s}".format("/file/upload", filename,  e.code)
+            mess = "{!s} : {!s} : {!s}".format("/file/upload", filename, e.code)
             raise IsySoapError(mess, httperr=e)
         else :
             return responce

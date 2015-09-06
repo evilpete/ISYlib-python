@@ -154,7 +154,7 @@ def _gen_folder_list(self, nodeinfo, reload=0) :
             fprop[child.tag] = child.text
             if child.attrib :
                 for k, v in child.items() :
-                    fprop[child.tag + "-" + k] =  v
+                    fprop[child.tag + "-" + k] = v
         # self._nodefolder[fprop["address"]] = fprop
         n = fprop["name"].upper()
         self._folder2addr[n] = fprop["address"]
@@ -192,7 +192,7 @@ def _gen_nodegroups(self, nodeinfo, reload=0) :
             if child.tag == "parent" :
                 gprop[child.tag] = child.text
                 for k, v in child.items() :
-                    gprop[child.tag + "-" + k] =  v
+                    gprop[child.tag + "-" + k] = v
             elif child.tag == "members" :
                 glist = dict ()
                 for lnk in child.iter('link'):
@@ -202,7 +202,7 @@ def _gen_nodegroups(self, nodeinfo, reload=0) :
                 gprop[child.tag] = child.text
                 if child.attrib :
                     for k, v in child.items() :
-                        gprop[child.tag + "-" + k] =  v
+                        gprop[child.tag + "-" + k] = v
 
         if "address" in gprop :
             # self._nodegroups[gprop["address"]] = gprop
@@ -566,7 +566,7 @@ def node_set_prop(self, naddr, prop, val) :
         self._updatenode(naddr)
 
 # to  replace _node_set_prop and _node_comm
-def _node_send(self, naddr, action,  prop, *args) :
+def _node_send(self, naddr, action, prop, *args) :
     """ called by node_comm() or  node_set_prop() after argument validation """
     #print("_node_send : node=%s prop=%s val=%s" % str(naddr), prop, val)
     # print ("_node_send : node=" + str(naddr) + " prop=" + prop + " val=" + val )
@@ -574,7 +574,7 @@ def _node_send(self, naddr, action,  prop, *args) :
     if self.debug & 0x02 : print("xurl = " + xurl)
     resp = self._getXMLetree(xurl)
     # self._printXML(resp)
-    if resp == None or resp.attrib["succeeded"] != 'true' :
+    if resp is None or resp.attrib["succeeded"] != 'true' :
         raise IsyResponseError(
                 "Node Cmd/Property Set error : node=%s prop=%s " %
                 naddr, prop )
@@ -795,7 +795,7 @@ def _updatenode(self, naddr) :
             self._nodedict[naddr][child.tag] = child.text
         if child.attrib :
             for k, v in list(child.items()) :
-                self._nodedict[naddr][child.tag + "-" + k] =  v
+                self._nodedict[naddr][child.tag + "-" + k] = v
 
         for prop in _nodestat.iter('property'):
             tprop = dict ( )
@@ -869,12 +869,12 @@ def node_enable(self, naddr, enable=True) :
     if self.debug & 0x02 : print("xurl = " + xurl)
     resp = self._getXMLetree(xurl)
     # self._printXML(resp)
-    if resp == None or resp.attrib["succeeded"] != 'true' :
+    if resp is None or resp.attrib["succeeded"] != 'true' :
         raise IsyResponseError(
                 "Node Cmd/Property Set error : node=%s resp=%s " %
                 naddr, resp )
 
-def node_set_powerinfo(self, naddr, deviceClass=None,  wattage=None, dcPeriod=None )  :
+def node_set_powerinfo(self, naddr, deviceClass=None, wattage=None, dcPeriod=None )  :
     """
         args :
             node             node id
