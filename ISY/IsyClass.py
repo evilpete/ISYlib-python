@@ -310,7 +310,7 @@ class Isy(IsyUtil):
         if self.eventupdates :
             if not self._progdict :
                 self.load_prog()
-            if  not self._nodedict :
+            if not self._nodedict :
                 self.load_nodes()
             self.start_event_thread()
 
@@ -590,11 +590,11 @@ class Isy(IsyUtil):
             # action = "RV" -> Node Revised (UPB)
 
             if evnt_dat['action'] == 'EN' :  # Enable
-                if  evnt_dat['node'] in self._nodedict :
+                if evnt_dat['node'] in self._nodedict :
                     self._nodedict[ evnt_dat['node'] ]['enabled'] = evnt_dat['eventInfo']['enabled']
 
             elif evnt_dat['action'] == 'GN' :  # Group Renamed
-                if  evnt_dat['node'] in self._nodegroups :
+                if evnt_dat['node'] in self._nodegroups :
                     oldname = self._nodegroups[ evnt_dat['node'] ]['name']
                     self._nodegroups[ evnt_dat['node'] ]['name'] = evnt_dat['eventInfo']['newName']
                     self._groups2addr[ evnt_dat['eventInfo']['newName'] ] = evnt_dat['node']
@@ -655,14 +655,14 @@ class Isy(IsyUtil):
                     self._nodefolder[ evnt_dat['node'] ] = evnt_dat['eventInfo']['folder']
                     self._folder2addr[ evnt_dat['eventInfo']['folder']['name'] ] = evnt_dat['node']
             elif evnt_dat['action'] == 'FR' :
-                if  evnt_dat['node'] in self._nodefolder :
+                if evnt_dat['node'] in self._nodefolder :
                     if evnt_dat['node'] in self.nodeCdict :
                         # this is tricky if the user has a IsyNodeFolder obj
                         # more has to be done to tell the Obj it's dead
                         del self.nodeCdict[ evnt_dat['node'] ]
                     del self._nodefolder[ evnt_dat['node'] ]
             elif evnt_dat['action'] == 'FN' :
-                if  evnt_dat['node'] in self._nodefolder :
+                if evnt_dat['node'] in self._nodefolder :
                     oldname = self._nodefolder[ evnt_dat['node'] ]['name']
                     self._nodefolder[ evnt_dat['node'] ]['name'] = evnt_dat['eventInfo']['newName']
                     self._folder2addr[ evnt_dat['eventInfo']['newName'] ] = evnt_dat['node']
@@ -821,7 +821,7 @@ class Isy(IsyUtil):
         else :
             if ( v == 0 ) :
                 return "off"
-            elif  v == 255 :
+            elif v == 255 :
                 return "on"
             else :
                 return str ( (int(v)*100) // 255)
@@ -1257,7 +1257,7 @@ class Isy(IsyUtil):
                 iid += 1
                 fid = str(iid)
         r = self.soapcomm("AddFolder", fid=1234, name=fname)
-        if  isinstance(r, tuple) and r[0] == '200' :
+        if isinstance(r, tuple) and r[0] == '200' :
             self._nodefolder[fid] = dict()
             self._nodefolder[fid]['address'] = fid
             self._nodefolder[fid]['folder-flag'] = '0'
@@ -1276,7 +1276,7 @@ class Isy(IsyUtil):
         if fid is None :
             raise IsyValueError("Unknown Folder : " + str(fid) )
         r = self.soapcomm("RemoveFolder", id=fid)
-        if  isinstance(r, tuple) and r[0] == '200' :
+        if isinstance(r, tuple) and r[0] == '200' :
             self._nodefolder[fid] = dict()
 
     # SetParent(node, nodeType, parent, parentType )
@@ -2078,16 +2078,16 @@ class Isy(IsyUtil):
             if hasattr(self._isy_event, "_shut_down") :
                 self._isy_event._shut_down = 1
 
-        if  hasattr(self, "nodeCdict" ) :
+        if hasattr(self, "nodeCdict" ) :
             self.nodeCdict.clear()
 
-        if  hasattr(self, "varCdict" ) :
+        if hasattr(self, "varCdict" ) :
             self.varCdict.clear()
 
-        if  hasattr(self, "progCdict" ) :
+        if hasattr(self, "progCdict" ) :
             self.progCdict.clear()
 
-        if  hasattr(self, "folderCdict" ) :
+        if hasattr(self, "folderCdict" ) :
             self.folderCdict.clear()
 
         # the reasion for this is that

@@ -1,7 +1,7 @@
 
 PEP8=pep8
-#PEP8ARG=--ignore=E101,E128,E201,E202,E203,E211,E302,E303,W191,E501
-PEP8ARG=--ignore=E203
+PEP8ARG=--ignore=E127,E265,E101,E128,E201,E202,E203,E211,E302,E303,W191,E501
+#PEP8ARG=--ignore=E203
 REPO=git@github.com:evilpete/ISYlib-python.git
 PROGS=
 PLIB=./ISY.py
@@ -29,7 +29,7 @@ syntax:
 	    python -m py_compile $$targ ; \
 	done 
 
-style: syntax
+style:
 	${PEP8} ${PEP8ARG} ${FILES}
 
 

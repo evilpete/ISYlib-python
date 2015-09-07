@@ -118,7 +118,7 @@ def _gen_member_list(self, reload=0) :
                     if n['parent-type'] == 3 :
                         if n['parent'] in self._nodefolder :
                             self._nodefolder[n['parent']]['members'].append( n['address'])
-                    elif  n['parent-type'] == 1 :
+                    elif n['parent-type'] == 1 :
                         if n['parent'] in self._nodegroups :
                             self._nodegroups[n['parent']]['members'].add( n['address'])
             # 'parent': '16 6C D2 1', 'parent-type': '1',

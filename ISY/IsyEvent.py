@@ -317,7 +317,7 @@ class ISYEvent(object) :
                     ectrl, node, ddat["action"], evi))
                 # print '_3 ', ddat["control"], ' : ', ddat
 
-            elif  ddat["control"] == "_1" :
+            elif ddat["control"] == "_1" :
                 # 'on': None, 'f': '140630 20:55:55', 's': '31', 'r': '140630 20:55:55', 'nr': None, 'id': '1E'}
 
                 if ddat['action'] == '0' :
@@ -388,7 +388,7 @@ class ISYEvent(object) :
                         "Trigger Event",
                         action, status)
 
-            elif  ddat["control"] == "_3" :
+            elif ddat["control"] == "_3" :
                 if ddat['action'] == 'FD' :
                     action = 'new Folder node: '
                     status = str("{!s} = {!s}").format(ddat['node'], ddat['eventInfo']['folder'])
@@ -424,7 +424,7 @@ class ISYEvent(object) :
                         ti, ddat['Event-seqnum'],
                         action, status)
 
-            elif  ddat["control"] == "_4" :
+            elif ddat["control"] == "_4" :
                 status=""
                 action=ddat['action']
                 if ddat['action'] == '0' :
@@ -450,7 +450,7 @@ class ISYEvent(object) :
                 print "{!s:<7} {!s:<4}\tSys Conf Updated\t{!s} : {!s}".format(
                 ti, ddat['Event-seqnum'], action, status)
 
-            elif  ddat["control"] == "_5" :
+            elif ddat["control"] == "_5" :
                 action=ddat['action']
                 if ddat['action'] == '0' :
                     action = "Not Busy"
@@ -465,7 +465,7 @@ class ISYEvent(object) :
                     ti, ddat['Event-seqnum'], action)
 
 
-            elif  ddat["control"] == "_7" :
+            elif ddat["control"] == "_7" :
                 if ddat['action'] == '1' :
                     action = "Update"
                 elif ddat['action'] == '2.1' :
@@ -478,7 +478,7 @@ class ISYEvent(object) :
                     action = ddat['action']
                 print "{!s:<7} {!s:<4}\tProgress Report\t{!s} : {!s}".format(ti, ddat['Event-seqnum'], action, ddat["eventInfo"])
 
-            elif  ddat["control"] == "_10" :
+            elif ddat["control"] == "_10" :
                 action=ddat['action']
                 status=ddat['eventInfo']
 
@@ -499,9 +499,9 @@ class ISYEvent(object) :
                     ti, ddat['Event-seqnum'], action, status)
 
 
-#            elif  ddat["control"] == "_12" :
+#            elif ddat["control"] == "_12" :
 #               pass
-#            elif  ddat["control"] == "_1" and ddat["action"] in ["6", "7", "3"] :
+#            elif ddat["control"] == "_1" and ddat["action"] in ["6", "7", "3"] :
 #               print ddat["control"], " : ", ddat
 #               print arg
 
