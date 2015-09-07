@@ -66,7 +66,7 @@ class IsyProgram(IsySubClass):
         #en = self._get_prop("enabled")
         #return bool( en == "true" )
         if "enabled" in self._mydict :
-            return bool( self._mydict["enabled"] == "true" )
+            return bool(self._mydict["enabled"] == "true")
         return True
     def set_prog_enable(self, en):
         rval = val2bool(en)
@@ -84,7 +84,7 @@ class IsyProgram(IsySubClass):
         """ check property runAtStartup (bool) """
         #en = self._get_prop("runAtStartup")
         #return bool( en == "true" )
-        return bool( self._mydict['runAtStartup'] == "true" )
+        return bool(self._mydict['runAtStartup'] == "true")
     def set_prog_runatstart(self, en):
         rval = val2bool(en)
         #print "set_prog_enable ", rval
@@ -97,12 +97,12 @@ class IsyProgram(IsySubClass):
     runatstart = property(get_prog_runatstart, set_prog_runatstart)
 
     def get_path(self):
-        return self.isy._prog_get_path( self._mydict['id'] )
+        return self.isy._prog_get_path(self._mydict['id'])
     path = property(get_path)
 
     def get_src(self):
         """ get D2D source for program """
-        return self.isy.prog_get_src( self._mydict['id'] )
+        return self.isy.prog_get_src(self._mydict['id'])
     src = property(get_src)
 
 #    def get_prog_folder(self):

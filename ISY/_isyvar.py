@@ -180,7 +180,7 @@ def var_set_value(self, var, val, prop="val") :
 
     if not varid :
         raise IsyPropertyError("var_set_value: unknown var : " + str(var))
-    if prop notin ['init', 'val'] :
+    if prop not in ['init', 'val'] :
         raise IsyPropertyError("var_set_value: unknown propery : " + str(prop))
     self._var_set_value(varid, val, prop)
 
@@ -522,7 +522,7 @@ def _var_delete(self, varid=None, vartype=None) :
         varid = [str(varid)]
 
 
-#    if isinstance(varid, str) and not val.isdigit() ) :
+#    if isinstance(varid, str) and not val.isdigit()) :
 #       raise IsyValueError("Invalid var id missing")
 
 
@@ -608,7 +608,7 @@ def _var_rename(self, vartype=None, varid=None, varname=None) :
         varid = str(varid)
 
 
-#    if isinstance(varid, str) and not val.isdigit() ) :
+#    if isinstance(varid, str) and not val.isdigit()) :
 #       raise IsyValueError("Invalid var id missing")
 
 

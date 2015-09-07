@@ -243,7 +243,7 @@ def _prog_comm(self, prog_id, cmd) :
             str(prog_id) + " cmd=" + str(cmd))
 
 
-def prog_rename(self, prog=None, progname=None ) :
+def prog_rename(self, prog=None, progname=None) :
     """
             Named args:
                 prog            a prog id
@@ -269,7 +269,7 @@ def prog_rename(self, prog=None, progname=None ) :
 
     return r
 
-def _prog_rename(self, progid=None, progname=None ) :
+def _prog_rename(self, progid=None, progname=None) :
     """
             Named args:
                 progid          a prog id

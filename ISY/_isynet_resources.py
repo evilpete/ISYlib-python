@@ -27,7 +27,7 @@ def _load_networking(self, resource_id):
         print("_load_networking : xurl = " + xurl)
     net_res_tree = self._getXMLetree(xurl)
     if net_res_tree is None :
-        if ( len(self.error_str) ) :
+        if ( len(self.error_str)) :
             raise IsyResponseError (self.error_str)
         else:
             raise IsyResponseError (xurl)

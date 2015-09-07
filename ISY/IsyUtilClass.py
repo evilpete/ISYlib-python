@@ -106,7 +106,7 @@ class IsyUtil(object):
 
     def _getXMLetree(self, xmlpath, noquote=0, timeout=10):
         """ take a URL path, download XLM and return parsed Etree """
-        if ( noquote ) :
+        if ( noquote) :
             xurl = self.baseurl + xmlpath
         else :
             xurl = self.baseurl + URL.quote(xmlpath)
@@ -296,7 +296,7 @@ class IsyUtil(object):
 
     def _sendfile(self, filename="", data="", load="n"):
 
-        if ( filename.startswith('/') ) :
+        if ( filename.startswith('/')) :
             xurl = self.baseurl + "/file/upload" + filename + "?load=" + load
         else :
             xurl = self.baseurl + "/file/upload/" + filename + "?load=" + load

@@ -59,8 +59,8 @@ class ISYEvent(object) :
         if addr :
             userl = kwargs.get("userl", "admin")
             userp = kwargs.get("userp", "admin")
-            authtuple = (  addr, userl, userp )
-            self.connect_list.append(ISYEventConnection(self, authtuple) )
+            authtuple = (  addr, userl, userp)
+            self.connect_list.append(ISYEventConnection(self, authtuple))
 
 
     def set_process_func(self, func, arg) :
@@ -126,9 +126,9 @@ class ISYEvent(object) :
         userl = kwargs.get("userl", "admin")
         userp = kwargs.get("userp", "admin")
 
-        authtuple = (  addr, userl, userp )
+        authtuple = (  addr, userl, userp)
 
-        new_conn = ISYEventConnection(self, authtuple )
+        new_conn = ISYEventConnection(self, authtuple)
 
         # see if the other connections are connected
         # if so connect to avoid an error in select()
@@ -367,7 +367,7 @@ class ISYEvent(object) :
                         ddat['eventInfo']['var']['var-type'],
                         ddat['eventInfo']['var']['var-id'],
                         ddat['eventInfo']['var']['val'],
-                        ddat['eventInfo']['var']['ts'] )
+                        ddat['eventInfo']['var']['ts'])
                 elif ddat['action'] == '7' :
                     action = "Var Init"
                     status = "{!s} {!s}:{!s} {!s}".format(
@@ -612,7 +612,7 @@ class ISYEvent(object) :
 
 class ISYEventConnection(object):
 
-    def __init__(self, isyevent, authtuple ) :
+    def __init__(self, isyevent, authtuple) :
         self.event_rf = None
         self.event_wf = None
         self.event_sock = None

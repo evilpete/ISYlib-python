@@ -1,7 +1,10 @@
 
 PEP8=pep8
-PEP8ARG=--ignore=E127,E265,E101,E128,E201,E202,E203,E211,E302,E303,W191,E501
-#PEP8ARG=--ignore=E203
+#PEP8ARG=--ignore=E127,E265,E101,E128,E201,E202,E203,E211,E302,E303,W191,E501
+# E203 space before ":"
+# E201 whitespace after '('
+# E202 whitespace before ')'
+PEP8ARG=--ignore=E203,E201,E202
 REPO=git@github.com:evilpete/ISYlib-python.git
 PROGS=
 PLIB=./ISY.py

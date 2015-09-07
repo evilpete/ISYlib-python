@@ -350,7 +350,7 @@ class IsyNode(_IsyNodeBase):
 #            if self._mydict["property"]["time"] == 0 :
 #                    self.update()
 #            elif self.isy.cachetime :
-#                if time.gmtime() < (self.cachetime + self._mydict["property"]["time"] ) :
+#                if time.gmtime() < (self.cachetime + self._mydict["property"]["time"]) :
 #                    self.update()
 
         else :
@@ -434,7 +434,7 @@ class IsyNode(_IsyNodeBase):
 
     def set_wattage(self, watts):
         """ set wattage property """
-        return self.isy.node_set_powerinfo( self._mydict["address"], wattage=watts)
+        return self.isy.node_set_powerinfo(self._mydict["address"], wattage=watts)
     wattage = property(get_wattage, set_wattage)
 
 
@@ -532,7 +532,7 @@ class IsyNode(_IsyNodeBase):
 
     # use the node address as the hash value
     def __hash__(self) :
-        return( self._hash )
+        return(self._hash)
 
 
 #    def __str__(self):
