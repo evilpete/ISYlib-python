@@ -397,7 +397,7 @@ class IsyNode(_IsyNodeBase):
             # self._mydict["property"]["time"] = 0
 
             if prop in self._mydict["property"] :
-                # if isinstance(new_value, (int, float))  : # already checked with isdigit
+                # if isinstance(new_value, (int, float))  :  # already checked with isdigit
                 self._mydict["property"][prop]["value"] = new_value
 
         # we need to tie this to some action

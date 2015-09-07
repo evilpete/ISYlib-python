@@ -26,7 +26,7 @@ __all__ = ['format_node_addr']
 def val2bool(en) :
     if isinstance(en, str) :
         rval = (str(en).strip().lower() in ("yes", "y", "true", "t", "1"))
-    else : # if isinstance(en, (long, int, float)) :
+    else :  # if isinstance(en, (long, int, float)) :
         # Punt
         rval = bool(en)
     return(rval)
