@@ -42,6 +42,7 @@ setup(
         ('bin', ['bin/isy_nodes.py', 'bin/isy_var.py']) ],
     url='https://github.com/evilpete/ISYlib-python',
     license='BSD',
+    download_url='https://github.com/evilpete/ISYlib-python/archive/0.1.20150910.tar.gz',
     description='Python API for the ISY home automation controller.',
     long_description=open('README.txt').read(),
     cmdclass = { 'install_scripts': install_scripts_and_symlinks }
