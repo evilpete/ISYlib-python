@@ -2,7 +2,7 @@
 
 """Simple Python lib discovering ISY devices with Upnp  """
 __author__ = 'Peter Shipley <peter.shipley@gmail.com>'
-__copyright__ = "Copyright (C) 2013 Peter Shipley"
+__copyright__ = "Copyright (C) 2015 Peter Shipley"
 __license__ = "BSD"
 
 

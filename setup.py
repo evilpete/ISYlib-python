@@ -26,7 +26,6 @@ class install_scripts_and_symlinks(install_scripts):
 		    print "++++++++++", target, " -> ", newlink
 		    # os.symlink(target, newlink)
 
-
 setup(
     name='ISYlib',
     version='0.1.20150912',

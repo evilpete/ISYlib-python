@@ -88,7 +88,7 @@ if sys.hexversion < 0x20703f0 :
 __revision__ = "$Id$"
 __version__ = "0.1.20150912"
 __author__ = 'Peter Shipley <peter.shipley@gmail.com>'
-__copyright__ = "Copyright (C) 2014 Peter Shipley"
+__copyright__ = "Copyright (C) 2015 Peter Shipley"
 __license__ = "BSD"
 
 #
@@ -102,8 +102,6 @@ from ISY.IsyProgramClass import IsyProgram
 from ISY.IsyExceptionClass import IsyError
 from ISY.IsyDebug import *
 #
-
-
 
 
 
