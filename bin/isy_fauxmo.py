@@ -394,13 +394,81 @@ class upnp_broadcast_responder(object):
 # 16 switches it can control. Only the first 16 elements of the FAUXMOS
 # list will be used.
 
+def load_fauxmos(myisy=None, fport=None):
+
+    conf = None
+    r = None
+    try :
+	js = myisy.soapcomm("GetSysConf", name="/WEB/CONF/fauxmo.jsn")
+	# print "r=",r
+    except Exception, e:
+	return(None)
+        pass
+    else:
+	import json
+	conf = json.loads(js)
+
+    if conf is not None:
+
+	ret_list = list()
+
+	baseurl =  "http://{:s}:{:s}@{:s}/rest".format(isyuser,isypass, isyaddr)
+
+	#
+	# isydevs = {
+	#    "office light"     : "16 3F E5 1" ,
+	#    "garage"     : "20326",
+	# }
+
+	if "isydevs" in conf :
+	    isydevs = conf['isydevs']
+	    for k in sorted(isydevs.keys()) :
+		try:
+		    nod = myisy[k]
+		except Exception, e:
+		    pass
+		else :
+		    l = [ k, nod ]
+
+		    if fport is not None:
+			l.append(fport)
+			fport = fport + 1
+		    ret_list.append(l)
+
+
+	# isyprog {
+	#   bath fan" : {
+	#     "on"  : ("006E", "runThen"),
+	#     "off" : ("0070", "runThen"),
+	#   },
+	# }
+
+	#
+	# the following is incomplete
+	#
+	if isyprog in conf :
+	    isyprog = conf['isyprog']
+	    for k in sorted(isyprog.keys()) :
+		try:
+		    prg = myisy.get_prog(k)
+		except Exception, e:
+		    pass
+		else :
+		    l = [ k, prg ]
+		    if fport is not None :
+			l.append(fport)
+			fport = fport + 1
+		    ret_list.append( l )
+
+    return ret_list
 
 def build_fauxmos(myisy=None, fport=None):
-    ret_list = list()
 
     if myisy is None:
         print("myisy is None")
         exit(0)
+
+    ret_list = list()
 
     for nod in myisy:
         if nod.objtype != "node":
@@ -427,7 +495,10 @@ def main(myisy):
     if len(sys.argv) > 1 and sys.argv[1] == '-d':
         DEBUG = True
 
-    bfm = build_fauxmos(myisy, base_port)
+    bfm = load_fauxmos(myisy)
+    if bfm is None :
+	print "building device list from ISY"
+	bfm = build_fauxmos(myisy, base_port)
 
     # Set up our singleton for polling the sockets for data ready
     p = poller()
