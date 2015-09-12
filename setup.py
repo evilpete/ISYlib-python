@@ -29,7 +29,7 @@ class install_scripts_and_symlinks(install_scripts):
 
 setup(
     name='ISYlib',
-    version='0.1.20150910',
+    version='0.1.20150912',
     author='Peter Shipley',
     author_email='Peter.Shipley@gmail.com',
     packages=find_packages(),
