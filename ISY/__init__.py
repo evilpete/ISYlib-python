@@ -82,8 +82,8 @@ Exception Classes :
 """
 
 import sys
-if sys.hexversion < 0x20703f0 :
-    sys.stderr.write("You need python 2.7 or later to run this script\n")
+if sys.hexversion < 0x2070100 :
+    sys.stderr.write("You need python 2.7.1 or later to run this script\n")
 
 __revision__ = "$Id$"
 __version__ = "0.1.20150912"

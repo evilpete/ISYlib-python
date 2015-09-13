@@ -1,4 +1,4 @@
-#!/usr/local/bin/python2.7
+#!/usr/bin/env python
 """
     a demo app that uses pynest to read values from the Nest
     and set vars in a ISY home automation device

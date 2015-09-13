@@ -1,4 +1,5 @@
-#!/usr/local/bin/python2.7
+#!/usr/bin/env python
+
 __author__ = "Peter Shipley"
 #
 #  quick hack to check what ISY vars are in use by which programs

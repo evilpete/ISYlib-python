@@ -1,5 +1,4 @@
-#!/usr/local/bin/python2.7
-
+#!/usr/bin/env python
 """
 
 Simple example trigger a registared network resource on the ISY

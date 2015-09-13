@@ -1,12 +1,11 @@
-#!/usr/local/bin/python2.7
-__author__ = "Peter Shipley"
-
-
+#!/usr/bin/env python
 """
     Proof of concept for monitoring network for setting home automation use
 
     not ready for prime time of any kind
 """
+
+__author__ = "Peter Shipley"
 from scapy.all import *
 
 from threading import Thread
