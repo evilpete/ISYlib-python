@@ -1,3 +1,11 @@
+
+
+Branches
+ 
+     public_dev : public commits
+     dev : developer branch ( unstable )
+     master : Main branch ( mostly stable )
+
 ISYlib-python
 =============
 
