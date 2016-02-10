@@ -1,4 +1,5 @@
-#!/usr/local/bin/python2.7
+#!/usr/bin/env python
+
 """list ISY vars demo app
 
 Usage: %(program)s [options] [var=val]

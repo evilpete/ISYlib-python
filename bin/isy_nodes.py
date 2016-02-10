@@ -1,4 +1,4 @@
-#!/usr/local/bin/python2.7
+#!/usr/bin/env python
 """
     A simple example showing how
     to obtain and print status of every node

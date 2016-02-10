@@ -1,4 +1,5 @@
-#!/usr/local/bin/python2.7
+#!/usr/bin/env python
+
 __author__ = "Peter Shipley"
 
 #
@@ -26,9 +27,7 @@ import sys
 
 time_const=2208988800;
 
-
 def main(isy):
-
 
     addr_received = set()
     addr_used = set()
