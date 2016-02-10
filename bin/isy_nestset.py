@@ -1,4 +1,4 @@
-#!/usr/local/bin/python2.7
+#!/usr/bin/env python
 """
     a demo app that uses pynest to read values from the Nest
     and set vars in a ISY home automation device
@@ -10,12 +10,18 @@
 __author__ = "Peter Shipley"
 
 
-import nest
+try :
+    import nest_thermostat as nest
+except ImportError as e:
+    print "Package nest-thermostat required :", \
+	    "https://pypi.python.org/pypi/nest-thermostat"
+    exit(1)
+
+#import nest
 import sys
 import os
 from warnings import warn
 
-# import time
 import pprint
 from optparse import OptionParser
 
@@ -170,10 +176,12 @@ def help_txt():
     print "   --serial <number>      ... optional, specify serial number of nest to use"
     print "   --index <number>       ... optional, 0-based index of nest"
     print "                                (use --serial or --index, but not both)"
+    print "   -v                     ... verbose"
     print
     print "commands: isyvar=nestvar, show, help"
     print "    show                  ... show available nest vars"
     print "    help                  ... print this help"
+    print "    auto                  ... set vars nest_awaynest_humidity nest_temp in ISY"
     print
     print "    home_temp=current_temperature"
     print "                          ... set the var on the isy named 'home_temp'"
@@ -181,8 +189,8 @@ def help_txt():
     print "    Note: the varable has to preexist on the ISY device "
     print
     print "examples:"
-    print "    nest.py --user joe@user.com --password swordfish home_temp=current_temperature"
-    print "    nest.py --user joe@user.com --password swordfish show"
+    print "    isy_nestset.py --user joe@user.com --password swordfish home_temp=current_temperature"
+    print "    isy_nestset.py --user joe@user.com --password swordfish show"
 
     # end of help
     return
