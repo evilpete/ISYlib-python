@@ -83,10 +83,10 @@ Exception Classes :
 
 import sys
 if sys.hexversion < 0x2070100 :
-    sys.stderr.write("You need python 2.7.1 or later to run this script\n")
+    sys.stderr.write("You need python 2.7.1 or later to run this script (ver={:0X})\n".format(sys.hexversion))
 
 __revision__ = "$Id$"
-__version__ = "0.1.20150912"
+__version__ = "0.1.20160110"
 __author__ = 'Peter Shipley <peter.shipley@gmail.com>'
 __copyright__ = "Copyright (C) 2015 Peter Shipley"
 __license__ = "BSD"

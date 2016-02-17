@@ -9,7 +9,7 @@
 __author__ = 'Peter Shipley <peter.shipley@gmail.com>'
 __copyright__ = "Copyright (C) 2015 Peter Shipley"
 __license__ = "BSD"
-__version__ = "0.1.20150912"
+__version__ = "0.1.20160110"
 
 
 #from xml.dom.minidom import parse, parseString

@@ -1,6 +1,8 @@
 ISYlib-python
 =============
 
+by: Peter Shipley
+
 Simple Python lib for the ISY home automation netapp Supporting a Simple and OO interface
 
 

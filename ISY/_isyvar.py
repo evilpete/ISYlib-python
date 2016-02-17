@@ -139,7 +139,7 @@ def var_refresh_value(self, var) :
 
     for vd in list(resp) :
         if vd.tag in self._vardict[varid] :
-            self._vardict[varid][vd.tag] = vd,text
+            self._vardict[varid][vd.tag] = vd.text
 
     self._vardict[varid]["val"] = int(self._vardict[varid]["val"])
     self._vardict[varid]["init"] = int(self._vardict[varid]["init"])
@@ -349,11 +349,11 @@ def var_iter(self, vartype=0):
             yield self.get_var(v)
 
 
-def var_new(self, varid=None, varname=None, vartype="int", value=None, initval=None) :
+def var_new(self, varname=None, varid=None, vartype="int", value=None, initval=None) :
     return self.var_add(varid=varid, varname=varname, vartype=vartype, value=value, initval=initval)
 
 
-def var_add(self, varid=None, varname=None, vartype="int", value=None, initval=None) :
+def var_add(self, varname=None, varid=None, vartype="int", value=None, initval=None) :
     """ Adds or replaces a var
 
             Named args:
@@ -366,7 +366,7 @@ def var_add(self, varid=None, varname=None, vartype="int", value=None, initval=N
     if varname is None :
         raise IsyValueError("varname : invalid var name")
 
-    if vartype == "integer" :
+    if vartype == "integer" or vartype == "int" :
         varpath = "/CONF/INTEGER.VAR"
         vtype = "1"
     elif vartype == "state" :
@@ -422,12 +422,15 @@ def var_add(self, varid=None, varname=None, vartype="int", value=None, initval=N
     ET.SubElement(var_et, "e", {'id': varid, 'name': varname})
 
     new_var_data = ET.tostring(var_et, method='html')
-    print "new_var_data=", new_var_data
+    if self.debug & 0x01 :
+	print "new_var_data=", new_var_data
 
     # This is stupid but method='html' lowercases closing tags
     # regardless of the opening tag case.
     new_var_data = new_var_data.replace("</clist>", "</CList>")
-    print "new_var_data=", new_var_data
+
+    if self.debug & 0x01 :
+	print "new_var_data=", new_var_data
 
     r = self._sendfile(data=new_var_data, filename=varpath, load="y")
 

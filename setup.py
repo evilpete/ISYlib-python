@@ -25,20 +25,23 @@ class install_scripts_and_symlinks(install_scripts):
 
 setup(
     name='ISYlib',
-    version='0.1.20150912c',
+    version='0.1.20160110',
     author='Peter Shipley',
     author_email='Peter.Shipley@gmail.com',
     packages=find_packages(),
     scripts=[ 'bin/isy_find.py', 'bin/isy_log.py', 'bin/isy_nestset.py',
 		'bin/isy_net_wol.py', 'bin/isy_progs.py',
-		'bin/isy_showevents.py', 'bin/isy_web.py' ],
-    data_files=[
+		'bin/isy_showevents.py', 'bin/isy_web.py',
+		'bin/isy_nodes.py', 'bin/isy_var.py'
+		],
+#    data_files=[
 #       ('examples', ['bin/isy_find.py', 'bin/isy_progs.py',
 #               'bin/isy_log.py', 'bin/isy_net_wol.py']),
-	('bin', ['bin/isy_nodes.py', 'bin/isy_var.py']) ],
+#	('bin', ['bin/isy_nodes.py', 'bin/isy_var.py'])
+#	],
     url='https://github.com/evilpete/ISYlib-python',
     license='BSD',
-    download_url='https://github.com/evilpete/ISYlib-python/archive/0.1.20150912.tar.gz',
+    download_url='https://github.com/evilpete/ISYlib-python/archive/0.1.20160110.tar.gz',
     description='Python API for the ISY home automation controller.',
     long_description=open('README.txt').read(),
     cmdclass = { 'install_scripts': install_scripts_and_symlinks }
