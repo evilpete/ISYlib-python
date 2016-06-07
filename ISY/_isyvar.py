@@ -37,8 +37,8 @@ def load_vars(self) :
     if not hasattr(self, '_vardict') or not isinstance(self._vardict, dict):
         self._vardict = dict()
 
-    if not hasattr(self, '_name2id') or not isinstance(self._name2id, dict):
-        self._name2id = dict()
+    # if not hasattr(self, '_name2id') or not isinstance(self._name2id, dict):
+    self._name2id = dict()
 
     self.name2var = dict()
     for t in ['1', '2'] :

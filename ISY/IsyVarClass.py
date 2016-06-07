@@ -62,8 +62,8 @@ class IsyVar(IsySubClass):
         """ sets var init value
         this can also be set via the property : init
         """
-        if new_value == self._mydict["init"] :
-            return
+#        if new_value == self._mydict["init"] :
+#            return
         self.isy._var_set_value(self._mydict['id'], new_value, "init")
 
     init = property(get_var_init, set_var_init)
@@ -82,8 +82,8 @@ class IsyVar(IsySubClass):
         """ sets var value
         this can also be set via the property : value
         """
-        if new_value == self._mydict["val"] :
-            return
+#        if new_value == self._mydict["val"] :
+#            return
         self.isy._var_set_value(self._mydict['id'], new_value)
     value = property(get_var_value, set_var_value)
 
