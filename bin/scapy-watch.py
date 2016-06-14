@@ -605,7 +605,7 @@ def parse_args():
     global log_dir
 
     parser = argparse.ArgumentParser(
-	epilog="optional ISY args: -a ISY_ADDR -u ISY_USER -p ISY_PASS"
+        epilog="optional ISY args: -a ISY_ADDR -u ISY_USER -p ISY_PASS"
     )
 
     parser.add_argument("--logdir", dest="logdir",
@@ -732,13 +732,13 @@ def validate_config(config_dat):
             mac = tp[1]
             a = re.split('-|:', mac)
             if len(a) != 6:
-		raise ValueError("invalid mac {}".format(mac))
-	    for ia in a:
-		if int(ia, 16) > 255:
-		    raise ValueError("invalid mac {}".format(mac))
+                raise ValueError("invalid mac {}".format(mac))
+            for ia in a:
+                if int(ia, 16) > 255:
+                    raise ValueError("invalid mac {}".format(mac))
 
             if sum(map(len, a)) != 12:
-		raise ValueError("invalid mac {}".format(mac))
+                raise ValueError("invalid mac {}".format(mac))
 
             # will raise exception if var does not exist
             myisy.get_var(tp[2])

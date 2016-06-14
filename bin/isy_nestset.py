@@ -14,7 +14,7 @@ try :
     import nest_thermostat as nest
 except ImportError as e:
     print "Package nest-thermostat required :", \
-	    "https://pypi.python.org/pypi/nest-thermostat"
+            "https://pypi.python.org/pypi/nest-thermostat"
     exit(1)
 
 #import nest

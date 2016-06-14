@@ -57,8 +57,8 @@ def et2d(et) :
     if et.attrib :
         for k, v in list(et.items()) :
             d[et.tag + "-" + k] = v
-	if et.text is not None:
-	    d[et.tag + "_val"] = et.text      
+        if et.text is not None:
+            d[et.tag + "_val"] = et.text      
     if children :
         for child in children :
             if child.tag in d :

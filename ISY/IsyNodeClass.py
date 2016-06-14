@@ -57,7 +57,7 @@ __all__ = ['IsyNode', 'IsyNodeFolder', 'IsyScene']
 class _IsyNodeBase(IsySubClass):
 
     def __init__(self, isy, ndict) :
-	self._dimable = self._is_dimable()
+        self._dimable = self._is_dimable()
 
     #_objtype = (0, "unknown")
     _objtype = "unknown"
@@ -88,10 +88,10 @@ class _IsyNodeBase(IsySubClass):
         if "property" in self._mydict :
             if "ST" in  self._mydict["property"] :
                 self._mydict["property"]["ST"]["value"] = val
-		if self._dimable:
-		    self._mydict["property"]["ST"]["formatted"] = "{:.0%}".format(val/255)
-		else:
-		    self._mydict["property"]["ST"]["formatted"] = "On"
+                if self._dimable:
+                    self._mydict["property"]["ST"]["formatted"] = "{:.0%}".format(val/255)
+                else:
+                    self._mydict["property"]["ST"]["formatted"] = "On"
 
         self.isy._node_send(self._mydict["address"], "cmd", cmd, val)
 
@@ -158,7 +158,7 @@ class _IsyNodeBase(IsySubClass):
         return False
 
     def is_dimable(self) :
-	return(self._dimable)
+        return(self._dimable)
     dimable = property(is_dimable)
 
 
@@ -283,7 +283,7 @@ class IsyNode(_IsyNodeBase):
             'parent', 'parent-type',
             'name', 'pnode', 'flag', 'wattage',
             'isLoad', 'location', 'description', 'spoken',
-	    'dimable'
+            'dimable'
             'OL', 'RR', 'ST', 'type']
     _setlist = ['RR', 'OL', 'status', 'ramprate', 'onlevel', 'enable', 'wattage']
     _propalias = {'status': 'ST', 'value': 'ST', 'val': 'ST',
@@ -297,7 +297,7 @@ class IsyNode(_IsyNodeBase):
         # self._objtype = (1, "node")
         self._objtype = "node"
 
-	self._dimable = self._is_dimable()
+        self._dimable = self._is_dimable()
 
         self._nodeprops = None
 

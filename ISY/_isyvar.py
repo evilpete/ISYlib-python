@@ -423,14 +423,14 @@ def var_add(self, varname=None, varid=None, vartype="int", value=None, initval=N
 
     new_var_data = ET.tostring(var_et, method='html')
     if self.debug & 0x01 :
-	print "new_var_data=", new_var_data
+        print "new_var_data=", new_var_data
 
     # This is stupid but method='html' lowercases closing tags
     # regardless of the opening tag case.
     new_var_data = new_var_data.replace("</clist>", "</CList>")
 
     if self.debug & 0x01 :
-	print "new_var_data=", new_var_data
+        print "new_var_data=", new_var_data
 
     r = self._sendfile(data=new_var_data, filename=varpath, load="y")
 
