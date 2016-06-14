@@ -41,7 +41,7 @@ code for clarity.
 
 
 
-This package provides the following classes :
+This package provides the following classes:
 
 
 
@@ -67,7 +67,7 @@ Internal classes
     - IsyUtil - base class for most ISY classes
     - IsySubClass - base class for sub Objects ( eg: Nodes, Scenes, Vars, Programs )
 
-Exception Classes :
+Exception Classes:
     IsyError
         IsyCommandError
         IsyNodeError
@@ -82,7 +82,7 @@ Exception Classes :
 """
 
 import sys
-if sys.hexversion < 0x2070100 :
+if sys.hexversion < 0x2070100:
     sys.stderr.write("You need python 2.7.1 or later to run this script (ver={:0X})\n".format(sys.hexversion))
 
 __revision__ = "$Id$"
