@@ -576,8 +576,7 @@ def _node_send(self, naddr, action, prop, *args) :
     # self._printXML(resp)
     if resp is None or resp.attrib["succeeded"] != 'true' :
         raise IsyResponseError(
-                "Node Cmd/Property Set error : node=%s prop=%s " %
-                naddr, prop )
+                "Node Cmd/Property Set error : node={!s:} prop={!s:} ".format( naddr, prop ))
 
 #def _node_set_prop(self, naddr, prop, val) :
 #    """ node_set_prop without argument validation """
@@ -871,8 +870,7 @@ def node_enable(self, naddr, enable=True) :
     # self._printXML(resp)
     if resp is None or resp.attrib["succeeded"] != 'true' :
         raise IsyResponseError(
-                "Node Cmd/Property Set error : node=%s resp=%s " %
-                naddr, resp )
+                "Node Cmd/Property Set error : node={!s:} resp={!s:} ".format( naddr, resp ))
 
 def node_set_powerinfo(self, naddr, deviceClass=None, wattage=None, dcPeriod=None )  :
     """
