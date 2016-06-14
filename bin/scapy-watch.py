@@ -3,93 +3,104 @@
     Proof of concept for monitoring network for setting home automation use
 
     not ready for prime time of any kind
+
+    Example Config file (JSON):
+
+    [
+      [ "", "74:75:48:7f:18:27", "is_paperwhite" ],
+      [ "", "58:55:ca:92:35:9d", "is_jasper_ipod" ],
+      [ "", "60:69:44:11:90:d5", "is_suzanne_ipad" ],
+#MotoX      [ "10.1.1.104", "60:be:b5:ad:28:2d", "is_home" ],
+      [ "10.1.1.105", "64:bc:0c:43:6b:a6", "is_home" ],
+      [ "10.1.1.131", "e4:58:b8:84:b4:f6", "is_deb_home" ],
+      [ "10.1.1.83", "a8:e3:ee:93:3d:c3", "is_ps3_on" ],
+      [ "10.1.1.93", "6c:ad:f8:18:1c:33", "is_tv_on" ],
+      [ "", "a4:77:33:58:d0:f6", "is_garage_tv_on" ]
+    ]
+
 """
 
+
+import select
+import sys
+import os
 import time
 import signal
 import traceback
+import re
 import argparse
+import json
+import logging
+from threading import Thread, current_thread
+
+# import scapy.all
+logging.getLogger("scapy.runtime").setLevel(logging.ERROR)
+from scapy.all import srp, sniff, conf, Ether, ARP, IP, Ether, Dot3, ICMP
+
 import ISY
 from ISY.IsyExceptionClass import IsySoapError
-import json
-
-import logging
-logging.getLogger("scapy.runtime").setLevel(logging.ERROR)
-from scapy.all import *
-
-from threading import Thread, current_thread
-import pprint
 
 __author__ = "Peter Shipley"
 
-verbose = 1
+verbose = 0
+delta = 1
 verbose_time = 0
 
 conf.verb = 0
 
 iface = "eth0" # eth0 em0
 
-conf_path="/WEB/CONF/scapyarp.jsn"
+isy_conf_path = "/WEB/CONF/scapyarp.jsn"
 
-target_conf = None
-old_target_conf= [
-    ("10.1.1.104", "60:be:b5:ad:28:2d", "is_home"),
-#old    ("10.1.1.77", "f8:f1:b6:22:a5:ab", "is_deb_home"),
-#new    ("10.1.1.131", "e4:58:b8:84:b4:f6", "is_deb_home"),
-    (None, "e4:58:b8:84:b4:f6", "is_deb_home"),
-    ("10.1.1.83", "a8:e3:ee:93:3d:c3", "is_ps3_on"),
-    ("10.1.1.93", "6c:ad:f8:18:1c:33", "is_tv_on"),
-    ]
+target_list = None
 
 myisy = None
 isy_var = None
 
-start_time =  float(time.time())
+start_time = float(time.time())
 
-time_away_default = 600
+time_away_default = 660
 time_away = None
 time_sleep = None
 time_recheck = None
 config_file = None
 upload_config = None
-validate_config = None
 
-#time_sleep = 60
-#time_recheck = 120
-#time_away = 300
+redirect_io = 0
+log_dir="/var/tmp"
+pid_dir="/var/tmp"
 
-redirect_io=1
-
-time_var_refresh = None # 960
-sniff_timeout = None # 360
+time_var_refresh = None
+sniff_timeout = None
 
 mac_targets = {}
 
 time_fmt = "%Y-%m-%d %H:%M:%S"
-event_thread  =  None
+event_thread = None
 
-class mtargets(object):
+class Mtargets(object):
     def __init__(self, mac=None, ip=None, var=None):
 
-	# Normalize MAC address
+        # Normalize MAC address
         self.mac = ":".join([i.zfill(2) for i in re.split('-|:', mac)]).lower()
 
         self.ip = ip
-	if len(self.ip) < 1:
-	    self.ip = None
+        if len(self.ip) < 1:
+            self.ip = None
 
         if isinstance(var, str):
             self.var = myisy.get_var(var)
         else:
             self.var = var
 
+        self.last_change = 0
         self.last_seen = 0
-        self.is_home = -1
+        self.is_active = -1
         self.set_var_time = 0
         if mac is None:
             self.mac = mac_from_ip(self.ip)
         if verbose:
-            print "mtargets init: mac={:<18} ip={:<15} var={:<12}".format(self.mac, self.ip, self.var.name)
+            print "Mtargets init: mac={:<18} ip={:<15} var={:<12}".format(self.mac, self.ip, self.var.name)
 
 
     def set_var(self, state):
@@ -97,42 +108,43 @@ class mtargets(object):
         time_now = time.time()
         strtm = time.strftime(time_fmt, time.localtime(time_now))
 
-        if self.is_home == state and (time_now - self.set_var_time) < (time_var_refresh / 2):
-            if verbose > 1:
-                print "{}\tset_var: {} pass val={} state={}\t{}\n".format(
-                strtm, current_thread().name, self.var.value, state, self.var.name),
-            sys.stdout.flush()
+        if self.is_active == state and (time_now - self.set_var_time) < (time_var_refresh / 2):
             return
 
-            if verbose > 1:
-                print "{}\tset_var: {} {:.2f} < {}\n".format(
-                    strtm, current_thread().name,
-                    (time_now - self.set_var_time), (time_var_refresh / 2)),
+        if verbose or (delta and self.is_active != state):
+            if self.is_active == -1:
+                self.last_seen = int(start_time)
+                self.last_change = int(start_time)
 
-        else:
-            if verbose > 1:
-                print "{}\tset_var: {} {:.2f} > {}\n".format(
-                    strtm, current_thread().name,
-                    (time_now - self.set_var_time), (time_var_refresh / 2)),
+            time_since = time_now - self.last_seen
+            time_change = time_now - self.last_change
 
-        sys.stdout.flush()
+            print "{}\t{} Last seen   {:<18} : {:3.2f} sec = {}".format(
+                    strtm, self.mac, self.var.name,
+                    time_since, format_sec(time_since))
 
-        if verbose:
+            print "{}\t{} Last change {:<18} : {:3.2f} sec = {}".format(
+                    strtm, self.mac, self.var.name,
+                    time_change, format_sec(time_change))
+
             print "{}\tset_var: {:<12} {}/{} -> {}: {}\n".format(
                 strtm, current_thread().name,
-                self.is_home, self.var.value, state, self.var.name),
-        #sys.stdout.flush()
+                self.is_active, self.var.value, state, self.var.name),
+            sys.stdout.flush()
 
+        if self.is_active != state:
+            self.last_change = int(time_now)
 
+        self.is_active = state
         try:
             self.var.value = state
         except Exception, x:
             if verbose:
                 print "var set value: ", x
+                raise
             return
-
         self.set_var_time = float(time_now)
-        self.is_home = state
+        sys.stdout.flush()
 
     def __repr__(self):
         return "<{} [{}] at 0x{:x}>" % (self.__class__.__name__, self.mac, id(self))
@@ -147,10 +159,10 @@ class mtargets(object):
 #
 
 
-# pcap_filter="arp and ether src 60:be:b5:ad:28:2d"
+# pcap_filter = "arp and ether src 60:be:b5:ad:28:2d"
 # print time.asctime(time.localtime())
 
-def Exit_gracefully(cursignal, frame):
+def sig_exit_gracefully(cursignal, frame):
     """
         Signal handler for clean exits
     """
@@ -165,47 +177,45 @@ def Exit_gracefully(cursignal, frame):
     sys.stderr.flush()
     sys.exit(0)
 
-def refresh_var():
-    global mac_targets
+def sig_ignore(cursignal, frame):
+    """
+        ignore signal
+    """
+    print "Ignoring signal :", cursignal, frame
+    return
+
+def refresh_var_all():
+    """
+        loops though used vars and refeshes ISYlib cache
+        since ISY object was stared without eventupdates for efficency
+    """
 
     strtm = time.strftime(time_fmt, time.localtime())
-    time_now = time.time() # int(time.time())
 
+    time_now = time.time() # int(time.time())
     if verbose:
-        print strtm, "\trefresh_var", current_thread().name, "pid=", os.getppid()
+        print strtm, "\trefresh_var_all", current_thread().name, "pid=", os.getppid()
+
+    myisy.load_vars()
 
     for c in mac_targets.values():
+        if c.var.value != c.is_active:
 
+            if verbose or delta:
+                print strtm, "\t>>>>Assert", " is_active = ", c.is_active, "isy_var.value =", c.var.value, c.var.name
 
-        if (time_now - c.set_var_time) >= time_var_refresh:
+        c.var.value = c.is_active
+        # c.var.set_var(c.is_active)
+        c.set_var_time = time_now
 
-            if c.is_home == -1:
-                continue
-
-            if verbose:
-                print "{}\trefresh_var: mac={:<18} ip={:<10} var={:<8} = {:<2} is_home={:<2}".format(
-                    strtm, c.mac, c.ip, c.var.name, c.var.value, c.is_home)
-            try:
-                c.var.refresh()
-            except Exception, x:
-                print "var.refresh: ", x
-                continue
-
-	    if verbose:
-		if c.var.value != c.is_home:
-                    print strtm, "\n>>>>Assert", " is_home = ", c.is_home, "isy_var.value =", c.var.value, "\n"
-		    sys.stdout.flush()
-
-	    c.var.value == c.is_home
-	    c.set_var_time = time_now
-	    # c.set_var(c.is_home)
+    sys.stdout.flush()
 
 
 def mac_from_ip(ip):
     t_mac = None
-    ans, unans = icmp_ping(ip)
+    ans, _ = icmp_ping(ip)
     if ans:
-        (so, resp) = ans[0]
+        (_, resp) = ans[0]
         t_mac = resp[Ether].src
         if verbose:
             print "mac_from_ip {0} -> {1}".format(ip, t_mac)
@@ -222,18 +232,15 @@ def pcap_callback(pkt):
     if ARP in pkt and pkt[ARP].op in (1, 2): #who-has or is-at
         eaddr = pkt[ARP].hwsrc
         ipaddr = pkt[ARP].psrc
-#        if target_ip is None:
-#            target_ip = pkt[ARP].pdst
-#            if verbose:
-#                print "arp_mon set target_ip = ", target_ip
+
         try:
-            pktinfo =  pkt.sprintf("{0}\tARP %ARP.hwsrc% %ARP.psrc% %ARP.op% %ARP.pdst%".format(t))
+            pktinfo = pkt.sprintf("{0}\tARP %ARP.hwsrc% %ARP.psrc% %ARP.op% %ARP.pdst%".format(t))
         except Exception, x:
             print "Scapy_Exception ARP : ", x
             pktinfo = None
 
 
-#    elif TCP in pkt:
+# #    elif TCP in pkt:
 #        eaddr = pkt[Ether].src
 #        pktinfo = pkt.sprintf("{0}\tTCP %Ether.src% %Ether.dst% %IP.src%:%TCP.sport% %IP.dst%:%TCP.dport%".format(t))
 
@@ -284,33 +291,42 @@ def pcap_callback(pkt):
         # print t, "\tmac_{0}".format(eaddr), mac_targets[eaddr].ip
         ti = int(time.time())
         prev_seen = mac_targets[eaddr].last_seen
-        mac_targets[eaddr].last_seen = ti
         time_since = ti - prev_seen
 
-	# update IP address ( if needed )
-	if ipaddr is not None and ipaddr != "0.0.0.0" :
-	    if mac_targets[eaddr].ip is None:
-		mac_targets[eaddr].ip = ipaddr
-		if verbose:
-		    print  t, "\tset_ipaddr\t{} to {}\t{}".format(mac_targets[eaddr].mac, mac_targets[eaddr].ip, mac_targets[eaddr].var.name)
-	    elif mac_targets[eaddr].ip != mac_targets[eaddr].ip:
-		if verbose:
-		    print  t, "\tset_ipaddr\t{} changed {} -> {}\t{}".format(
-			mac_targets[eaddr].mac, mac_targets[eaddr].ip, ipaddr, mac_targets[eaddr].var.name)
-		mac_targets[eaddr].ip = ipaddr
+        # update IP address ( if needed )
+        #if ipaddr is not None and ipaddr != "0.0.0.0":
+        if ipaddr not in [ None, "0.0.0.0", "255.255.255.255" ]:
+            if mac_targets[eaddr].ip is None:
+                mac_targets[eaddr].ip = ipaddr
+                if verbose:
+                    print t, "\t A", pkt.summary()
+                    # print t, pkt
+
+                    print t, "\tset_ipaddr\t{} to {}\t{}".format(
+                        mac_targets[eaddr].mac, mac_targets[eaddr].ip,
+                        mac_targets[eaddr].var.name)
+            elif mac_targets[eaddr].ip != mac_targets[eaddr].ip:
+                if verbose:
+                    print t, "\t B", pkt.summary()
+                    print t, "\tSet_ipaddr\t{} changed {} -> {}\t{}".format(
+                        mac_targets[eaddr].mac, mac_targets[eaddr].ip,
+                        ipaddr, mac_targets[eaddr].var.name)
+                mac_targets[eaddr].ip = ipaddr
 
 
         # dont react to *every* packet in a row
-        if  (time_since > (time_recheck / 3)) or (mac_targets[eaddr].is_home < 1):
+        if (time_since > (time_recheck / 3)) or (mac_targets[eaddr].is_active < 1):
             # print time.strftime(time_fmt, time.localtime()), t, pkt.time, (pkt.time - t)
+            if verbose and mac_targets[eaddr].is_active < 1:
+                print t, "\t +", pkt.summary()
             mac_targets[eaddr].set_var(1)
         else:
-            if verbose > 1:
-                print  "{}\tpcap_callback: time_since={} > {}".format(t, time_since, (time_recheck / 10))
-                print  "{}\tpcap_callback: time_since = {} = {} - {}".format(t, time_since,
+            if verbose > 2:
+                print "{}\tpcap_callback: time_since={} > {}".format(t, time_since, (time_recheck / 10))
+                print "{}\tpcap_callback: time_since = {} = {} - {}".format(t, time_since,
                     prev_seen, ti)
 
-
+        mac_targets[eaddr].last_seen = ti
     sys.stdout.flush()
 
     if verbose > 3:
@@ -332,52 +348,60 @@ def icmp_ping(ip, mac=None):
     if verbose:
         print "icmp_ping: ", ip, " ans = ", len(ans), ", unans = ", len(unans)
         sys.stdout.flush()
-#    if target_mac is None and ans:
-#        (so, re) = ans[0]
-#        target_mac = re[Ether].src
-#        if verbose:
-#            print "icmp_ping set target_mac = ", target_mac
     return ans, unans
+
+def format_sec(total_seconds):
+    m, s = divmod(total_seconds, 60)
+    h, m = divmod(int(m), 60)
+    return "{:d}:{:02d}:{:.2f}".format(h, m, s)
 
 def arp_ping(ip):
     if ip is None:
         return (None, None)
     ans, unans = srp(Ether(dst="ff:ff:ff:ff:ff:ff")/ARP(pdst=ip),
-              timeout=2, retry=2)
-    if verbose > 1:
+                     timeout=1.5, retry=2)
+    if verbose & 0x02:
         print "arp_ping: ", ip, " ans = ", len(ans), ", unans = ", len(unans)
         sys.stdout.flush()
-#    if target_mac is None and ans:
-#        (so, re) = ans[0]
-#        target_mac = re[Ether].src
-#        if verbose:
-#            print "arp_ping set target_mac = ", target_mac
     return (ans, unans)
 
 #
 # Send arp and/or pings if we have not heard from the target recently
 #
 def ping_loop():
-    global mac_targets
+    """
+        init stage:
+            loops though mac_targets and try to arp ping each one
+
+        loop stage:
+            sleep for a while
+
+            loop though mac_targets and try to arp ping each one we have not seen in a while
+
+            check for timeout on non-responsive targets and set their state to 0
+
+    """
 
     if verbose:
         print time.strftime(time_fmt, time.localtime()), "\tping_loop init", current_thread().name
 
     for c in mac_targets.values():
 
-	if c.ip is None:
-	    #icmp_a, icmp_u = icmp_ping("255.255.255.255", c.mac)
-	    continue
+        if c.ip is None:
+            #icmp_a, icmp_u = icmp_ping("255.255.255.255", c.mac)
+            continue
 
-        icmp_a=None
+        icmp_a = None
 
         # icmp_a, icmp_u = icmp_ping(c.ip)
-	arp_a, arp_u = arp_ping(c.ip)
+        arp_a, _ = arp_ping(c.ip)
         # arping(c.ip)
 
         if arp_a or icmp_a:
             c.set_var(1)
             c.last_seen = int(time.time())
+            # print time.strftime(time_fmt, time.localtime()), "PRE",
+            # arp_a.summary()
 
     if verbose:
         print time.strftime(time_fmt, time.localtime()), "\tping_loop start"
@@ -402,24 +426,28 @@ def ping_loop():
             strtm = time.strftime(time_fmt, time.localtime())
 
             if time_since >= time_recheck:
-
-                if verbose > 2:
+                if verbose & 0x02:
                     print strtm, "\tping_loop: {} time_since >= time_recheck".format(c.mac), c.var.name
                     # print "arp_pinging"
 
-		if c.ip is not None:
-		    a, u = arp_ping(c.ip)
+                if c.ip is not None:
+                    a, u = arp_ping(c.ip)
 
-		    #if len(a) < 1:
-		    #    a, u = icmp_ping(c.ip, c.mac)
+                    #if len(a) < 1:
+                    #    a, u = icmp_ping(c.ip, c.mac)
 
-		    if len(a):
-			c.set_var(1)
-			c.last_seen = int(time.time())
-			if verbose:
-			    print strtm, "\tcontinue seen", c.mac, c.var.name
-			    # last_seen, time.strftime(time_fmt, time.localtime(c.last_seen)), c.var.name
-			continue
+                    if len(a):
+                        if verbose: # or (delta and c.var.value < 1):
+                            print strtm, "\tseen", c.mac, c.var.name, \
+                                "time_since = {:3.2f} sec = {}".format(
+                                    time_since,
+                                    format_sec(time_since))
+                            print strtm, "\t",
+                            a.summary()
+                            # last_seen, time.strftime(time_fmt, time.localtime(c.last_seen)), c.var.name
+                        c.set_var(1)
+                        c.last_seen = int(time.time())
+                        continue
 
                 # wait to see if sniffer sees it
                 # time.sleep(5)
@@ -431,58 +459,60 @@ def ping_loop():
                     #print "{}\tping_loop: time_since >= time_away, last_seen = {}".format(
                     #    strtm,
                     #    time.strftime(time_fmt, time.localtime(c.last_seen)))
-		    print "\t", c.mac, c.ip, c.var.name
+                    print "\t", c.mac, c.ip, c.var.name
 
-                if verbose and c.is_home == 1:
-                    print "{}\tping_loop: time_since = {:.2f} sec = {:.2f} min {:.2f} sec".format(
+                if delta and c.is_active == 1:
+                    print "{}\t{}  ping_loop: time_since = {:3.2f} sec = {}".format(
                         strtm,
+                        c.mac,
                         time_since,
-                        *divmod(time_since, 60))
+                        format_sec(time_since))
 
-		# set inital last_seen to start file of prog
-		if c.is_home == -1 :
-		    c.last_seen = int(start_time)
+                # set inital last_seen to start file of prog
+                if c.is_active == -1:
+                    c.last_seen = int(start_time)
 
-		# dont set var for *every* timeout in a row, unless needed
-		if c.is_home or (time_now - c.set_var_time) > (time_away * 2):
-		    c.set_var(0)
-		else:
-		    print "\tpass", c.var.name
+                # dont set var for *every* timeout in a row, unless needed
+                if c.is_active or (time_now - c.set_var_time) > (time_away * 2):
+                    c.set_var(0)
+                else:
+                    if verbose:
+                        print "\tpass", c.var.name, c.var.value
 
 
 def do_it():
     global event_thread
-    global myisy
-    global target_conf
-    global time_var_refresh
     global verbose_time
 
-    for tp in target_conf:
+    print "starting"
+
+    # loop through config, skipping errors if possible
+    for tp in target_list:
         # print "tp=", tp
 
-	try:
-	    isy_v = myisy.get_var(tp[2])
-	except Exception, x:
-	    print >> sys.stderr, "Bad ISY var:", tp, x
-	    continue
+        try:
+            isy_v = myisy.get_var(tp[2])
+        except Exception, x:
+            print >> sys.stderr, "Bad ISY var:", tp, x
+            continue
 
-	# check that macaddr is given
+        # check that macaddr is given
         if tp[1] is not None:
-	    try :
-		mac_targets[tp[1]] = mtargets(mac=tp[1], ip=tp[0], var=isy_v)
-	    except Exception, x:
-		print >> sys.stderr, "Bad target:", tp, isy_v, x
+            try:
+                mac_targets[tp[1]] = Mtargets(mac=tp[1], ip=tp[0], var=isy_v)
+            except Exception, x:
+                print >> sys.stderr, "Bad target:", tp, isy_v, x
 
         else:
-	    try :
-		mt = mtargets(mac=tp[1], ip=tp[0], var=isy_v)
-		if mt.mac is not None :
-		    mac_targets[mt.mac] = mt
-		else :
-		    print >> sys.stderr, "unknown mac :", tp, isy_v
-		    del(mt)
-	    except Exception, x:
-		print >> sys.stderr, "Bad target (mac):", tp, isy_v, x
+            try:
+                mt = Mtargets(mac=tp[1], ip=tp[0], var=isy_v)
+                if mt.mac is not None:
+                    mac_targets[mt.mac] = mt
+                else:
+                    print >> sys.stderr, "unknown mac :", tp, isy_v
+                    del mt
+            except Exception, x:
+                print >> sys.stderr, "Bad target (mac):", tp, isy_v, x
 
 
     if verbose:
@@ -492,17 +522,6 @@ def do_it():
             print "isy_var = {:<4}: {:<19}{:<5}\t{:<5}\t{:}".format(
                 c.var.id, c.var.name, c.var.value, c.var.init, c.var.ts)
 
-    signal.signal(signal.SIGINT, Exit_gracefully)
-    signal.signal(signal.SIGHUP, Exit_gracefully)
-    signal.signal(signal.SIGTERM, Exit_gracefully)
-
-    # assert(target_mac is not None)
-
-    pcap_filter = "ether src {0}".format(" or ".join(mac_targets.keys()))
-
-    if verbose:
-        print "pcap_filter=", pcap_filter
-
 
     event_thread = Thread(target=ping_loop, name="ping_looper")
     event_thread.daemon = True
@@ -511,17 +530,34 @@ def do_it():
         print time.strftime(time_fmt, time.localtime()), "\tdo_it() event_thread:", event_thread.name, current_thread().name
         # print time.strftime(time_fmt, time.localtime()), "\t", current_thread().name, "sniff loop"
 
-        print time.strftime(time_fmt, time.localtime()), "pre sleep"
+        print time.strftime(time_fmt, time.localtime()), "pre sleep", current_thread().name
 
-    time.sleep(15)
+    time.sleep(2 * len(mac_targets))
 
     if verbose:
-        print time.strftime(time_fmt, time.localtime()), "post sleep"
+        print time.strftime(time_fmt, time.localtime()), "post sleep", current_thread().name
+
+    sys.stdout.flush()
 
 
-    while(True):
+#def sniff_loop():
+
+    verbose_time = int(time.time()) + (time_var_refresh * 4)
+
+    pcap_filter = "ether src {0}".format(" or ".join(mac_targets.keys()))
+
+    if verbose:
+        print "pcap_filter=", pcap_filter
+
+
+    while True:
         # tcpdump -i em0 -v -v ether src 60:be:b5:ad:28:2d
-        sniff(prn=pcap_callback, iface=iface, filter=pcap_filter, store=0, timeout=sniff_timeout)
+        try:
+            sniff(prn=pcap_callback, iface=iface, filter=pcap_filter, store=0, timeout=sniff_timeout)
+        except select.error, se:
+            #print "scapy sniff : select.error", se
+            continue
+
         # time_now = int(time.time())
 
         if verbose:
@@ -531,28 +567,31 @@ def do_it():
             print time.strftime(time_fmt, time.localtime()), "\tdaemon thread died", event_thread
             break
 
-	if verbose:
-	    if verbose_time < int(time.time()):
-		verbose_time = int(time.time()) + ( time_var_refresh * 4 )
-		for c in mac_targets.values():
-		    # print "c=", c
-		    print time.strftime(time_fmt, time.localtime()), "\tmac={:<18} ip={:<15} var={:<12} {} = {}".format(c.mac, c.ip, c.var.name, c.var.value, c.is_home)
+        if verbose or delta:
+            if verbose_time < int(time.time()):
+                verbose_time = int(time.time()) + (time_var_refresh * 4)
+                print_status_all()
 
-        refresh_var()
+        refresh_var_all()
 
         sys.stdout.flush()
 
-#target_ip = None #target_conf[0][0]
-#target_mac = None #target_conf[0][1]
-#target_var = None #target_conf[0][2]
+def sig_print_status(cursignal, frame):
+    # print "cursignal=", cursignal, frame
+    print_status_all()
+
+def print_status_all():
+    # print "Start Time:", time.strftime(time_fmt, time.localtime(start_time))
+    for c in mac_targets.values():
+        print time.strftime(time_fmt, time.localtime()), \
+                "\t{:<18} {:<10} {:<16} {} = {}\t{}".format(
+                    c.mac, c.ip, c.var.name, c.var.value, c.is_active,
+                time.strftime("%H:%M:%S %Y%m%d", time.localtime(c.last_seen)))
+    sys.stdout.flush()
+    return 0
 
 def parse_args():
-#    global target_mac
-#    global target_ip
-#    global target_var
     global iface
-    global upload_conf
-    global validate_config
 
     global time_sleep
     global time_recheck
@@ -563,8 +602,14 @@ def parse_args():
     global redirect_io
     global config_file
     global upload_config
+    global log_dir
 
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(
+	epilog="optional ISY args: -a ISY_ADDR -u ISY_USER -p ISY_PASS"
+    )
+
+    parser.add_argument("--logdir", dest="logdir",
+                        help="Path to log directory")
 
     parser.add_argument("-c", "--config", dest="config",
                         help="load config from file")
@@ -594,34 +639,16 @@ def parse_args():
                         type=int,
                         help="ISY var refresh time")
 
-#    parser.add_argument("-m", "--mac", dest="target_mac",
-#                        default="60:be:b5:ad:28:2d",
-#                        help="Target Mac")
-#
-#    parser.add_argument("-a", "--addr", dest="target_ip",
-#                        default="10.1.1.104",
-#                        help="Target IP Addr")
-#
-#    parser.add_argument("-v", "--var", dest="target_var",
-#                        default=-1,
-#                        help="Target ISY Var")
-#
 
     parser.add_argument("-i", "--interface", dest="iface",
                         default=None,
                         help="Network Interface")
 
-    args, unknown_args = parser.parse_known_args()
+    args, _ = parser.parse_known_args()
 
 
-#    if args.target_ip:
-#        target_ip = args.target_ip
-#
-#    if args.target_mac:
-#        target_mac = args.target_mac
-#
-#    if args.target_var:
-#        target_var = args.target_var
+    if args.logdir:
+        log_dir = args.logdir
 
     if args.upload_config:
         upload_config = args.upload_config
@@ -660,147 +687,203 @@ def parse_args():
         time_away = time_away_default
 
     if time_sleep is None:
-        time_sleep = int(time_away/4)
+        time_sleep = int(time_away/3)
 
     if time_recheck is None:
-        time_recheck = int(time_away/3)
+        time_recheck = int(time_away/2) - 30
 
     if time_var_refresh is None:
-        time_var_refresh = int(time_away + time_sleep) * 2
+        time_var_refresh = int(time_away * 3) + 10
 
     if sniff_timeout is None:
         sniff_timeout = int(time_var_refresh / 2) + 10
 
     # redirect_io=1
 
+def normalize_mac(eaddr):
+    a = re.split('-|:', eaddr)
+    if len(a) != 6:
+        raise ValueError("invalid mac")
+#    if sum(map(len, a)) != 12:
+#       raise ValueError("invalid mac")
+    mac = ":".join([i.zfill(2) for i in a]).lower()
+
 def validate_config(config_dat):
+    import socket
 
     if config_dat is None:
-	raise ValueError("config_data is None")
+        raise ValueError("config_data is None")
 
-    if type(config_dat) is str:
-	try :
-	    dat = json.loads(conf_data)
-	except Exception, x:
-	    raise ValueError( str(x) )
-    elif type(config_dat) is list:
-	dat = config_dat
+    if isinstance(config_dat, str):
+        try:
+            dat = json.loads(conf_data)
+        except Exception, x:
+            print "json.loads"
+            raise ValueError(str(x))
+    elif isinstance(config_dat, list):
+        dat = config_dat
 
     for tp in dat:
-	try:
-	    ip = tp[0]
-	    if ip is not None and len(ip) > 0:
-		socket.inet_aton(ip)
+        try:
+            ip = tp[0]
+            if ip is not None and len(ip) > 0:
+                socket.inet_aton(ip)
 
-	    mac = tp[1]
-	    a  = re.split('-|:', mac)
-	    if len(a) != 6 :
-		raise ValueError( "invalid mac" )
-	    if sum(map(len, a)) != 12 :
-		raise ValueError( "invalid mac" )
+            mac = tp[1]
+            a = re.split('-|:', mac)
+            if len(a) != 6:
+		raise ValueError("invalid mac {}".format(mac))
+	    for ia in a:
+		if int(ia, 16) > 255:
+		    raise ValueError("invalid mac {}".format(mac))
 
+            if sum(map(len, a)) != 12:
+		raise ValueError("invalid mac {}".format(mac))
 
-	    isy_v = myisy.get_var(tp[2])
+            # will raise exception if var does not exist
+            myisy.get_var(tp[2])
 
-#	except socket.error, x:
-#	    raise ValueError( x + "\n" + str(tp) )
-	except Exception, x:
-	    raise ValueError( str(x) + "\n" + str(tp) )
+#       except socket.error, x:
+#           raise ValueError(x + "\n" + str(tp))
+        except Exception, x:
+            raise ValueError(str(x) + "\n" + str(tp))
 
     return True
 
-def upload_conf(config_file):
+def upload_conf(conf_file, isy_path):
     """
-	    reads config file
-	    validates data
-	    uploads to ISY
+            reads config file
+            validates data
+            uploads to ISY
     """
 
     conf_data = None
-    print "Config file = {}".format(config_file)
-    with open(config_file) as confd:
-	try :
-	    conf_data = confd.read()
-	    target_conf = json.loads(conf_data)
-	except Exception, x:
-	    print "json error: ", x
-	    print conf_data
-	    exit(1)
+    print "Config file = {}".format(conf_file)
+    with open(conf_file) as confd:
+        try:
+            conf_data = confd.read()
+            target_data = json.loads(conf_data)
+        except Exception, x:
+            print "json error: ", x
+            print conf_data
+            exit(1)
 
-    try :
-	validate_config(target_conf) 
+    try:
+        validate_config(target_data)
     except Exception, x:
-	print "Config Error"
-	print x
-	exit(1)
-    else :
-	if verbose :
-	    print "Config Valid"
+        print "Config Error"
+        print x
+        exit(1)
+    else:
+        if verbose:
+            print "Config Valid"
 
-    try :
-	r = myisy._sendfile(data=conf_data, filename=conf_path)
-    except IsySoapError, se :
-	if se.code() == 403 :
-	    print "Error uploading {0} : Forbidden ( code=403 )".format(z.filename)
+    try:
+        myisy._sendfile(data=conf_data, filename=isy_path)
+    except IsySoapError, se:
+        if se.code() == 403:
+            print "Error uploading {0} : Forbidden ( code=403 )".format(isy_path)
 
-	raise
+        raise
 
-    else :
-	print "Uploaded filename:", conf_path
-	print "Uploaded data:\n", conf_data
+    else:
+        print "Uploaded filename:", isy_path
+        print "Uploaded data:\n", conf_data
 
 
 def init():
-    global target_conf
-    global validate_config
+    global target_list
+    global config_file
+
+    signal.signal(signal.SIGINT, sig_exit_gracefully)
+    signal.signal(signal.SIGTERM, sig_exit_gracefully)
+    signal.signal(signal.SIGUSR1, sig_print_status)
+
+    if redirect_io:
+
+        logpath = log_dir + "/is_home_stdout"
+        if os.path.isfile(logpath):
+            os.rename(logpath, logpath + '-prev')
+#        sys.stdout = open(logpath, 'w+', 0)
+        mewout = os.open(logpath, os.O_WRONLY|os.O_CREAT, 0644)
+        sys.stdout.flush()
+        os.dup2(mewout, 1)
+        os.close(mewout)
+        # sys.stdout = os.fdopen(1, 'w')
+
+        logpath = log_dir + "/is_home_stderr"
+        if os.path.isfile(logpath):
+            os.rename(logpath, logpath + '-prev')
+#        sys.stderr = open(logpath, 'w+', 0)
+        mewerr = os.open(logpath, os.O_WRONLY|os.O_CREAT, 0644)
+        sys.stderr.flush()
+        os.dup2(mewerr, 2)
+        os.close(mewerr)
+        # sys.stderr = os.fdopen(2, 'w')
+
+#        sys.stdin = open('/dev/null', 'r')
+        devnull = os.open('/dev/null', os.O_RDONLY)
+        os.dup2(devnull, 0)
+        os.close(devnull)
+
+        logpath = pid_dir + "/scapy-watch.pid"
+        with open(logpath, 'w', 0644) as f:
+            f.write("{}\n".format(os.getpid()))
 
 
-    if redirect_io or not sys.stdout.isatty() :
-        if os.path.isfile('/var/tmp/is_home_stdout'):
-            os.rename('/var/tmp/is_home_stdout', '/var/tmp/is_home_stdout-prev')
-        sys.stdout = open('/var/tmp/is_home_stdout', 'w+', 0)
-        if os.path.isfile('/var/tmp/is_home_stderr'):
-            os.rename('/var/tmp/is_home_stderr', '/var/tmp/is_home_stderr-prev')
-        sys.stderr = open('/var/tmp/is_home_stderr', 'w+', 0)
+#       try:
+#           os.setpgrp()
+#        except Exception, x:
+#           print "Error: os.setpgrp(): {}".format(str(x))
+
+
+        # signal.signal(signal.SIGHUP, sig_ignore)
+        signal.signal(signal.SIGHUP, signal.SIG_IGN)
 
     if verbose:
-        print "Starting: {}\tpid={}".format(time.strftime(time_fmt, time.localtime()), os.getppid())
+        print "Starting: {}\tpid={}".format(time.strftime(time_fmt, time.localtime()), os.getpid())
         print "time_sleep=\t{:>2}:{:0<2}".format( *divmod(time_sleep, 60))
         print "time_recheck=\t{:>2}:{:0<2}".format( *divmod(time_recheck, 60))
         print "time_away=\t{:>2}:{:0<2}".format( *divmod(time_away, 60))
         print "var_refresh=\t{:>2}:{:0<2}".format( *divmod(time_var_refresh, 60))
         print "sniff_timeout=\t{:>2}:{:0<2}".format( *divmod(sniff_timeout, 60))
         print "config_file", config_file
+        sys.stdout.flush()
 
 
-
-    try :
-	if config_file is not None :
-	    print "Config file = {}".format(config_file)
-	    with open(config_file) as confd:
-		conf_data = confd.read()
-	else :
-	    conf_data = myisy.soapcomm("GetSysConf", name=conf_path)
-	    if verbose :
-		print "Downloaded config_file:", conf_path
+    #
+    # if specified:
+    #    read config file from command args
+    # else
+    #    read from ISY device
+    #
+    try:
+        if config_file is not None:
+            print "Config file = {}".format(config_file)
+            with open(config_file) as confd:
+                conf_data = confd.read()
+        else:
+            conf_data = myisy.soapcomm("GetSysConf", name=isy_conf_path)
+            if verbose:
+                print "Downloaded config_file:", isy_conf_path
     except ValueError, ve:
-	print "Load Error :", ve
-	print conf_data
-	raise
+        print "Load Error :", ve
+        print conf_data
+        raise
     except IsySoapError, se:
-	if conf_path.startswith('/WEB/CONF/'):
-	    print "Downloaded dat:", conf_data
-	    print "Config file not found of ISY: path={}".format(conf_path)
-	    print "Not IsySoapError :", se
-	    raise
-	else:
-	    print "IsySoapError :", se
-	    raise
+        if isy_conf_path.startswith('/WEB/CONF/'):
+            print "Downloaded dat:", conf_data
+            print "Config file not found of ISY: path={}".format(isy_conf_path)
+            print "Not IsySoapError :", se
+            raise
+        else:
+            print "IsySoapError :", se
+            raise
 
     if verbose:
-	print conf_data
+        print conf_data
 
-    target_conf = json.loads(conf_data)
+    target_list = json.loads(conf_data)
 
     return
 
@@ -809,16 +892,15 @@ if __name__ == '__main__':
 
     parse_args()
 
-    myisy = ISY.Isy(parsearg=1, faststart=1) # debug=0x80
+    myisy = ISY.Isy(parsearg=1, faststart=1) # debug=0x223)
 
     if upload_config is not None:
-	upload_conf(config_file)
-	exit(0)
-
+        upload_conf(config_file, isy_conf_path)
+        exit(0)
 
     init()
 
-    #conf.verb = verbose
     do_it()
+
     exit(0)
 
