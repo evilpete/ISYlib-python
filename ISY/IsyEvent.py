@@ -262,16 +262,18 @@ class ISYEvent(object) :
                     if type(d[child.tag]) != list :
                         t = d[child.tag]
                         d[child.tag] = [t]
-                if list(child) or child.attrib :
+				if list(child) :
                     if child.tag in d :
                         d[child.tag].append(self.et2d(child))
                     else :
                         d[child.tag] = self.et2d(child)
-                else :
+				if child.text :
                     if child.tag in d :
                         d[child.tag].append(child.text)
                     else :
                         d[child.tag] = child.text
+				else :
+					d[child.tag] = ""
         return d
 
 
