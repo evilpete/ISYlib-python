@@ -398,7 +398,7 @@ def load_fauxmos(myisy=None, fport=None):
 
     conf = None
     r = None
-    try :
+    try:
         js = myisy.soapcomm("GetSysConf", name="/WEB/CONF/fauxmo.jsn")
         # print "r=",r
     except Exception, e:
@@ -420,14 +420,14 @@ def load_fauxmos(myisy=None, fport=None):
         #    "garage"     : "20326",
         # }
 
-        if "isydevs" in conf :
+        if "isydevs" in conf:
             isydevs = conf['isydevs']
-            for k in sorted(isydevs.keys()) :
+            for k in sorted(isydevs.keys()):
                 try:
                     nod = myisy[k]
                 except Exception, e:
                     pass
-                else :
+                else:
                     l = [ k, nod ]
 
                     if fport is not None:
@@ -446,16 +446,16 @@ def load_fauxmos(myisy=None, fport=None):
         #
         # the following is incomplete
         #
-        if isyprog in conf :
+        if isyprog in conf:
             isyprog = conf['isyprog']
-            for k in sorted(isyprog.keys()) :
+            for k in sorted(isyprog.keys()):
                 try:
                     prg = myisy.get_prog(k)
                 except Exception, e:
                     pass
-                else :
+                else:
                     l = [ k, prg ]
-                    if fport is not None :
+                    if fport is not None:
                         l.append(fport)
                         fport = fport + 1
                     ret_list.append( l )
@@ -496,7 +496,7 @@ def main(myisy):
         DEBUG = True
 
     bfm = load_fauxmos(myisy)
-    if bfm is None :
+    if bfm is None:
         print "building device list from ISY"
         bfm = build_fauxmos(myisy, base_port)
 

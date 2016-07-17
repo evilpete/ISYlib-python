@@ -10,10 +10,10 @@ from xml.etree.ElementTree import  iselement
 from ISY.IsyExceptionClass import IsyPropertyError, IsyValueError, IsySoapError
 # import base64
 import sys
-if sys.hexversion < 0x3000000 :
+if sys.hexversion < 0x3000000:
     import urllib2 as URL
     from urllib2 import URLError, HTTPError
-else :
+else:
     import urllib as URL
 # import re
 from pprint import pprint
@@ -23,17 +23,17 @@ __all__ = ['format_node_addr']
 
 
 
-def val2bool(en) :
-    if isinstance(en, str) :
+def val2bool(en):
+    if isinstance(en, str):
         rval = (str(en).strip().lower() in ("yes", "y", "true", "t", "1"))
-    else :  # if isinstance(en, (long, int, float)) :
+    else:  # if isinstance(en, (long, int, float)):
         # Punt
         rval = bool(en)
     return(rval)
 
 
 
-def et2d(et) :
+def et2d(et):
     """ Etree to Dict
 
         converts an ETree to a Dict Tree
@@ -51,35 +51,35 @@ def et2d(et) :
         returns: a dict obj
     """
     d = dict()
-    if not isinstance(et, ET.Element) :
+    if not isinstance(et, ET.Element):
         return d
     children = list(et)
-    if et.attrib :
-        for k, v in list(et.items()) :
+    if et.attrib:
+        for k, v in list(et.items()):
             d[et.tag + "-" + k] = v
         if et.text is not None:
             d[et.tag + "_val"] = et.text      
-    if children :
-        for child in children :
-            if child.tag in d :
-                if type(d[child.tag]) != list :
+    if children:
+        for child in children:
+            if child.tag in d:
+                if type(d[child.tag]) != list:
                     t = d[child.tag]
                     d[child.tag] = [t]
-            if list(child) or child.attrib :
-                if child.tag in d :
+            if list(child) or child.attrib:
+                if child.tag in d:
                     d[child.tag].append(et2d(child))
-                else :
+                else:
                     d[child.tag] = et2d(child)
-            else :
-                if child.tag in d :
+            else:
+                if child.tag in d:
                     d[child.tag].append(child.text)
-                else :
+                else:
                     d[child.tag] = child.text
     return d
 
 
-def format_node_addr(naddr) :
-    if not isinstance(naddr, str) :
+def format_node_addr(naddr):
+    if not isinstance(naddr, str):
          raise IsyValueError("{0} arg not string".format(__name__))
     addr_el = naddr.upper().split()
     a = "{0:0>2}' '{1:0>2}' '{2:0>2}' ".format( *addr_el )
@@ -92,7 +92,7 @@ def format_node_addr(naddr) :
 # Simple Base class for ISY Class
 #
 class IsyUtil(object):
-    def __init__(self) :
+    def __init__(self):
         self.debug = 0
         self.baseurl = "" # never used
         # self.pp = pprint.PrettyPrinter(indent=4)
@@ -103,22 +103,22 @@ class IsyUtil(object):
         print("_printXML start")
         ET.dump(xml)
 
-    def _set_prop(self, *arg) :
+    def _set_prop(self, *arg):
         pass
 
     def _getXMLetree(self, xmlpath, noquote=0, timeout=10):
         """ take a URL path, download XLM and return parsed Etree """
-        if ( noquote) :
+        if ( noquote):
             xurl = self.baseurl + xmlpath
-        else :
+        else:
             xurl = self.baseurl + URL.quote(xmlpath)
         if self.debug & 0x02:
-            print("_getXMLetree : " + xurl)
+            print("_getXMLetree: " + xurl)
         # print("_getXMLetree : URL.Request")
         req = URL.Request(xurl)
         # print("_getXMLetree : self._opener.open ")
         # HTTPError
-        try :
+        try:
             res = self._opener.open(req, None, timeout)
             data = res.read()
             # print("res.getcode() ", res.getcode(), len(data))
@@ -128,41 +128,41 @@ class IsyUtil(object):
             return None
 
         if len(self.error_str) : self.error_str = ""
-        if self.debug & 0x200  :
+        if self.debug & 0x200:
             print res.info()
             print data
         et = None
-        if len(data) :
-            try :
+        if len(data):
+            try:
                 et = ET.fromstring(data)
-            except ET.ParseError as e :
+            except ET.ParseError as e:
                 print "Etree ParseError "
                 print "data = ", data,
                 print "e.message = ", e.message
                 # raise
-            finally :
+            finally:
                 return et
 
-        else :
+        else:
                 return None
 
-    def _gensoap(self, cmd, **kwargs) :
+    def _gensoap(self, cmd, **kwargs):
 
-        if self.debug & 0x200 :
+        if self.debug & 0x200:
             print "len kwargs = ", len(kwargs), kwargs
-        if len(kwargs) == 0 :
+        if len(kwargs) == 0:
             cmdsoap = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" \
                 + "<e:Envelope><s:Body>" \
                 + "<u:{0!s} ".format(cmd) \
                 + "xmlns:u=\"urn:udi-com:service:X_Insteon_Lighting_Service:1\" />" \
                 + "</s:Body></e:Envelope>"
-        else :
+        else:
             cmdsoap = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" \
                 + "<s:Envelope><s:Body>" \
                 + "<u:{0!s} ".format(cmd) \
                 + "xmlns:u=\"urn:udi-com:service:X_Insteon_Lighting_Service:1\">"
 
-            for k, v in kwargs.items() :
+            for k, v in kwargs.items():
                 cmdsoap += "<{0}>{1!s}</{0}>".format(k, v)
 
             cmdsoap += "</u:{0!s}>".format(cmd) \
@@ -178,26 +178,26 @@ class IsyUtil(object):
         each keyword is converted into a xml element
         """
 
-        if not isinstance(cmd, str) or not len(cmd) :
+        if not isinstance(cmd, str) or not len(cmd):
              raise IsyValueError("SOAP Method name missing")
 
-        if self.debug & 0x02 :
+        if self.debug & 0x02:
             print "sendcomm : ", cmd
 
         soap_cmd = self._gensoap(cmd, **kwargs)
 
         xurl = self.baseurl + "/services"
-        if self.debug & 0x02 :
+        if self.debug & 0x02:
             print "xurl = ", xurl
             print "soap_cmd = ", soap_cmd
 
         req = URL.Request(xurl, soap_cmd, {'Content-Type': 'application/xml; charset="utf-8"'})
 
         data = ""
-        try :
+        try:
             res = self._opener.open(req, None)
             data = res.read()
-            if self.debug & 0x200 :
+            if self.debug & 0x200:
                 print("res.getcode() ", res.getcode(), len(data))
                 print("data ", data)
             res.close()
@@ -207,10 +207,10 @@ class IsyUtil(object):
             if (( cmd == "DiscoverNodes" and e.code == 803 )
                 or ( cmd == "CancelNodesDiscovery" and e.code == 501 )
                 # or ( cmd == "RemoveNode" and e.code == 501 )
-                ) :
+                ):
 
 
-                if self.debug & 0x02 :
+                if self.debug & 0x02:
                     print "spacial case : {0} : {1}".format(cmd, e.code)
                     print "e.code = ", e.code
                     print "e.msg = ", e.msg
@@ -221,7 +221,7 @@ class IsyUtil(object):
 
                 return e.read()
 
-            if self.debug & 0x202 :
+            if self.debug & 0x202:
                 print "e.code = ", type(e.code), e.code
                 # print "e.read = ", e.read()
                 print "e = ", e
@@ -230,15 +230,15 @@ class IsyUtil(object):
             mess = "{!s} : {!s} : {!s}".format(cmd, kwargs, e.code)
             # This a messy and should change
             raise IsySoapError(mess, httperr=e)
-        else :
+        else:
             if len(self.error_str) : self.error_str = ""
-            if self.debug & 0x200  :
+            if self.debug & 0x200:
                 print data
             return data
 
 
 
-    def sendDeviceSpecific(command, s1, s2, s3, s4, stringbuffer) :
+    def sendDeviceSpecific(command, s1, s2, s3, s4, stringbuffer):
         pass
 #
 #   public Object sendDeviceSpecific(String s, String s1, String s2, String s3, String s4, StringBuffer stringbuffer)
@@ -266,31 +266,31 @@ class IsyUtil(object):
         """
             upload file
 
-            args :
+            args:
                 data            content for fine to upload
                 src             file to load upload content ( if data is None )
                 filename        name for remote file
         """
 
-        if self.debug & 0x01 :
+        if self.debug & 0x01:
             print "sendfile : ", self.__class__.__name__
 
-        if filename[0] != '/' :
+        if filename[0] != '/':
             filename = "/USER/WEB/" + filename
-        elif not str(filename).upper().startswith("/USER/WEB/") :
+        elif not str(filename).upper().startswith("/USER/WEB/"):
             raise IsyValueError("sendfile: invalid dst filename : {!s}".format(filename))
 
-        if not len(data) :
-            if not src :
+        if not len(data):
+            if not src:
                 src = filename
 
-            if self.debug & 0x20 :
+            if self.debug & 0x20:
                 print "using file {!s} as data src".format(src)
 
             with open(src, 'r') as content_file:
                 data = content_file.read()
-        else :
-            if self.debug & 0x20 :
+        else:
+            if self.debug & 0x20:
                 print "using provided data as data src"
 
         self._sendfile(filename=filename, data=data, load="n")
@@ -298,16 +298,16 @@ class IsyUtil(object):
 
     def _sendfile(self, filename="", data="", load="n"):
 
-        if ( filename.startswith('/')) :
+        if ( filename.startswith('/')):
             xurl = self.baseurl + "/file/upload" + filename + "?load=" + load
-        else :
+        else:
             xurl = self.baseurl + "/file/upload/" + filename + "?load=" + load
 
         if self.debug & 0x02:
             print("{0} xurl : {1}".format(__name__, xurl))
         req = URL.Request(xurl, data, {'Content-Type': 'application/xml; charset="utf-8"'})
 
-        try :
+        try:
             res = self._opener.open(req, None)
             responce = res.read()
             # print("res.getcode() ", res.getcode(), len(responce))
@@ -316,7 +316,7 @@ class IsyUtil(object):
             # print "e.read : ", e.read()
             mess = "{!s} : {!s} : {!s}".format("/file/upload", filename, e.code)
             raise IsySoapError(mess, httperr=e)
-        else :
+        else:
             return responce
 
 
@@ -364,7 +364,7 @@ class IsySubClass(IsyUtil):
 
         This Class is not intended for direct use
 
-        attributes/properties :
+        attributes/properties:
             type :      object dependent flag
             value :     current value
             id/address :        unique for object used by ISY
@@ -380,22 +380,22 @@ class IsySubClass(IsyUtil):
     _propalias = { }
     _boollist = [ "enabled" ]
 
-    def __init__(self, isy, objdict) :
+    def __init__(self, isy, objdict):
         """ INIT """
 
         if isinstance(objdict, dict):
             self._mydict = objdict
-        else :
+        else:
             raise IsyValueError("{!s}: called without objdict".format(self.__class__.__name__))
 
         if isinstance(isy, IsyUtil):
             self.isy = isy
             self.debug = isy.debug
-        else :
+        else:
             # print("error : class " + self.__class__.__name__ + " called without Isy")
             raise TypeError("IsySubClass: isy arg is not a ISY family class")
 
-        if self.debug & 0x04 :
+        if self.debug & 0x04:
             print("IsySubClass: ",)
             self._printdict(self._mydict)
 
@@ -409,23 +409,23 @@ class IsySubClass(IsyUtil):
     def _get_prop(self, prop):
         """ Internal funtion call """
         # print("U _get_prop =", prop)
-        if prop in self._propalias :
+        if prop in self._propalias:
             prop = self._propalias[prop]
 
-        if prop in self._getlist :
-            if prop in self._mydict :
-                if prop in self._boollist :
+        if prop in self._getlist:
+            if prop in self._mydict:
+                if prop in self._boollist:
                     return(val2bool(self._mydict[prop]))
-                else :
+                else:
                     return(self._mydict[prop])
         return(None)
 
 #    def _set_prop(self, prop, val):
 #       """ Internal funtion call """
-#       if prop in self._propalias :
+#       if prop in self._propalias:
 #           prop = self._propalias[prop]
 #
-#       if not prop in self._setlist :
+#       if not prop in self._setlist:
 #           raise IsyPropertyError("_set_prop : "
 #               "no property Attribute " + prop)
 #       pass
@@ -485,9 +485,9 @@ class IsySubClass(IsyUtil):
 
 
     def __del__(self):
-        if self.debug & 0x80 :
+        if self.debug & 0x80:
             print "__del__ ", self.__repr__()
-        if hasattr(self, "_mydict") :
+        if hasattr(self, "_mydict"):
             self._mydict.clear()
 
     def __iter__(self):
@@ -496,12 +496,12 @@ class IsySubClass(IsyUtil):
             allows Objects properties to be access through iteration
 
         """
-        if self.debug & 0x80 :
+        if self.debug & 0x80:
             print("IsyUtil __iter__")
-        for p in self._getlist :
-            if p in self._mydict :
+        for p in self._getlist:
+            if p in self._mydict:
                 yield (p , self._get_prop(p))
-            else :
+            else:
                 yield (p , None)
 
 
@@ -517,17 +517,17 @@ class IsySubClass(IsyUtil):
 
 #    def __compare__(self, other):
 #        print("__compare__ called")
-#       if isinstance(other, str) :
-#        if not hasattr(other, "myval") :
+#       if isinstance(other, str):
+#        if not hasattr(other, "myval"):
 #            return -1
 #        return ( str.__cmp__(self.myval, other.myval) )
 
     def __getattr__(self, attr):
         # print("U attr =", attr)
         attr_v = self._get_prop(attr)
-        if attr_v != None :
+        if attr_v != None:
             return attr_v
-        else :
+        else:
 #            print("attr =", attr, self.address)
 #           print("self type = ", type(self))
 #           pprint(self._mydict)
@@ -540,12 +540,12 @@ class IsySubClass(IsyUtil):
         #print("IsyUtil __eq__")
         #print("self", self)
         #print("other", other)
-        if isinstance(other, str) :
+        if isinstance(other, str):
             return self._get_prop("id") == other
-        if type(self) != type(other) :
+        if type(self) != type(other):
             return(False)
             # NotImplemented
-        if hasattr(other._mydict, "id") :
+        if hasattr(other._mydict, "id"):
             return(self._get_prop("id") == other._get_prop("id"))
         return(False)
 

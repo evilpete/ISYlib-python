@@ -14,7 +14,7 @@ __all__ = ['IsyProgram']
 class IsyProgram(IsySubClass):
     """ Program Class for ISY
 
-        attributes/properties :
+        attributes/properties:
             enabled : 'true',
             folder : 'false',
             id : '0002',
@@ -29,11 +29,11 @@ class IsyProgram(IsySubClass):
 
 
         funtions:
-            get_prog_enable() :
-            set_prog_enable() :
-            get_prog_runatstart() :
-            set_prog_runatstart() :
-            send_command() :
+            get_prog_enable():
+            set_prog_enable():
+            get_prog_runatstart():
+            set_prog_runatstart():
+            send_command():
 
             get_prog_ts() :     get timestamp
             get_prog_type() :   get Prog type
@@ -56,8 +56,8 @@ class IsyProgram(IsySubClass):
     # _objtype = (-1, "program")
     _objtype = "program"
 
-    def _get_prop(self, prop) :
-        if prop == 'src' :
+    def _get_prop(self, prop):
+        if prop == 'src':
             return self.get_src()
         return super(self.__class__, self)._get_prop(prop)
 
@@ -65,16 +65,16 @@ class IsyProgram(IsySubClass):
         """ check if prog is enabled (bool) """
         #en = self._get_prop("enabled")
         #return bool( en == "true" )
-        if "enabled" in self._mydict :
+        if "enabled" in self._mydict:
             return bool(self._mydict["enabled"] == "true")
         return True
     def set_prog_enable(self, en):
         rval = val2bool(en)
         #print "set_prog_enable ", rval
-        if "enabled" in self._mydict :
-            if rval :
+        if "enabled" in self._mydict:
+            if rval:
                self.isy.prog_comm(self._mydict['id'], "enable")
-            else :
+            else:
                self.isy.prog_comm(self._mydict['id'], "disable")
         self._mydict["enabled"] = rval
         return rval
@@ -88,9 +88,9 @@ class IsyProgram(IsySubClass):
     def set_prog_runatstart(self, en):
         rval = val2bool(en)
         #print "set_prog_enable ", rval
-        if rval :
+        if rval:
            self.isy.prog_comm(self._mydict['id'], "runAtStartup")
-        else :
+        else:
            self.isy.prog_comm(self._mydict['id'], "disableRunAtStartup")
         self._mydict["runAtStartup"] = rval
         return rval

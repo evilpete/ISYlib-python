@@ -13,7 +13,7 @@ __all__ = ['IsyVar']
 class IsyVar(IsySubClass):
     """ VAR Class for ISY
 
-        attributes/properties :
+        attributes/properties:
             ts :        timetamp
             type :      Var Type
             init :      inital value for Var ( at ISY boot )
@@ -62,7 +62,7 @@ class IsyVar(IsySubClass):
         """ sets var init value
         this can also be set via the property : init
         """
-#        if new_value == self._mydict["init"] :
+#        if new_value == self._mydict["init"]:
 #            return
         self.isy._var_set_value(self._mydict['id'], new_value, "init")
 
@@ -82,17 +82,17 @@ class IsyVar(IsySubClass):
         """ sets var value
         this can also be set via the property : value
         """
-#        if new_value == self._mydict["val"] :
+#        if new_value == self._mydict["val"]:
 #            return
         self.isy._var_set_value(self._mydict['id'], new_value)
     value = property(get_var_value, set_var_value)
 
-    def get_callback(self) :
+    def get_callback(self):
         return self.isy.callback_get(self._mydict["id"])
-    def set_callback(self, func, *args) :
-        if func is None :
+    def set_callback(self, func, *args):
+        if func is None:
             return self.isy.callback_del(self._mydict["id"])
-        else :
+        else:
             return self.isy.callback_set(self._mydict["id"], func, args)
     callback = property(get_callback, set_callback)
 
@@ -105,7 +105,7 @@ class IsyVar(IsySubClass):
 #    name = property(get_var_name)
 
 
-#    def rename(self, newname) :
+#    def rename(self, newname):
 #       self.isy.call_soap_method("RenameNode",
 #                       self._mydict["address"], newwname)
 

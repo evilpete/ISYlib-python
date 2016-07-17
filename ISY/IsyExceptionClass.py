@@ -20,7 +20,7 @@ from urllib2 import URLError, HTTPError
 class IsyError(Exception):
     """ISY Base exception
 
-SubClasses :
+SubClasses:
     - IsyResponseError(IsyError):
     - IsyPropertyError(IsyError):
     - IsyValueError(IsyError):
@@ -35,14 +35,14 @@ SubClasses :
         self._msg = msg
         self._exception = exception
         self.httperr = httperr
-        if self.httperr is not None :
+        if self.httperr is not None:
             self.httperrbody = httperr.read()
-        else :
+        else:
             self.httperrbody = None
         Exception.__init__(self, msg)
 
     def code(self):
-        if self.httperr is not None :
+        if self.httperr is not None:
             return self.httperr.code
         return None
 
@@ -131,10 +131,10 @@ class IsyAttributeError(IsyError, AttributeError):
     pass
 
 
-class IsyWarning(Warning) :
+class IsyWarning(Warning):
     pass
 
-class IsyRuntimeWarning(IsyWarning, RuntimeWarning) :
+class IsyRuntimeWarning(IsyWarning, RuntimeWarning):
     pass
 
 

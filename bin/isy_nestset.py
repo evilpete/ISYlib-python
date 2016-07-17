@@ -10,7 +10,7 @@
 __author__ = "Peter Shipley"
 
 
-try :
+try:
     import nest_thermostat as nest
 except ImportError as e:
     print "Package nest-thermostat required :", \
@@ -42,7 +42,7 @@ temperature_vars = ( "away_temperature_high", "away_temperature_low",
 #
 # Some of the following code was outright copy/pasted from pynest
 #
-def main() :
+def main():
 
     parser = create_parser()
     (opts, args) = parser.parse_args()
@@ -60,7 +60,7 @@ def main() :
     n.login()
     n.get_status()
 
-    if (args[0]=="show") :
+    if (args[0]=="show"):
         n.show_status()
         exit(0)
 
@@ -70,7 +70,7 @@ def main() :
     nest_values.update(n.status["shared"][n.serial] )
     nest_values.update(n.status["device"][n.serial] )
 
-    if (args[0]=="dump") :
+    if (args[0]=="dump"):
         pprint.pprint(nest_values)
         exit(0)
 
@@ -85,11 +85,11 @@ def main() :
                 "nest_humidity=current_humidity",
                 "nest_away=away")
 
-    if (args[0]=="auto") :
+    if (args[0]=="auto"):
         args.pop(0)
         args.extend(auto_args)
 
-    for var_arg in args :
+    for var_arg in args:
         (isy_var, src_var) = var_arg.split('=')
 
         # check we got two value names
@@ -106,15 +106,15 @@ def main() :
         # we can't convert in place since the value may be used twice
         if src_var in temperature_vars and not opts.celsius:
             set_value = nest_values[src_var] *1.8 + 32.0
-        else :
+        else:
             set_value = nest_values[src_var]
 
 
-        try :
+        try:
             # this will raise an error if there is a problem with name or set_value
             myisy.var_set_value(isy_var, int(set_value))
 
-        except IsyPropertyError :
+        except IsyPropertyError:
             warn("Invalid Isy Var : {0}".format(isy_var), RuntimeWarning)
             continue
         except (IsyValueError , ValueError):
@@ -122,13 +122,13 @@ def main() :
             warn("Invalid value for ISY var: {0}".format(set_value),
                     RuntimeWarning)
             continue
-        except :
+        except:
             print("Unexpected error:", sys.exc_info()[0])
             warn("Unexpected error: {0}".format(sys.exc_info()[0]),
                     RuntimeWarning)
             exit(0)
-        else :
-            if opts.verbose :
+        else:
+            if opts.verbose:
                 print isy_var,"=", int(set_value)
 
     # end of main
@@ -137,7 +137,7 @@ def main() :
 
 
 # convert time stamp into someting we can pass along
-#    if src_var == "$timestamp" :
+#    if src_var == "$timestamp":
 #       ti = nest_values["$timestamp"] // 1000
 #       set_value = time.strftime("%m%d%H%M%S", time.localtime(ti)).lstrip('0')
 #       print "shared timestamp", nest_values["$timestamp"],

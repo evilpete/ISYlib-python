@@ -7,7 +7,7 @@ import os
 
 from  ISY.IsyEvent import ISYEvent
 
-def main() :
+def main():
     server = ISYEvent()
 
     # you can subscribe to multiple devices
@@ -31,6 +31,6 @@ def main() :
 
 
 
-if __name__ == '__main__' :
+if __name__ == '__main__':
     main()
     exit(0)

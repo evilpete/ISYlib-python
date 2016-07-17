@@ -23,24 +23,24 @@ time_const=2208988800;
 
 def main(isy):
 
-    if opt_errorlog :
+    if opt_errorlog:
         log_err(isy)
-    else :
+    else:
         log_sys(isy)
 
 
-def log_err(isy) :
+def log_err(isy):
 
     header = [ "Time", "UID", "Log Type", "Error Message" ]
 
-    if opt_tab :
+    if opt_tab:
         fmt = "{0}\t{1}\t{2}\t{3}"
-    else :
+    else:
         fmt = "{:<15} {:<24} {:<38} {!s}"
 
-    if opt_nosec :
+    if opt_nosec:
         time_fmt = "%b %d %H:%M"
-    else :
+    else:
         time_fmt = "%b %d %H:%M:%S"
 
     time_offset = log_time_offset()
@@ -49,11 +49,11 @@ def log_err(isy) :
 
     #print "{0} {1} {2} {3}".format(*header)
     print fmt.format(*header)
-    for log_line in isy.log_iter(error = 1) :
+    for log_line in isy.log_iter(error = 1):
         col = str(log_line).split("\t")
 
         # print "log_line : ", len(col), " : ", "|".join(col)
-        if ( len(col) < 4 ) :
+        if ( len(col) < 4 ):
             print "BAD log_line : ", len(col), " : ", "|".join(col)
             continue
 
@@ -66,30 +66,30 @@ def log_err(isy) :
 
         print fmt.format( *col )
 
-        #if llimit == 0 :
+        #if llimit == 0:
         #    break
 
 
-def log_sys(isy) :
+def log_sys(isy):
 
     nodefmt="{:<12}"
     commfmt="{:<4}"
 
     header = [ "Node", "Control", "Action", "Time", "UID", "Log Type" ]
 
-    if opt_names :
+    if opt_names:
         nodefmt="{:<18}"
         commfmt="{:<10}"
         print "opt_names = ", opt_names
 
-    if opt_tab :
+    if opt_tab:
         fmt = "{0}\t{1}\t{2}\t{3}\t{4}\t{5}"
-    else :
+    else:
         fmt = nodefmt + " " + commfmt + " {:<20} {:<15} {:<15} {:<15}"
 
-    if opt_nosec :
+    if opt_nosec:
         time_fmt = "%b %d %H:%M"
-    else :
+    else:
         time_fmt = "%b %d %H:%M:%S"
 
     # fmt = "{0} {1} {2} {3} {4} {5}"
@@ -100,13 +100,13 @@ def log_sys(isy) :
 
     # print "{0} {1} {2} {3} {4} {5}".format(*header)
     print fmt.format(*header)
-    for log_line in isy.log_iter(error = opt_errorlog) :
+    for log_line in isy.log_iter(error = opt_errorlog):
         col = str(log_line).split("\t")
 
-        if opt_names :
+        if opt_names:
             gn = isy._node_get_name(col[0])
             # print "n / gn = ", col[0], " / ", gn
-            if gn[1] is not None :
+            if gn[1] is not None:
                 col[0] = gn[1]
 
         newtime = int(col[3]) - time_const - time_offset
@@ -118,7 +118,7 @@ def log_sys(isy) :
 
         print fmt.format( *col )
 
-        #if llimit == 0 :
+        #if llimit == 0:
         #    break
         #llimit = llimit - 1
 
@@ -155,7 +155,7 @@ def usage(code, msg=''):
         print >> sys.stderr, msg
     sys.exit(code)
 
-if __name__ == '__main__' :
+if __name__ == '__main__':
     parseargs()
     myisy = Isy( addr=opt_addr, debug=opt_debug )
     main(myisy)

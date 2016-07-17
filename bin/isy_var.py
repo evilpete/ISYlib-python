@@ -21,18 +21,18 @@ import getopt
 
 def list_vars_bash(myisy, csh=0):
 
-    if csh :
+    if csh:
         fmt = "set {0}={1}"
-    else :
+    else:
         fmt = "{0}={1}"
 
-    for var in myisy.var_iter() :
+    for var in myisy.var_iter():
         print fmt.format( var.name, var.value )
 
-def list_vars(myisy) :
+def list_vars(myisy):
     fmt = "{:<4} : {:<19}{:<5}\t{:<5}\t{:}"
     print fmt.format( "ID", "NAME", "VAL", "INIT", "DATE" )
-    for var in myisy.var_iter() :
+    for var in myisy.var_iter():
         print fmt.format( var.id, var.name, var.value, var.init, var.ts )
 
 def usage(code, msg=''):
@@ -83,12 +83,12 @@ def set_vars(isy, *arg):
     for ar in arg:
         name, val  = str(ar).split('=')
         print "set ", name, " to ", val
-        if str(val).isdigit :
-            try :
+        if str(val).isdigit:
+            try:
                 isy.var_set_value(name, val)
-            except LookupError :
+            except LookupError:
                 print "bad Var name: ", ar
-        else :
+        else:
             print "bad Value: ", ar
     return
 
@@ -97,11 +97,11 @@ if __name__ == '__main__':
     options, arg = parseargs()
     myisy = ISY.Isy( debug=options.debug )
 
-    if options.olist :
+    if options.olist:
         list_vars(myisy)
     elif options.bash or options.csh:
         list_vars_bash(myisy, options.csh)
 
-    if len(arg) :
+    if len(arg):
         set_vars(myisy, *arg)
 

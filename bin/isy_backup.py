@@ -46,13 +46,13 @@ reboot_after = False
 
 from ISY.IsyExceptionClass import IsySoapError
 
-def date_time2str(dt) :
+def date_time2str(dt):
     return "{0}-{1}-{2} {3}:{4}:{5}".format( *dt )
 
 #ISY-Backup.v4.1.2__Fri 2014.03.14 17.46.52.zip
 #uuid.00.21.b9.00.e7.08.zip*
 
-def parse_args(isy) :
+def parse_args(isy):
 #    global folder
     global outfile
     global restore
@@ -64,10 +64,10 @@ def parse_args(isy) :
 
     parser = isy.parser
 
-#    if "parser" in isy :
+#    if "parser" in isy:
 #       parser = isy.parser
-#    else :
-#       if debug :
+#    else:
+#       if debug:
 #           print "new parser"
 #       parser = argparse.ArgumentParser()
 
@@ -118,7 +118,7 @@ def parse_args(isy) :
     args = parser.parse_args()
     # args, unknown_args = parser.parse_known_args()
 
-#    if args.outfile and args.folder :
+#    if args.outfile and args.folder:
 #       print "you can't use both file and folder"
 #       parser.print_help()
 #       exit(0)
@@ -135,7 +135,7 @@ def parse_args(isy) :
     if args.backup_logs : backup_flags |= backup_logs
     if backup_flags == 0 : backup_flags = backup_all
 
-    if debug :
+    if debug:
         print "backup_flags = {0:04b}".format(backup_flags)
     noop    = args.noop
     outfile = args.outfile
@@ -146,17 +146,17 @@ def parse_args(isy) :
 
 
 
-def restore_isy(isy) :
-    if outfile is None :
+def restore_isy(isy):
+    if outfile is None:
         raise argparse.ArgumentTypeError("no restore file given")
 
-    mybackupid = "uuid.{0}.zip".format(isy.id)
+    # mybackupid = "uuid.{0}.zip".format(myisy.id.replace(':', '.'))
 
     zf = zipfile.ZipFile(outfile, "r")
     isybackup = zf.namelist()[0]
     # print isybackup
 
-#    if verbose :
+#    if verbose:
 #       for f in zf.infolist():
 #           print "{0:<30} : {1:6} : {2:#010x} ({3:#04o}) ".format(
 #                   f.filename,
@@ -166,7 +166,7 @@ def restore_isy(isy) :
 #               )
 
 
-    if not (isybackup.startswith("uuid") and isybackup.endswith(".zip") ) :
+    if not (isybackup.startswith("uuid") and isybackup.endswith(".zip") ):
         raise SystemExit("Invalid backup\n")
 
     td = tempfile.mkdtemp()
@@ -178,40 +178,39 @@ def restore_isy(isy) :
     zff = zipfile.ZipFile(uuidfile, "r")
     zff_info = zff.infolist()
 
-
-    if verbose :
+    if verbose:
         print "{0} files to be retored".format(len(zff_info))
 
     restore_filter = None
-    if backup_flags != backup_all :
+    if backup_flags != backup_all:
         restore_filter_list = list()
 
-        if (backup_flags & backup_sysconf) :
+        if (backup_flags & backup_sysconf):
             restore_filter_list.append("/CONF")
 
-        if (backup_flags & backup_userweb ) :
+        if (backup_flags & backup_userweb ):
             restore_filter_list.append("/USER/WEB/")
 
-        if (backup_flags & backup_ui ) :
+        if (backup_flags & backup_ui ):
             restore_filter_list.append("/WEB/CONF/")
 
-        if ( backup_flags & backup_logs ) :
+        if ( backup_flags & backup_logs ):
             restore_filter_list.append("/LOG/")
 
         restore_filter = tuple(restore_filter_list)
 
-    for z in zff_info :
-        if restore_filter and not z.filename.startswith( restore_filter ) :
-            if vebose :
+    for z in zff_info:
+        if restore_filter and not z.filename.startswith( restore_filter ):
+            if vebose:
                 print "skipping {0:<30} : Not in restore path".format(z.filename)
             continue
 
-        if (z.external_attr & 0x0010) or z.filename.endswith("/") :
-            if verbose :
+        if (z.external_attr & 0x0010) or z.filename.endswith("/"):
+            if verbose:
                 print "skipping {0:<30} : directory".format(z.filename)
             continue
 
-        if verbose :
+        if verbose:
             print "{0:<30} : {1:6} : {2:#010x} ({3:04o}) {4}".format(
                     z.filename,
                     z.file_size,
@@ -220,19 +219,19 @@ def restore_isy(isy) :
                     date_time2str(z.date_time)
                 )
 
-        if ( not z.filename.startswith("/") ) :
-            if verbose :
+        if ( not z.filename.startswith("/") ):
+            if verbose:
                 print "skipping {0:<30} : not full path".format(z.filename)
             contunue
 
-        if not noop :
+        if not noop:
             fdata = zff.read(z)
-            try :
+            try:
                 r = isy._sendfile(data=fdata, filename=z.filename, load="y")
-            except IsySoapError, se :
-                if se.code() == 403 :
+            except IsySoapError, se:
+                if se.code() == 403:
                     print "Error restoring {0} : Forbidden ( code=403 )".format(z.filename)
-                else :
+                else:
                     raise
 
     zff.close()
@@ -240,38 +239,39 @@ def restore_isy(isy) :
     os.unlink(uuidfile)
     os.rmdir(td)
 
-def backup_isy(isy) :
+def backup_isy(isy):
     global outfile
     # global verbose
     time_str = time.strftime("%a_%Y.%m.%d_%H.%M.%S" , time.localtime())
 
-    # if folder is None :
-    if outfile is None :
+    # if folder is None:
+    if outfile is None:
         outfile = "ISY-Backup.v{0}_{1}.zip".format(isy.app_version, time_str)
-    elif not outfile.endswith((".zip", ".ZIP")) :
+    elif not outfile.endswith((".zip", ".ZIP")):
         outfile = outfile + ".zip"
 
-    backupid = "uuid.{0}.zip".format(isy.id)
+    backupid = "uuid.{0}.zip".format(myisy.id.replace(':', '.'))
 
-    if ( backup_flags & backup_sysconf ) :
+
+    if ( backup_flags & backup_sysconf ):
         zip_get_conf(isy)
 
-    if ( backup_flags & backup_userweb ) :
+    if ( backup_flags & backup_userweb ):
         zip_get_userweb(isy)
 
-    if ( backup_flags & backup_logs ) :
+    if ( backup_flags & backup_logs ):
         zip_get_logfiles(isy)
 
-    if ( backup_flags & backup_ui ) :
+    if ( backup_flags & backup_ui ):
         zip_get_ui_conf(isy)
 
     tf = tempfile.NamedTemporaryFile(delete=False)
     zf = zipfile.ZipFile(tf, "w")
 
-    for d in sorted( dirset ) :
+    for d in sorted( dirset ):
         add_dir(isy, zf, d)
 
-    for f in sorted(fileset) :
+    for f in sorted(fileset):
         add_file(isy, zf, f)
 
     zf.close()
@@ -283,16 +283,16 @@ def backup_isy(isy) :
     zff.write(tf.name, backupid)
     zff.close()
     os.unlink(tf.name)
-    if verbose :
+    if verbose:
         print "Backup completed"
         print "output file = ", outfile
 
 
-def zip_get_ui_conf(isy) :
+def zip_get_ui_conf(isy):
     dirset.add("/WEB/CONF")
     fileset.add("/WEB/CONF/CAMS.JSN")
 
-def zip_get_logfiles(isy) :
+def zip_get_logfiles(isy):
     dirset.add("/LOG/")
     fileset.add("/LOG/A.LOG")
     fileset.add("/LOG/ERRORA.LOG")
@@ -302,7 +302,7 @@ def zip_get_logfiles(isy) :
     fileset.add("/LOG/UMETERA.LOG")
 
 
-def zip_get_conf(isy) :
+def zip_get_conf(isy):
     global dirset
     global fileset
 
@@ -310,28 +310,28 @@ def zip_get_conf(isy) :
     flist = et2d(ET.fromstring(dat))
     # pprint.pprint(flist)
 
-    if "dir-name" in flist :
-        if isinstance(flist['dir-name'], list) :
-            for d in flist['dir-name'] :
-                if d.startswith("/") :
+    if "dir-name" in flist:
+        if isinstance(flist['dir-name'], list):
+            for d in flist['dir-name']:
+                if d.startswith("/"):
                     dirset.add(d)
-                else :
+                else:
                     dirset.add("/CONF/" + d)
-        else :
-            if flist['dir-name'].startswith("/") :
+        else:
+            if flist['dir-name'].startswith("/"):
                 dirset.add(flist['dir-name'])
-            else :
+            else:
                 dirset.add("/CONF/" + flist['dir-name'])
 
-    if "entry" in flist :
-        if isinstance(flist['entry'], list) :
-            for f in flist['entry'] :
+    if "entry" in flist:
+        if isinstance(flist['entry'], list):
+            for f in flist['entry']:
                 fileset.add("/CONF/" + f)
-        else :
+        else:
             fileset.add("/CONF" + flist["entry"])
 
 
-def zip_get_userweb(isy) :
+def zip_get_userweb(isy):
     global dirset
     global fileset
 
@@ -340,52 +340,52 @@ def zip_get_userweb(isy) :
 
     # pprint.pprint(flist)
 
-    if "dir" in flist :
-        if isinstance(flist['dir'], list) :
-            for d in flist['dir'] :
+    if "dir" in flist:
+        if isinstance(flist['dir'], list):
+            for d in flist['dir']:
                 dirset.add(d["dir-name"])
-        else :
+        else:
             dirset.add(flist['dir']["dir-name"])
 
-    if "dir" in flist :
-        if isinstance(flist['dir'], list) :
-            for d in flist['dir'] :
+    if "dir" in flist:
+        if isinstance(flist['dir'], list):
+            for d in flist['dir']:
                 dirset.add(d["dir-name"])
-        else :
+        else:
             dirset.add(flist['dir']["dir-name"])
 
-    if "file" in flist :
-        if isinstance(flist['file'], list) :
-            for f in flist['file'] :
+    if "file" in flist:
+        if isinstance(flist['file'], list):
+            for f in flist['file']:
                 fileset.add(f["file-name"])
-        else :
+        else:
             fileset.add(flist['file']["file-name"])
 
 
-def add_file(isy, zf, fpath) :
+def add_file(isy, zf, fpath):
     # global verbose
     global local_time
 
-    if not fpath.startswith('/') :
+    if not fpath.startswith('/'):
         errstr = "Internal Error"
         # "Internal Error : filename not full path : {0}\n".format(fpath)
         raise RuntimeError(errstr)
 
-    try :
+    try:
         dat = isy.soapcomm("GetSysConf", name=fpath)
-    except IsySoapError, se :
-        if fpath.startswith('/WEB/CONF/') :
+    except IsySoapError, se:
+        if fpath.startswith('/WEB/CONF/'):
             return
         raise
-    else :
-        if verbose :
+    else:
+        if verbose:
             print "{0:<5} : {1}".format(len(dat), fpath)
 
-        if ( zip_noroot ) :
+        if ( zip_noroot ):
             fpath=fpath[1:]
 
 
-        if local_time is None :
+        if local_time is None:
             local_time =  time.localtime()
         zfi = zipfile.ZipInfo(fpath)
         zfi.date_time = local_time[:6]
@@ -394,28 +394,28 @@ def add_file(isy, zf, fpath) :
         zf.writestr(zfi, dat)
 
 
-def add_dir(isy, zf, fpath) :
+def add_dir(isy, zf, fpath):
     # global verbose
 
-    if not fpath.startswith('/') :
+    if not fpath.startswith('/'):
         raise RuntimeError(
             "Internal Error : dir name not full path : {0}".format(fpath))
-    if not fpath.endswith('/') :
+    if not fpath.endswith('/'):
         fpath = fpath + '/'
-    if verbose :
+    if verbose:
         print "{0:<5} : {1}".format("dir", fpath)
     zfi = zipfile.ZipInfo(fpath)
     zfi.compress_type = zipfile.ZIP_STORED
     zfi.external_attr = ( 0o040755 < 16L ) | 0x10
     zf.writestr(zfi, '')
 
-if __name__ == '__main__' :
+if __name__ == '__main__':
     myisy = ISY.Isy(parsearg=1, faststart=1)
     parse_args(myisy)
-    if restore :
+    if restore:
         restore_isy(myisy)
-        if reboot_after :
+        if reboot_after:
             myisy.reboot()
-    else :
+    else:
         backup_isy(myisy)
     exit(0)
