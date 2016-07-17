@@ -150,7 +150,7 @@ def restore_isy(isy):
     if outfile is None:
         raise argparse.ArgumentTypeError("no restore file given")
 
-    mybackupid = "uuid.{0}.zip".format(isy.id)
+    mybackupid = "uuid.{0}.zip".format(myisy.id.replace(':', '.'))
 
     zf = zipfile.ZipFile(outfile, "r")
     isybackup = zf.namelist()[0]
@@ -251,7 +251,8 @@ def backup_isy(isy):
     elif not outfile.endswith((".zip", ".ZIP")):
         outfile = outfile + ".zip"
 
-    backupid = "uuid.{0}.zip".format(isy.id)
+    backupid = "uuid.{0}.zip".format(myisy.id.replace(':', '.'))
+
 
     if ( backup_flags & backup_sysconf ):
         zip_get_conf(isy)
