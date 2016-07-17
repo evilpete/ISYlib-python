@@ -150,7 +150,7 @@ def restore_isy(isy):
     if outfile is None:
         raise argparse.ArgumentTypeError("no restore file given")
 
-    mybackupid = "uuid.{0}.zip".format(myisy.id.replace(':', '.'))
+    # mybackupid = "uuid.{0}.zip".format(myisy.id.replace(':', '.'))
 
     zf = zipfile.ZipFile(outfile, "r")
     isybackup = zf.namelist()[0]
@@ -177,7 +177,6 @@ def restore_isy(isy):
 
     zff = zipfile.ZipFile(uuidfile, "r")
     zff_info = zff.infolist()
-
 
     if verbose:
         print "{0} files to be retored".format(len(zff_info))

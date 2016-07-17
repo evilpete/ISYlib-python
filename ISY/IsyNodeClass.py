@@ -57,6 +57,7 @@ __all__ = ['IsyNode', 'IsyNodeFolder', 'IsyScene']
 class _IsyNodeBase(IsySubClass):
 
     def __init__(self, isy, ndict):
+        super(_IsyNodeBase, self).__init__(isy, ndict)
         self._dimable = self._is_dimable()
 
     #_objtype = (0, "unknown")
@@ -150,7 +151,7 @@ class _IsyNodeBase(IsySubClass):
             return self._mydict['members'][:]
         return [ ]
 
-    def is_dimable(self):
+    def _is_dimable(self):
         if 'type' in self._mydict:
             a = self._mydict["type"].split('.')
             if a[0] == "1":
@@ -297,11 +298,11 @@ class IsyNode(_IsyNodeBase):
         # self._objtype = (1, "node")
         self._objtype = "node"
 
-        self._dimable = self._is_dimable()
-
         self._nodeprops = None
 
         super(self.__class__, self).__init__(isy, ndict)
+
+        # self._dimable = self._is_dimable()
 
 #        if not self.isy.eventupdates:
 #            #update only nodes
