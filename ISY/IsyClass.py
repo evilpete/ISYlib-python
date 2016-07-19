@@ -488,6 +488,11 @@ class Isy(IsyUtil):
                 prog_id = '{0:0>4}'.format(evnt_dat['eventInfo']['id'])
                 event_targ = prog_id
 
+		if (self.debug & 0x40):
+		    print "Prog Change/Updated :\t{0}".format(evnt_dat['eventInfo']['id'])
+		    print "Prog Id :\t", prog_id
+		    print "evnt_dat :\t", evnt_dat
+
                 if self._progdict and prog_id in self._progdict:
                     prog_dict = self._progdict[prog_id]
                     if 'on' in evnt_dat['eventInfo']:
