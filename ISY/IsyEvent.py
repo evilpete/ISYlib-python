@@ -35,6 +35,15 @@ except ImportError:
 
 __all__ = ['ISYEvent']
 
+def _fmt_action(a):
+    if isinstance(a, str):
+        return a
+    elif isinstance(a, dict):
+        if "#val" in a:
+            return a["#val"]
+    else:
+        return None
+
 class ISYEvent(object):
 
     def __init__(self, addr=None, **kwargs):
@@ -240,8 +249,52 @@ class ISYEvent(object):
         return(ddat, data)
         #return(ddat)
 
-
     def et2d(self, et):
+        """ Etree to Dict
+
+            converts an ETree to a Dict Tree
+            lists are created for duplicate tag
+
+            if there are multiple XML of the same name
+            an list array is used
+            attrib tags are converted to "tag_name" + "attrib_name"
+
+            if an invalid arg is passed a empty dict is retrurned
+
+
+            arg: ETree Element  obj
+
+            returns: a dict obj
+        """
+        d = dict()
+        if not isinstance(et, ET.Element):
+            return d
+        children = list(et)
+        if et.attrib:
+            for k, v in list(et.items()):
+                d[et.tag + "-" + k] = v
+            if et.text is not None:
+                #d[et.tag + "_val"] = et.text
+                d["#val"] = et.text
+        if children:
+            for child in children:
+                if child.tag in d:
+                    if type(d[child.tag]) != list:
+                        t = d[child.tag]
+                        d[child.tag] = [t]
+                if list(child) or child.attrib:
+                    if child.tag in d:
+                        d[child.tag].append(self.et2d(child))
+                    else:
+                        d[child.tag] = self.et2d(child)
+                else:
+                    if child.tag in d:
+                        d[child.tag].append(child.text)
+                    else:
+                        d[child.tag] = child.text
+        return d
+
+    def _et2d(self, et):
         """ Etree to Dict
 
             converts an ETree to a Dict Tree
@@ -275,6 +328,7 @@ class ISYEvent(object):
         return d
 
 
+
     @staticmethod
     def print_event(*arg):
 
@@ -288,7 +342,7 @@ class ISYEvent(object):
 #
         ti = time.strftime('%X')
         try:
-            if ddat["control"] in ["_0", "_11", "_12", "_19" ]:
+            if ddat["control"] in ["_0", "_11", "_12", "_18", "_19", "_22", "_23"]:
                 pass
 
             elif ddat["control"] == "ERR":
@@ -309,12 +363,15 @@ class ISYEvent(object):
             elif ddat["control"] in ["ST", "RR", "OL"]:
                 ectrl = EVENT_CTRL.get(ddat["control"], ddat["control"])
                 node = ddat["node"]
+                action = _fmt_action(ddat["action"])
+                if action is None and "fmtAct" in ddat:
+                    action = ddat["fmtAct"]
 
                 evi = ddat["eventInfo"]
                 # print ddat["Event-sid"]
                 print("%-7s %-4s\t%-22s\t%-12s\t%s\t%s" % \
                     (ti, ddat["Event-seqnum"], \
-                    ectrl, node, ddat["action"], evi))
+                    ectrl, node, action, evi))
                 # print '_3 ', ddat["control"], ' : ', ddat
 
             elif ddat["control"] == "_1":
@@ -509,6 +566,7 @@ class ISYEvent(object):
                     print "Event Dat : \n\t", ddat, "\n\t", exml
                     pass
 
+            sys.stdout.flush()
             #print ddat
             # print data
         except Exception as e:
@@ -591,6 +649,10 @@ class ISYEvent(object):
                 for rs in r:
                     d, x = self._process_event(rs)
                     # print "d :", type(d)
+                    if self.debug & 0x0400:
+                        print "---------"
+                        print "event_loop= ", x
+                        print "event_loop= ", d
                     if ignorelist:
                         if d["control"] in ignorelist:
                             continue

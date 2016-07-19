@@ -77,7 +77,7 @@ else:
 #
 # 0x0100 =
 # 0x0200 = report responce data
-# 0x0400 =
+# 0x0400 = report raw events
 # 0x0800 =
 #
 # 0x1000 =
@@ -391,7 +391,7 @@ class Isy(IsyUtil):
         #print("start complete")
         #print "load in ", (sp - st)
 
-        self._isy_event = ISYEvent()
+        self._isy_event = ISYEvent(debug=self.debug)
         self._isy_event.subscribe(addr=self.addr, userp=self.userp, userl=self.userl)
         self._isy_event.set_process_func(self._read_event, self)
 
@@ -488,10 +488,10 @@ class Isy(IsyUtil):
                 prog_id = '{0:0>4}'.format(evnt_dat['eventInfo']['id'])
                 event_targ = prog_id
 
-		if (self.debug & 0x40):
-		    print "Prog Change/Updated :\t{0}".format(evnt_dat['eventInfo']['id'])
-		    print "Prog Id :\t", prog_id
-		    print "evnt_dat :\t", evnt_dat
+                if (self.debug & 0x40):
+                    print "Prog Change/Updated :\t{0}".format(evnt_dat['eventInfo']['id'])
+                    print "Prog Id :\t", prog_id
+                    print "evnt_dat :\t", evnt_dat
 
                 if self._progdict and prog_id in self._progdict:
                     prog_dict = self._progdict[prog_id]
@@ -816,9 +816,15 @@ class Isy(IsyUtil):
 
 
 
-    def _format_val(self, v):
+    def _format_val(self, vs):
         try:
-            v = int(v)
+            if isinstance(vs, dict):
+                if "#val" in vs:
+                    v = int(vs["#val"])
+                else:
+                    return None
+            else:
+                v = int(vs)
         except ValueError:
             return "0"
         else:
