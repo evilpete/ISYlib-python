@@ -160,7 +160,7 @@ class Isy(IsyUtil):
         node_del, _node_remove, \
         node_restore, node_restore_all, \
         node_get_notes
-        # node_rename, 
+        # node_rename,
 
     from ISY._isynet_resources import _load_networking, load_net_resource, \
         _net_resource_get_id, net_resource_run, \

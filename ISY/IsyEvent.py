@@ -653,6 +653,7 @@ class ISYEvent(object):
                         print "---------"
                         print "event_loop= ", x
                         print "event_loop= ", d
+                        sys.stdout.flush()
                     if ignorelist:
                         if d["control"] in ignorelist:
                             continue
