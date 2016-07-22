@@ -9,7 +9,7 @@
 __author__ = 'Peter Shipley <peter.shipley@gmail.com>'
 __copyright__ = "Copyright (C) 2015 Peter Shipley"
 __license__ = "BSD"
-__version__ = "0.1.20160110"
+__version__ = "0.1.20160710"
 
 
 #from xml.dom.minidom import parse, parseString
@@ -493,7 +493,9 @@ class Isy(IsyUtil):
                     print "Prog Id :\t", prog_id
                     print "evnt_dat :\t", evnt_dat
 
-                if self._progdict and prog_id in self._progdict:
+                if self._progdict is None:
+                    self.load_prog(prog_id)
+                elif prog_id in self._progdict:
                     prog_dict = self._progdict[prog_id]
                     if 'on' in evnt_dat['eventInfo']:
                         prog_dict['enabled'] = 'true'
@@ -514,6 +516,8 @@ class Isy(IsyUtil):
                         prog_dict['lastRunTime'] = evnt_dat['eventInfo']['r']
                     if 'f' in evnt_dat['eventInfo']:
                         prog_dict['lastFinishTime'] = evnt_dat['eventInfo']['f']
+                    if 'nsr' in evnt_dat['eventInfo']:
+                        prog_dict['nextScheduledRunTime'] = evnt_dat['eventInfo']['nsr']
 
                     ev_status = int(evnt_dat['eventInfo']['s'])
                     if ev_status & 0x01:
@@ -532,7 +536,10 @@ class Isy(IsyUtil):
                     elif ev_status & 0xF0:
                         prog_dict['status'] = 'not_loaded'
                 else:
-                    self.load_prog(prog_id)
+                    # TODO : Figure out why we are here...
+                    pass
+
+
 
 
 #   '0002': {  'enabled': 'true',
