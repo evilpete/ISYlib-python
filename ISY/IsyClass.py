@@ -497,14 +497,23 @@ class Isy(IsyUtil):
                     prog_dict = self._progdict[prog_id]
                     if 'on' in evnt_dat['eventInfo']:
                         prog_dict['enabled'] = 'true'
-                    else:
+                    elif 'off' in evnt_dat['eventInfo']:
                         prog_dict['enabled'] = 'false'
+                    else:
+                        pass
+
                     if 'rr' in evnt_dat['eventInfo']:
                         prog_dict['runAtStartup'] = 'true'
-                    else:
+                    elif 'nr' in evnt_dat['eventInfo']:
                         prog_dict['runAtStartup'] = 'false'
-                    prog_dict['lastRunTime'] = evnt_dat['eventInfo']['r']
-                    prog_dict['lastFinishTime'] = evnt_dat['eventInfo']['f']
+                    else:
+                        pass
+
+                    # not all prog change events have time Info
+                    if 'r' in evnt_dat['eventInfo']:
+                        prog_dict['lastRunTime'] = evnt_dat['eventInfo']['r']
+                    if 'f' in evnt_dat['eventInfo']:
+                        prog_dict['lastFinishTime'] = evnt_dat['eventInfo']['f']
 
                     ev_status = int(evnt_dat['eventInfo']['s'])
                     if ev_status & 0x01:

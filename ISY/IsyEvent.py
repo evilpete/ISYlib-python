@@ -342,7 +342,7 @@ class ISYEvent(object):
 #
         ti = time.strftime('%X')
         try:
-            if ddat["control"] in ["_0", "_11", "_12", "_18", "_19", "_22", "_23"]:
+            if ddat["control"] in ["_0", "_11", "_12", "_18", "_19", "_22" ]:
                 pass
 
             elif ddat["control"] == "ERR":
@@ -383,21 +383,29 @@ class ISYEvent(object):
                         action = "Event Status"
                         status = "id={!s} {!s}".format(ddat["eventInfo"]['id'], ddat["eventInfo"]['nsr'])
                     else:
+
                         if 'on' in ddat["eventInfo"]:
                             ena = "enabled"
-                        else:
+                        if 'off' in ddat["eventInfo"]:
                             ena = "disabled"
+                        else:
+                            ena = "-"
+
                         if 'rr' in ddat["eventInfo"]:
                             rr = "rr"
-                        else:
+                        if 'nr' in ddat["eventInfo"]:
                             rr = "nr"
+                        else:
+                            rr = "-"
+
                         action = "Event Status"
                         status = "id={!s} {!s} {!s} run={!s} fin={!s} status={!s}".format(
                             ddat["eventInfo"]['id'],
                             ena, rr,
-                            ddat["eventInfo"]['r'],
-                            ddat["eventInfo"]['f'],
-                            ddat["eventInfo"]['s'])
+                            ddat["eventInfo"].get('r', ""),
+                            ddat["eventInfo"].get('f', ""),
+                            ddat["eventInfo"].get('s', "")
+                            )
 
                 if ddat['action'] == '1':
                     action = "Get Status"
@@ -521,6 +529,16 @@ class ISYEvent(object):
                 print "{!s:<7} {!s:<4}\tSys Status Updated\t{!s}".format(
                     ti, ddat['Event-seqnum'], action)
 
+            elif ddat["control"] == "_6":
+                if ddat['action'] == '0':
+                    action = "Disabled"
+                elif ddat['action'] == '1':
+                    action = "Enabled"
+                else:
+                    action = "action={}".format( ddat.get('action', "") )
+
+                print "{!s:<7} {!s:<4}\Internet Access Status\t{!s}".format(
+                    ti, ddat['eventinfo'], action)
 
             elif ddat["control"] == "_7":
                 if ddat['action'] == '1':
@@ -561,6 +579,11 @@ class ISYEvent(object):
 #            elif ddat["control"] == "_1" and ddat["action"] in ["6", "7", "3"]:
 #               print ddat["control"], " : ", ddat
 #               print arg
+
+            elif ddat["control"] == "_23":
+                action = "action={}".format(ddat.get('action', "") )
+                print "{!s:<7} {!s:<4}\tPortal Events\t{!s}".format(
+                    ti, ddat['Event-seqnum'], ddat.get('eventInfo', "-") )
 
             else:
                     print "Event Dat : \n\t", ddat, "\n\t", exml
