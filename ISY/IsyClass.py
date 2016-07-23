@@ -9,7 +9,7 @@
 __author__ = 'Peter Shipley <peter.shipley@gmail.com>'
 __copyright__ = "Copyright (C) 2015 Peter Shipley"
 __license__ = "BSD"
-__version__ = "0.1.20160110"
+__version__ = "0.1.20160710"
 
 
 #from xml.dom.minidom import parse, parseString
@@ -77,7 +77,7 @@ else:
 #
 # 0x0100 =
 # 0x0200 = report responce data
-# 0x0400 =
+# 0x0400 = report raw events
 # 0x0800 =
 #
 # 0x1000 =
@@ -160,7 +160,7 @@ class Isy(IsyUtil):
         node_del, _node_remove, \
         node_restore, node_restore_all, \
         node_get_notes
-        # node_rename, 
+        # node_rename,
 
     from ISY._isynet_resources import _load_networking, load_net_resource, \
         _net_resource_get_id, net_resource_run, \
@@ -391,7 +391,7 @@ class Isy(IsyUtil):
         #print("start complete")
         #print "load in ", (sp - st)
 
-        self._isy_event = ISYEvent()
+        self._isy_event = ISYEvent(debug=self.debug)
         self._isy_event.subscribe(addr=self.addr, userp=self.userp, userl=self.userl)
         self._isy_event.set_process_func(self._read_event, self)
 
@@ -488,18 +488,36 @@ class Isy(IsyUtil):
                 prog_id = '{0:0>4}'.format(evnt_dat['eventInfo']['id'])
                 event_targ = prog_id
 
-                if self._progdict and prog_id in self._progdict:
+                if (self.debug & 0x40):
+                    print "Prog Change/Updated :\t{0}".format(evnt_dat['eventInfo']['id'])
+                    print "Prog Id :\t", prog_id
+                    print "evnt_dat :\t", evnt_dat
+
+                if self._progdict is None:
+                    self.load_prog(prog_id)
+                elif prog_id in self._progdict:
                     prog_dict = self._progdict[prog_id]
                     if 'on' in evnt_dat['eventInfo']:
                         prog_dict['enabled'] = 'true'
-                    else:
+                    elif 'off' in evnt_dat['eventInfo']:
                         prog_dict['enabled'] = 'false'
+                    else:
+                        pass
+
                     if 'rr' in evnt_dat['eventInfo']:
                         prog_dict['runAtStartup'] = 'true'
-                    else:
+                    elif 'nr' in evnt_dat['eventInfo']:
                         prog_dict['runAtStartup'] = 'false'
-                    prog_dict['lastRunTime'] = evnt_dat['eventInfo']['r']
-                    prog_dict['lastFinishTime'] = evnt_dat['eventInfo']['f']
+                    else:
+                        pass
+
+                    # not all prog change events have time Info
+                    if 'r' in evnt_dat['eventInfo']:
+                        prog_dict['lastRunTime'] = evnt_dat['eventInfo']['r']
+                    if 'f' in evnt_dat['eventInfo']:
+                        prog_dict['lastFinishTime'] = evnt_dat['eventInfo']['f']
+                    if 'nsr' in evnt_dat['eventInfo']:
+                        prog_dict['nextScheduledRunTime'] = evnt_dat['eventInfo']['nsr']
 
                     ev_status = int(evnt_dat['eventInfo']['s'])
                     if ev_status & 0x01:
@@ -518,7 +536,10 @@ class Isy(IsyUtil):
                     elif ev_status & 0xF0:
                         prog_dict['status'] = 'not_loaded'
                 else:
-                    self.load_prog(prog_id)
+                    # TODO : Figure out why we are here...
+                    pass
+
+
 
 
 #   '0002': {  'enabled': 'true',
@@ -811,9 +832,15 @@ class Isy(IsyUtil):
 
 
 
-    def _format_val(self, v):
+    def _format_val(self, vs):
         try:
-            v = int(v)
+            if isinstance(vs, dict):
+                if "#val" in vs:
+                    v = int(vs["#val"])
+                else:
+                    return None
+            else:
+                v = int(vs)
         except ValueError:
             return "0"
         else:

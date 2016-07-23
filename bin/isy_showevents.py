@@ -5,10 +5,10 @@ __author__ = "Peter Shipley"
 
 import os
 
-from  ISY.IsyEvent import ISYEvent
+from  ISY.IsyEvent import ISYEvent, _print_event
 
 def main():
-    server = ISYEvent()
+    server = ISYEvent(debug=0x0000)
 
     # you can subscribe to multiple devices
     # server.subscribe('10.1.1.25')
@@ -19,13 +19,13 @@ def main():
         userp=os.getenv('ISY_PASS', "admin")
     )
 
-    server.set_process_func(ISYEvent.print_event, "")
+    server.set_process_func(_print_event, "")
 
     try:
         print('Use Control-C to exit')
         server.events_loop()   #no return
     #    for d in  server.event_iter( ignorelist=["_0", "_11"] ):
-    #   server.print_event(d, "")
+    #   server._print_event(d, "")
     except KeyboardInterrupt:
         print('Exiting')
 
