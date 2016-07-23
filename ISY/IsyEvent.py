@@ -26,6 +26,7 @@ import select
 import xml.etree.ElementTree as ET
 
 from ISY.IsyEventData import EVENT_CTRL
+from ISY._isy_printevent import _print_event
 import collections
 
 try:
@@ -35,7 +36,9 @@ except ImportError:
 
 __all__ = ['ISYEvent']
 
+
 class ISYEvent(object):
+
 
     def __init__(self, addr=None, **kwargs):
         # print  "ISYEvent ", self.__class__.__name__
@@ -47,9 +50,10 @@ class ISYEvent(object):
         self.isy = kwargs.get("isy", None)
         self.level = kwargs.get("level", "1")
 
-        self.process_func = kwargs.get("process_func", ISYEvent.print_event)
+        self.process_func = kwargs.get("process_func", _print_event)
         self.process_func_arg = kwargs.get("process_func_arg", None)
 
+	print "_print_event", _print_event
         if self.process_func:
             assert isinstance(self.process_func, collections.Callable), \
                     "process_func Arg must me callable"
@@ -66,11 +70,13 @@ class ISYEvent(object):
     def set_process_func(self, func, arg):
 
         if func:
+	    # if self.debug & 0x01:
+	    print "set_process_func", func
             self.process_func = func
             assert isinstance(self.process_func, collections.Callable), \
                     "process_func Arg must me callable"
         else:
-            self.process_func = ISYEvent.print_event
+            self.process_func = _print_event
 
         if arg:
             self.process_func_arg = arg
@@ -240,8 +246,52 @@ class ISYEvent(object):
         return(ddat, data)
         #return(ddat)
 
-
     def et2d(self, et):
+        """ Etree to Dict
+
+            converts an ETree to a Dict Tree
+            lists are created for duplicate tag
+
+            if there are multiple XML of the same name
+            an list array is used
+            attrib tags are converted to "tag_name" + "attrib_name"
+
+            if an invalid arg is passed a empty dict is retrurned
+
+
+            arg: ETree Element  obj
+
+            returns: a dict obj
+        """
+        d = dict()
+        if not isinstance(et, ET.Element):
+            return d
+        children = list(et)
+        if et.attrib:
+            for k, v in list(et.items()):
+                d[et.tag + "-" + k] = v
+            if et.text is not None:
+                #d[et.tag + "_val"] = et.text
+                d["#val"] = et.text
+        if children:
+            for child in children:
+                if child.tag in d:
+                    if type(d[child.tag]) != list:
+                        t = d[child.tag]
+                        d[child.tag] = [t]
+                if list(child) or child.attrib:
+                    if child.tag in d:
+                        d[child.tag].append(self.et2d(child))
+                    else:
+                        d[child.tag] = self.et2d(child)
+                else:
+                    if child.tag in d:
+                        d[child.tag].append(child.text)
+                    else:
+                        d[child.tag] = child.text
+        return d
+
+    def _et2d(self, et):
         """ Etree to Dict
 
             converts an ETree to a Dict Tree
@@ -275,250 +325,7 @@ class ISYEvent(object):
         return d
 
 
-    @staticmethod
-    def print_event(*arg):
 
-        ddat = arg[0]
-        # mydat = arg[1]
-        exml = arg[2]
-
-# Event Dat:
-# {'control': 'DOF', 'node': '16 6C D2 7', 'eventInfo': None, 'Event-seqnum': '141', 'action': '0', 'Event-sid': 'uuid:40'}
-# <?xml version="1.0"?><Event seqnum="141" sid="uuid:40"><control>DOF</control><action>0</action><node>16 6C D2 7</node><eventInfo></eventInfo></Event>
-#
-        ti = time.strftime('%X')
-        try:
-            if ddat["control"] in ["_0", "_11", "_12", "_19" ]:
-                pass
-
-            elif ddat["control"] == "ERR":
-                print "{!s:<7} {!s:<4}\t{!s:<22}\t{!s}\t{!s}".format(
-                        ti, ddat['Event-seqnum'],
-                        "ERR",
-                        ddat['node'], ddat['action'])
-
-                return
-
-
-            elif ddat["control"] in ["DOF", "DON", "BMAN", "SMAN" ]:
-                action=ddat["control"]
-                status=ddat["node"]
-                print "{!s:<7} {!s:<4}\t{!s}\t{!s}".format(
-                        ti, ddat['Event-seqnum'], action, status)
-
-            elif ddat["control"] in ["ST", "RR", "OL"]:
-                ectrl = EVENT_CTRL.get(ddat["control"], ddat["control"])
-                node = ddat["node"]
-
-                evi = ddat["eventInfo"]
-                # print ddat["Event-sid"]
-                print("%-7s %-4s\t%-22s\t%-12s\t%s\t%s" % \
-                    (ti, ddat["Event-seqnum"], \
-                    ectrl, node, ddat["action"], evi))
-                # print '_3 ', ddat["control"], ' : ', ddat
-
-            elif ddat["control"] == "_1":
-                # 'on': None, 'f': '140630 20:55:55', 's': '31', 'r': '140630 20:55:55', 'nr': None, 'id': '1E'}
-
-                if ddat['action'] == '0':
-                    print "exml = ", exml
-                    if "nsr" in  ddat["eventInfo"]:
-                        action = "Event Status"
-                        status = "id={!s} {!s}".format(ddat["eventInfo"]['id'], ddat["eventInfo"]['nsr'])
-                    else:
-                        if 'on' in ddat["eventInfo"]:
-                            ena = "enabled"
-                        else:
-                            ena = "disabled"
-                        if 'rr' in ddat["eventInfo"]:
-                            rr = "rr"
-                        else:
-                            rr = "nr"
-                        action = "Event Status"
-                        status = "id={!s} {!s} {!s} run={!s} fin={!s} status={!s}".format(
-                            ddat["eventInfo"]['id'],
-                            ena, rr,
-                            ddat["eventInfo"]['r'],
-                            ddat["eventInfo"]['f'],
-                            ddat["eventInfo"]['s'])
-
-                if ddat['action'] == '1':
-                    action = "Get Status"
-                    status = ""
-                elif ddat['action'] == '2':
-                    action = "Key Change"
-                    status = ddat['node']
-
-                elif ddat['action'] == '3':
-                    action = "Info String"
-                    status = "{!s}\t{!s} ".format(ddat['node'], ddat["eventInfo"])
-                elif ddat['action'] == '4':
-                    action = "IR Learn Mode"
-                    status = ""
-
-                elif ddat['action'] == '5':
-                    action = "Schedule"
-                    status = ddat['node']
-
-                elif ddat['action'] == '6':
-                    action = "Var Stat"
-                    status = "{!s} {!s}:{!s} {!s} {!s}".format(
-                        ddat['node'],
-                        ddat['eventInfo']['var']['var-type'],
-                        ddat['eventInfo']['var']['var-id'],
-                        ddat['eventInfo']['var']['val'],
-                        ddat['eventInfo']['var']['ts'])
-                elif ddat['action'] == '7':
-                    action = "Var Init"
-                    status = "{!s} {!s}:{!s} {!s}".format(
-                        ddat['node'],
-                        ddat['eventInfo']['var']['var-type'],
-                        ddat['eventInfo']['var']['var-id'],
-                        ddat['eventInfo']['var']['init'])
-
-                elif ddat['action'] == '8':
-                    action  = "Key"
-                    status = ddat['eventInfo']
-                else:
-                    action = ddat['action'],
-                    status = ddat['eventInfo']
-
-                print "{!s:<7} {!s:<4}\t{!s:<22}\t{!s}\t{!s} ".format(
-                        ti, ddat['Event-seqnum'],
-                        "Trigger Event",
-                        action, status)
-
-            elif ddat["control"] == "_3":
-                if ddat['action'] == 'FD':
-                    action = 'new Folder node: '
-                    status = str("{!s} = {!s}").format(ddat['node'], ddat['eventInfo']['folder'])
-                elif ddat['action'] == 'FR':
-                    action = 'del Folder node'
-                    status = ddat['node']
-                elif ddat['action'] == 'FN':
-                    action = 'rename Folder node'
-                    status = ddat['node']
-                elif ddat['action'] == 'CE':
-                    action = 'Clear Node Error'
-                    status = ddat['node']
-                elif ddat['action'] == 'NE':
-                    action = 'Node Error'
-                    status = ddat['node']
-                elif ddat['action'] == 'WH':
-                    action = "Pending Device Operation"
-                    status = ddat['node']
-                elif ddat['action'] == 'WD':
-                    action = "Programming Device"
-                    status =  ddat['node']
-                elif ddat['action'] == 'SN':
-                    action = "Discovering Nodes"
-                    status =  ""
-                elif ddat['action'] == 'SC':
-                    action = "Discovering Nodes Complete"
-                    status =  ""
-                else:
-                    action = ddat['action']
-                    status = "{!s}\t{!s}".format(ddat['node'], ddat['eventInfo'])
-                # "Node Change",
-                print "{!s:<7} {!s:<4}\t{!s:<22}\t{!s}".format(
-                        ti, ddat['Event-seqnum'],
-                        action, status)
-
-            elif ddat["control"] == "_4":
-                status=""
-                action=ddat['action']
-                if ddat['action'] == '0':
-                    action = "Time Change"
-                elif ddat['action'] == '1':
-                    action = "Time Conf Changed"
-                elif ddat['action'] == '2':
-                    action = "NTP Setting Change"
-                elif ddat['action'] == '3':
-                    action = "Notifications Settings Updated"
-                elif ddat['action'] == '4':
-                    action = "NTP Communications Error"
-                elif ddat['action'] == '5':
-                    action = "Batch Mode Updated"
-                    status = ddat['eventInfo']['status']
-                elif ddat['action'] == '6':
-                    action = "Battery Mode Programming Updated"
-                    status = ddat['eventInfo']['status']
-                else:
-                    action = ddat['action']
-                    status = ddat['eventInfo']
-
-                print "{!s:<7} {!s:<4}\tSys Conf Updated\t{!s} : {!s}".format(
-                ti, ddat['Event-seqnum'], action, status)
-
-            elif ddat["control"] == "_5":
-                action=ddat['action']
-                if ddat['action'] == '0':
-                    action = "Not Busy"
-                elif ddat['action'] == '1':
-                    action = "Busy"
-                elif ddat['action'] == '2':
-                    action = "Idle"
-                elif ddat['action'] == '3':
-                    action = "Safe Mode"
-
-                print "{!s:<7} {!s:<4}\tSys Status Updated\t{!s}".format(
-                    ti, ddat['Event-seqnum'], action)
-
-
-            elif ddat["control"] == "_7":
-                if ddat['action'] == '1':
-                    action = "Update"
-                elif ddat['action'] == '2.1':
-                    action = "Device Address Info"
-                elif ddat['action'] == '2.2':
-                    action = "Device Address Warn"
-                elif ddat['action'] == '2.3':
-                    action = "Device Address Error"
-                else:
-                    action = ddat['action']
-                print "{!s:<7} {!s:<4}\tProgress Report\t{!s} : {!s}".format(ti, ddat['Event-seqnum'], action, ddat["eventInfo"])
-
-            elif ddat["control"] == "_10":
-                action=ddat['action']
-                status=ddat['eventInfo']
-
-                if ddat['action'] == '1':
-                    action="Open ADR Error"
-                    status=""
-                if ddat['action'] == '2':
-                    action="Open ADR Status Update"
-                    status=ddat['eventInfo']
-                if ddat['action'] == '5':
-                    action="Flex Your Power Error"
-                    status=""
-                elif ddat['action'] == '6':
-                    action="Flex Your Power Status"
-                    status=ddat['eventInfo']['active']
-
-                print "{!s:<7} {!s:<4}\tOpenADR / Flex\t{!s}\t{!s}".format(
-                    ti, ddat['Event-seqnum'], action, status)
-
-
-#            elif ddat["control"] == "_12":
-#               pass
-#            elif ddat["control"] == "_1" and ddat["action"] in ["6", "7", "3"]:
-#               print ddat["control"], " : ", ddat
-#               print arg
-
-            else:
-                    print "Event Dat : \n\t", ddat, "\n\t", exml
-                    pass
-
-            #print ddat
-            # print data
-        except Exception as e:
-            print("Unexpected error:", sys.exc_info()[0])
-            print(e)
-            print(ddat)
-            raise
-            # print data
-        finally:
-            pass
 
 
     def event_iter(self, ignorelist=None, poll_interval=0.5):
@@ -591,6 +398,11 @@ class ISYEvent(object):
                 for rs in r:
                     d, x = self._process_event(rs)
                     # print "d :", type(d)
+                    if self.debug & 0x0400:
+                        print "---------"
+                        print "event_loop= ", x
+                        print "event_loop= ", d
+                        sys.stdout.flush()
                     if ignorelist:
                         if d["control"] in ignorelist:
                             continue

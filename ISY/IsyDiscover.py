@@ -93,7 +93,11 @@ def isy_discover(**kwargs):
 
         # Create the socket
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+<<<<<<< HEAD
 	sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+=======
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+>>>>>>> dev
         sock.bind(server_address)
         group = socket.inet_aton(multicast_group)
         mreq = struct.pack('4sL', group, socket.INADDR_ANY)
