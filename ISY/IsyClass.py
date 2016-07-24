@@ -216,7 +216,7 @@ class Isy(IsyUtil):
             self.parse_args()
 
         self._isy_event = None
-        self.event_heartbeat = 0;
+        self.event_heartbeat = 0
         self.error_str = ""
         self.callbacks = None
         self._is_pro = True
@@ -362,7 +362,7 @@ class Isy(IsyUtil):
 
     #
     # Event Subscription Code
-    # Allows for treaded realtime node status updating
+    # Allows for threaded realtime node status updating
     #
     def start_event_thread(self, mask=0):
         """  starts event stream update thread
@@ -402,7 +402,7 @@ class Isy(IsyUtil):
         self.eventupdates = True
         # print(self.event_thread)
 
-    def stop_event_tread(self):
+    def stop_event_thread(self):
         """ Stop update thread """
         if hasattr(self._isy_event, "_shut_down"):
             self._isy_event._shut_down = 1
@@ -465,14 +465,14 @@ class Isy(IsyUtil):
                 warn("Event for Unknown node : {0}".format(evnt_dat["node"]), \
                         IsyRuntimeWarning)
 
-        elif evnt_dat["control"] == "_0" :  # HeartBeat
+        elif evnt_dat["control"] == "_0":  # HeartBeat
             #self.event_heartbeat = time.gmtime()
             pass
 
         #
         # handle VAR value change
         #
-        elif evnt_dat["control"] == "_1" :  # Trigger Events
+        elif evnt_dat["control"] == "_1":  # Trigger Events
 
             #
             # action = "0" -> Event Status
@@ -573,12 +573,12 @@ class Isy(IsyUtil):
                 else:
                     warn("Event for Unknown Var : {0}".format(vid), IsyRuntimeWarning)
 
-        elif evnt_dat["control"] == "_2" :  # Driver Specific Events
+        elif evnt_dat["control"] == "_2":  # Driver Specific Events
             pass
 
-        elif evnt_dat["control"] == "_3" :  # Node Change/Updated Event
+        elif evnt_dat["control"] == "_3":  # Node Change/Updated Event
             if (self.debug & 0x40):
-                print("Node Change/Updated Event :  {0}".format(evnt_dat["node"]))
+                print("Node Change/Updated Event:  {0}".format(evnt_dat["node"]))
                 print("evnt_dat : ", evnt_dat)
             #
             # action = "NN" -> Node Renamed
@@ -608,11 +608,11 @@ class Isy(IsyUtil):
             # action = "WD" -> Programming Device
             # action = "RV" -> Node Revised (UPB)
 
-            if evnt_dat['action'] == 'EN' :  # Enable
+            if evnt_dat['action'] == 'EN':  # Enable
                 if evnt_dat['node'] in self._nodedict:
                     self._nodedict[evnt_dat['node']]['enabled'] = evnt_dat['eventInfo']['enabled']
 
-            elif evnt_dat['action'] == 'GN' :  # Group Renamed
+            elif evnt_dat['action'] == 'GN':  # Group Renamed
                 if evnt_dat['node'] in self._nodegroups:
                     oldname = self._nodegroups[evnt_dat['node']]['name']
                     self._nodegroups[evnt_dat['node']]['name'] = evnt_dat['eventInfo']['newName']
@@ -629,13 +629,13 @@ class Isy(IsyUtil):
                     if oldname in self._name2id and self._name2id[oldname][0] == "group":
                         del self._name2id[oldname]
 
-            elif evnt_dat['action'] == 'GR' :  # Group Removed/Deleted
+            elif evnt_dat['action'] == 'GR':  # Group Removed/Deleted
                     if (self.debug & 0x40):
-                        print("evnt_dat :", evnt_dat)
+                        print("evnt_dat:", evnt_dat)
                     pass
-            elif evnt_dat['action'] == 'GD' :  # New Group Added
+            elif evnt_dat['action'] == 'GD':  # New Group Added
                     if (self.debug & 0x40):
-                        print("evnt_dat :", evnt_dat)
+                        print("evnt_dat:", evnt_dat)
                     pass
 
 
@@ -687,7 +687,7 @@ class Isy(IsyUtil):
                     self._folder2addr[evnt_dat['eventInfo']['newName']] = evnt_dat['node']
                     del self._folder2addr[oldname]
 
-        elif evnt_dat["control"] == "_4" :  # System Configuration Updated
+        elif evnt_dat["control"] == "_4":  # System Configuration Updated
             pass
             #
             # action = "0" -> Time Changed
@@ -722,7 +722,7 @@ class Isy(IsyUtil):
 
                 # status_battery_mode_prog_update
 
-        elif evnt_dat["control"] == "_5" :  # System Status Updated
+        elif evnt_dat["control"] == "_5":  # System Status Updated
             pass
             #
             # node = null
@@ -732,7 +732,7 @@ class Isy(IsyUtil):
             # action = "3" -> Safe Mode
             #
 
-        elif evnt_dat["control"] == "_6" :  # Internet Access Status
+        elif evnt_dat["control"] == "_6":  # Internet Access Status
             pass
             #
             # action = "0" -> Disabled
@@ -742,22 +742,22 @@ class Isy(IsyUtil):
             # action = "2" -> Failed
             #
 
-        elif evnt_dat["control"] == "_7" :  # Progress Report
+        elif evnt_dat["control"] == "_7":  # Progress Report
             pass
 
-        elif evnt_dat["control"] == "_8" :  # Security System Event
+        elif evnt_dat["control"] == "_8":  # Security System Event
             pass
 
-        elif evnt_dat["control"] == "_9" :  # System Alert Event
+        elif evnt_dat["control"] == "_9":  # System Alert Event
             pass
 
-        elif evnt_dat["control"] == "_10" :  # OpenADR and Flex Your Power Events
+        elif evnt_dat["control"] == "_10":  # OpenADR and Flex Your Power Events
             pass
 
-        elif evnt_dat["control"] == "_11" :  # Climate Events
+        elif evnt_dat["control"] == "_11":  # Climate Events
             pass
 
-        elif evnt_dat["control"] == "_12" :  # AMI/SEP Events
+        elif evnt_dat["control"] == "_12":  # AMI/SEP Events
             pass
 #           if evnt_dat['action'] == '1':
 #               if 'ZBNetwork' in evnt_dat['eventInfo']:
@@ -767,25 +767,25 @@ class Isy(IsyUtil):
 #                   self.zigbee['MeterFormat'] = evnt_dat['eventInfo']['MeterFormat']
 #
 
-        elif evnt_dat["control"] == "_13" :  # External Energy Monitoring Events
+        elif evnt_dat["control"] == "_13":  # External Energy Monitoring Events
             pass
 
-        elif evnt_dat["control"] == "_14" :  # UPB Linker Events
+        elif evnt_dat["control"] == "_14":  # UPB Linker Events
             pass
 
-        elif evnt_dat["control"] == "_15" :  # UPB Device Adder State
+        elif evnt_dat["control"] == "_15":  # UPB Device Adder State
             pass
 
-        elif evnt_dat["control"] == "_16" :  # UPB Device Status Events
+        elif evnt_dat["control"] == "_16":  # UPB Device Status Events
             pass
 
-        elif evnt_dat["control"] == "_17" :  # Gas Meter Events
+        elif evnt_dat["control"] == "_17":  # Gas Meter Events
             pass
 
-        elif evnt_dat["control"] == "_18" :  # Zigbee Events
+        elif evnt_dat["control"] == "_18":  # Zigbee Events
             pass
 
-        elif evnt_dat["control"] == "_19" :  # Elk Events
+        elif evnt_dat["control"] == "_19":  # Elk Events
             pass
 #           if evnt_dat["action"] == "6":
 #               if 'se" in evnt_dat['eventInfo']:
@@ -796,7 +796,7 @@ class Isy(IsyUtil):
 
 
 
-        elif evnt_dat["control"] == "_20" :  # Device Linker Events
+        elif evnt_dat["control"] == "_20":  # Device Linker Events
             pass
 
 
@@ -806,14 +806,14 @@ class Isy(IsyUtil):
                 print("Event fall though : '{0}'".format(evnt_dat["node"]))
 
 
-        if self.callbacks != None:
+        if self.callbacks is not None:
             call_targ = None
             if event_targ in self.callbacks:
                 call_targ = event_targ
             elif evnt_dat["control"] in self.callbacks:
                 call_targ = evnt_dat["control"]
 
-            if call_targ != None:
+            if call_targ is not None:
                 cb = self.callbacks[call_targ]
                 if isinstance(cb[0], collections.Callable):
                     try:
@@ -1357,9 +1357,9 @@ class Isy(IsyUtil):
                 password     user password
         """
         if name is None:
-            raise IsyValueError("set_user_credentials : name argument required ")
+            raise IsyValueError("set_user_credentials : name argument required")
         if password is None:
-            raise IsyValueError("set_user_credentials : pass argument required ")
+            raise IsyValueError("set_user_credentials : pass argument required")
         return self.soapcomm("SetUserCredentials", name=name, password=password)
 
     def reboot(self):
@@ -1458,7 +1458,7 @@ class Isy(IsyUtil):
         if name[0] != "/":
             name = "/USER/WEB/" + name
         r = self.soapcomm("RemoveUserFile", name=name)
-        return(r)
+        return r
 
     def user_getfile(self, name=None):
         """ Get User File
@@ -1796,7 +1796,7 @@ class Isy(IsyUtil):
         if not re.match("[A-P]\d{,2}", unit):
             raise IsyValueError("bad x10 unit name : " + unit)
 
-#        print("X10 sent : " + str(unit) + " : " + str(xcmd))
+#        print("X10 sent : " + str(unit) + ": " + str(xcmd))
         xurl = "/rest/X10/" + str(unit) + "/" + str(xcmd)
         if self.debug & 0x02 : print("xurl = " + xurl)
         resp = self._getXMLetree(xurl)
@@ -1918,7 +1918,7 @@ class Isy(IsyUtil):
 
         if self.debug & 0x02 : print("xurl = " + xurl)
         resp = self._getXMLetree(xurl)
-        if resp != None:
+        if resp is not None:
             #self._printXML(resp)
             return et2d(resp)
 
@@ -1940,7 +1940,7 @@ class Isy(IsyUtil):
         if self.debug & 0x02:
             print("xurl = " + xurl)
         resp = self._getXMLetree(xurl)
-        if resp != None:
+        if resp is not None:
             #self._printXML(resp)
             return et2d(resp)
 
@@ -1989,10 +1989,10 @@ class Isy(IsyUtil):
         no none exist then value "None" is returned
         """
 
-        if self.callbacks != None:
+        if self.callbacks is not None:
             (idtype, nodeid) = self._node_get_id(nid)
 
-            if nodeid != None and nodeid in self.callbacks:
+            if nodeid is not None and nodeid in self.callbacks:
                 return self.callbacks[nodeid]
 
         return None
@@ -2008,9 +2008,9 @@ class Isy(IsyUtil):
 
             no error is raised if callback does not exist
         """
-        if self.callbacks != None:
+        if self.callbacks is not None:
             (idtype, nodeid) = self._node_get_id(nid)
-            if nodeid != None and nodeid in self.callbacks:
+            if nodeid is not None and nodeid in self.callbacks:
                 del self.callbacks[nodeid]
 
     ##
@@ -2034,14 +2034,14 @@ class Isy(IsyUtil):
         if isinstance(nobj, IsySubClass):
               return nobj.objtype()
         (idtype, nid) = self._node_get_id(nobj)
-        return(idtype)
+        return idtype 
 
     #
     # Untested
     #
     def getid(self, objaddr):
         (idtype, nid) = self._node_get_id(objaddr)
-        return(nid)
+        return nid
 
     #
     # Untested

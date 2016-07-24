@@ -29,7 +29,7 @@ def val2bool(en):
     else:  # if isinstance(en, (long, int, float)):
         # Punt
         rval = bool(en)
-    return(rval)
+    return rval
 
 
 
@@ -83,7 +83,7 @@ def format_node_addr(naddr):
     if not isinstance(naddr, str):
          raise IsyValueError("{0} arg not string".format(__name__))
     addr_el = naddr.upper().split()
-    a = "{0:0>2}' '{1:0>2}' '{2:0>2}' ".format( *addr_el )
+    a = "{0:0>2}' '{1:0>2}' '{2:0>2}' ".format(*addr_el)
     return a
 
 
@@ -109,7 +109,7 @@ class IsyUtil(object):
 
     def _getXMLetree(self, xmlpath, noquote=0, timeout=10):
         """ take a URL path, download XLM and return parsed Etree """
-        if ( noquote):
+        if (noquote):
             xurl = self.baseurl + xmlpath
         else:
             xurl = self.baseurl + URL.quote(xmlpath)
@@ -125,7 +125,7 @@ class IsyUtil(object):
             # print("res.getcode() ", res.getcode(), len(data))
             res.close()
         except URL.HTTPError, e:
-            self.error_str = str("Reponse Code : {0} : {1}" ).format(e.code, xurl)
+            self.error_str = str("Response Code : {0} : {1}").format(e.code, xurl)
             return None
 
         if len(self.error_str) : self.error_str = ""
@@ -204,10 +204,10 @@ class IsyUtil(object):
             res.close()
         except URL.HTTPError, e:
 
-            self.error_str = str("Reponse Code : {0} : {1} {2}" ).format(e.code, xurl, cmd)
-            if (( cmd == "DiscoverNodes" and e.code == 803 )
-                or ( cmd == "CancelNodesDiscovery" and e.code == 501 )
-                # or ( cmd == "RemoveNode" and e.code == 501 )
+            self.error_str = str("Reponse Code : {0} : {1} {2}").format(e.code, xurl, cmd)
+            if ((cmd == "DiscoverNodes" and e.code == 803)
+                or (cmd == "CancelNodesDiscovery" and e.code == 501)
+                # or (cmd == "RemoveNode" and e.code == 501)
                 ):
 
 
@@ -299,7 +299,7 @@ class IsyUtil(object):
 
     def _sendfile(self, filename="", data="", load="n"):
 
-        if ( filename.startswith('/')):
+        if (filename.startswith('/')):
             xurl = self.baseurl + "/file/upload" + filename + "?load=" + load
         else:
             xurl = self.baseurl + "/file/upload/" + filename + "?load=" + load
@@ -416,10 +416,10 @@ class IsySubClass(IsyUtil):
         if prop in self._getlist:
             if prop in self._mydict:
                 if prop in self._boollist:
-                    return(val2bool(self._mydict[prop]))
+                    return val2bool(self._mydict[prop])
                 else:
-                    return(self._mydict[prop])
-        return(None)
+                    return self._mydict[prop]
+        return None
 
 #    def _set_prop(self, prop, val):
 #       """ Internal funtion call """
@@ -482,7 +482,7 @@ class IsySubClass(IsyUtil):
         return self._set_prop(prop, val)
 
     def __delitem__(self, prop):
-        raise IsyPropertyError("__delitem__ : can't delete propery :  " + str(prop) )
+        raise IsyPropertyError("__delitem__ : can't delete propery :  " + str(prop))
 
 
     def __del__(self):
@@ -501,13 +501,13 @@ class IsySubClass(IsyUtil):
             print("IsyUtil __iter__")
         for p in self._getlist:
             if p in self._mydict:
-                yield (p , self._get_prop(p))
+                yield (p, self._get_prop(p))
             else:
-                yield (p , None)
+                yield (p, None)
 
 
     def __repr__(self):
-        return "<%s %s @ %s at 0x%x>" % ( self.__class__.__name__,
+        return "<%s %s @ %s at 0x%x>" % (self.__class__.__name__,
                 self._get_prop("id"), self.isy.addr, id(self))
 
 
@@ -521,12 +521,12 @@ class IsySubClass(IsyUtil):
 #       if isinstance(other, str):
 #        if not hasattr(other, "myval"):
 #            return -1
-#        return ( str.__cmp__(self.myval, other.myval) )
+#        return (str.__cmp__(self.myval, other.myval))
 
     def __getattr__(self, attr):
         # print("U attr =", attr)
         attr_v = self._get_prop(attr)
-        if attr_v != None:
+        if attr_v is not None:
             return attr_v
         else:
 #            print("attr =", attr, self.address)
@@ -544,11 +544,11 @@ class IsySubClass(IsyUtil):
         if isinstance(other, str):
             return self._get_prop("id") == other
         if type(self) != type(other):
-            return(False)
+            return False
             # NotImplemented
         if hasattr(other._mydict, "id"):
             return(self._get_prop("id") == other._get_prop("id"))
-        return(False)
+        return False
 
 
 

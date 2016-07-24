@@ -15,6 +15,7 @@ __license__ = "BSD"
 import socket
 import struct
 import sys
+import platform
 import xml.etree.ElementTree as ET
 # import base64
 if sys.hexversion < 0x3000000:
@@ -81,7 +82,7 @@ def isy_discover(**kwargs):
     def isy_upnp(ddata):
 
         if ddata.debug:
-            print("isy_upnp CalL")
+            print("isy_upnp Call")
 
             print("isy_upnp debug=%s\ttimeout=%s\tpassive=%s\tcount=%s\n" % \
                     (ddata.debug, ddata.timeout, ddata.passive, ddata.count))
@@ -89,13 +90,17 @@ def isy_discover(**kwargs):
         multicast_group = '239.255.255.250'
         multicast_port = 1900
         server_address = ('', multicast_port)
+        use_addr = socket.INADDR_ANY
 
+        if platform.system() == 'Windows':
+            use_addr = socket.inet_aton(socket.gethostbyname(socket.gethostname()))
 
         # Create the socket
-        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        sock = socket.socket(socket.AF_INET, use_addr)
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         sock.bind(server_address)
         group = socket.inet_aton(multicast_group)
+
         mreq = struct.pack('4sL', group, socket.INADDR_ANY)
         sock.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
 
@@ -113,11 +118,14 @@ def isy_discover(**kwargs):
             if ddata.debug:
                 print("while IN")
 
+	    #try:
             data, address = sock.recvfrom(1024)
+            # except socket.timeout :
+            #      raise TIMEOUT ("Timed Out")
 
             #.decode('UTF-8')
             if sys.hexversion >= 0x3000000:
-                data = str( data, encoding='utf8')
+                data = str(data, encoding='utf8')
 
             if ddata.debug:
                 print('received %s bytes from %s' % (len(data), address))
@@ -127,7 +135,7 @@ def isy_discover(**kwargs):
             # only ISY devices
             # if should I look for
             # SERVER:UCoS, UPnP/1.0, UDI/1.0
-            if not "X_Insteon_Lighting_" in data:
+            if "X_Insteon_Lighting_" not in data:
                 continue
 
             upnp_packet = data.splitlines()

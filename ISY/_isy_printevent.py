@@ -38,16 +38,16 @@ def _print_event(*arg):
         if "control" not in ddat or  ddat["control"] is None:
             return
 
-        control_val =  ddat["control"]
+        control_val = ddat["control"]
 
         if "action" in ddat and ddat["action"] is not None:
-            action_val =  _action_val(ddat["action"])
-        else :
-            action_val =  None
+            action_val = _action_val(ddat["action"])
+        else:
+            action_val = None
 
         if control_val in EVENT_CTRL_ACTION and action_val:
             action_str = EVENT_CTRL_ACTION[control_val].get(action_val, action_val)
-        else :
+        else:
             action_str = ""
 
         node = ddat.get("node", "")
@@ -63,24 +63,20 @@ def _print_event(*arg):
 
         elif ddat["control"] == "ERR":
             print "{!s:<7} {!s:<4}\t{!s:<12}{!s:<12}\t{!s}".format(
-                    ti, ddat['Event-seqnum'],
-                    "ERR",
-                    ddat['node'], action_str)
-
+                    ti, ddat['Event-seqnum'], "ERR", ddat['node'], action_str)
             return
 
-
-        #elif ddat["control"] in ["DOF", "DON", "BMAN", "SMAN", "FDUP", "FDSTOP", "FDDOWN" ]:
+        #elif ddat["control"] in ["DOF", "DON", "BMAN", "SMAN", "FDUP", "FDSTOP", "FDDOWN"]:
         #    print "{!s:<7} {!s:<4}\t{!s:<12}{!s}\t{!s}".format(
         #            ti, ddat['Event-seqnum'], node, control_str, action_str)
         #    return
 
         elif ddat["control"] in ["ST", "RR", "OL", "DOF", "DON", "DFOF", "DFON",
-                                "BMAN", "SMAN", "FDUP", "FDSTOP", "FDDOWN" ]:
+                                "BMAN", "SMAN", "FDUP", "FDSTOP", "FDDOWN"]:
 
             if ddat["eventInfo"] is not None:
                 evi = ddat["eventInfo"]
-            else :
+            else:
                 evi = ""
             print "{!s:<7} {!s:<4}\t{!s:<12}{!s:<12}\t{!s:<12}\t{!s}".format(
                 ti, ddat["Event-seqnum"], node, control_str, action_val, evi)
@@ -93,7 +89,7 @@ def _print_event(*arg):
             status = ""
 
             if action_val == '0':
-                st=[ ]
+                st = []
 
                 if 'id' in ddat["eventInfo"]:
                     st.append("id={}".format(ddat["eventInfo"]['id']))
@@ -102,14 +98,14 @@ def _print_event(*arg):
                     st.append("status={}".format(ddat["eventInfo"]['s']))
 
                 if 'on' in ddat["eventInfo"]:
-                    st.append( "enabled=true")
+                    st.append("enabled=true")
                 if 'off' in ddat["eventInfo"]:
-                    st.append( "enabled=false")
+                    st.append("enabled=false")
 
                 if 'rr' in ddat["eventInfo"]:
-                    st.append( "runAtStartup=true")
+                    st.append("runAtStartup=true")
                 if 'nr' in ddat["eventInfo"]:
-                    st.append( "runAtStartup=false")
+                    st.append("runAtStartup=false")
 
                 if 'r' in ddat["eventInfo"]:
                     st.append("lastRunTime={}".format(ddat["eventInfo"]['r']))
@@ -139,10 +135,10 @@ def _print_event(*arg):
                     ddat['eventInfo']['var']['init'])
 
             else:
-                if isinstance( ddat['eventInfo'], dict):
-                    status = " ".join(["{}={}".format(a,b) for a, b in ddat['eventInfo'].items()] )
+                if isinstance(ddat['eventInfo'], dict):
+                    status = " ".join(["{}={}".format(a, b) for a, b in ddat['eventInfo'].items()])
                 elif ddat['eventInfo'] is None:
-                    status=""
+                    status = ""
                 else:
                     status = ddat['eventInfo']
 
@@ -153,12 +149,12 @@ def _print_event(*arg):
 
         elif ddat["control"] in [ "_3", "_4", "_5", "_6", "_7", "_8", "_9",
                         "_10", "_11", "_12", "_13", "_14", "_15", "_16", "_19",
-                        "_20", "_21", "_22" ] :
+                        "_20", "_21", "_22"]:
             d = ddat['eventInfo']
-            if isinstance( d, dict):
-                status = " ".join(["{}={}".format(a,b) for a, b in d.items()] )
+            if isinstance(d, dict):
+                status = " ".join(["{}={}".format(a, b) for a, b in d.items()])
             elif d is None:
-                status=""
+                status = ""
             else:
                 status = eventInfo
 
@@ -171,7 +167,7 @@ def _print_event(*arg):
 
 #        elif ddat["control"] == "_11":
 #            status = ddat['eventInfo']
-#            status="value={} unit={}".format(
+#            status = "value={} unit={}".format(
 #                        ddat['eventInfo'].get('value', ""),
 #                        ddat['eventInfo'].get('unit', ""))
 #
@@ -196,7 +192,7 @@ def _print_event(*arg):
         elif ddat["control"] == "_18":
             if 'ZBNetwork' in ddat['eventInfo']:
                 d = ddat['eventInfo']['ZBNetwork']
-                status = " ".join(["{}={}".format(a,b) for a, b in d.items()] )
+                status = " ".join(["{}={}".format(a, b) for a, b in d.items()])
             else:
                 status = ddat['eventInfo']
             print "{!s:<7} {!s:<4}\t{!s:<12}{!s:<12}\t{!s:<12}\t{!s}".format(
@@ -206,7 +202,7 @@ def _print_event(*arg):
         elif ddat["control"] == "_23":
             if 'PortalStatus' in ddat['eventInfo']:
                 d = ddat['eventInfo']['PortalStatus']
-                status = " ".join(["{}={}".format(a,b) for a, b in d.items()] )
+                status = " ".join(["{}={}".format(a, b) for a, b in d.items()])
             else:
                 status = ddat['eventInfo']
             print "{!s:<7} {!s:<4}\t{!s:<12}{!s:<12}\t{!s:<12}\t{!s}".format(

@@ -20,7 +20,7 @@ import warnings
 ##
 ## Node funtions
 ##
-def load_nodes(self, reload=0):
+def load_nodes(self, rload=0):
     """ Load node list scene list and folder info
 
         args : none
@@ -35,17 +35,17 @@ def load_nodes(self, reload=0):
 #         current_node_set = set( self._nodedict.viewkeys() )
 
     if not hasattr(self, '_nodegroups') or not isinstance(self._nodegroups, dict):
-        self._nodegroups  = dict()
+        self._nodegroups = dict()
 #    else:
 #         current_node_set = self._nodegroups.viewkeys()
 
-    if reload or not hasattr(self, '_nodefolder') or not isinstance(self._nodefolder, dict):
-        self._nodefolder  = dict()
+    if rload or not hasattr(self, '_nodefolder') or not isinstance(self._nodefolder, dict):
+        self._nodefolder = dict()
 
-    if reload or not hasattr(self, '_folder2addr') or not isinstance(self._folder2addr, dict):
+    if rload or not hasattr(self, '_folder2addr') or not isinstance(self._folder2addr, dict):
         self._folder2addr = dict()
 
-    if reload or not hasattr(self, '_name2id') or not isinstance(self._name2id, dict):
+    if rload or not hasattr(self, '_name2id') or not isinstance(self._name2id, dict):
         self._name2id = dict()
 
     # self.nodeCdict = dict()
@@ -56,14 +56,14 @@ def load_nodes(self, reload=0):
     if nodeinfo is None:
           raise IsyCommunicationError("Load Node Info Fail : " \
                               + self.error_str)
-    self._gen_folder_list(nodeinfo, reload=reload)
-    self._gen_nodedict(nodeinfo, reload=reload)
-    self._gen_nodegroups(nodeinfo, reload=reload)
+    self._gen_folder_list(nodeinfo, rload=rload)
+    self._gen_nodedict(nodeinfo, rload=rload)
+    self._gen_nodegroups(nodeinfo, rload=rload)
     # self._printdict(self._nodedict)
     # print("load_nodes self._node2addr : ", len(self._node2addr))
     self._gen_member_list()
 
-def _gen_member_list(self, reload=0):
+def _gen_member_list(self, rload=0):
     """ganerates node connecton lists
 
         internal function call
@@ -128,10 +128,10 @@ def _gen_member_list(self, reload=0):
 
 
 def node_releoad(self):
-    return self.load_nodes(reload=1)
+    return self.load_nodes(rload=1)
 
 
-def _gen_folder_list(self, nodeinfo, reload=0):
+def _gen_folder_list(self, nodeinfo, rload=0):
     """ generate folder dictionary for load_node() """
     # self._nodefolder = dict()
     # self._folder2addr = dict()
@@ -169,7 +169,7 @@ def _gen_folder_list(self, nodeinfo, reload=0):
     #self._printdict(self._nodefolder)
     #self._printdict(self._folder2addr)
 
-def _gen_nodegroups(self, nodeinfo, reload=0):
+def _gen_nodegroups(self, nodeinfo, rload=0):
     """ generate scene / group dictionary for load_node() """
     # self._nodegroups = dict()
     self._groups2addr = dict()
@@ -226,7 +226,7 @@ def _gen_nodegroups(self, nodeinfo, reload=0):
             self._printinfo(grp, "Error : no address in group :")
 
 
-def _gen_nodedict(self, nodeinfo, reload=0):
+def _gen_nodedict(self, nodeinfo, rload=0):
     """ generate node dictionary for load_node() """
     warn_dup_name_list = list()
     self._node2addr = dict()
@@ -283,7 +283,7 @@ def _gen_nodedict(self, nodeinfo, reload=0):
 
                 # thinking of replacing _node2addr with _name2id
                 # do to ease managment of the three node types
-                if not reload and n in self._name2id:
+                if not rload and n in self._name2id:
                     warn_dup_name_list.append( (n ,idict["address"], self._name2id[n]) )
                     warn_mess = "Dup name2id (Node) \"{0}\" :".format(n) \
                                 + " \"{1}\"\n\t\"{2}\"".format(\

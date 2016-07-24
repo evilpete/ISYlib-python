@@ -353,7 +353,7 @@ class IsyNode(_IsyNodeBase):
         if prop in ['ST', 'OL', 'RR']:
             # Scene's do not have property values
 
-            if prop in self._mydict["property"]:
+            if "property" in self._mydict and prop in self._mydict["property"]:
                 # print self._mydict["property"]
                 # print "prop value", prop, value
                 return self._mydict["property"][prop][value]

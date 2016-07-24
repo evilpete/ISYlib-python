@@ -292,7 +292,7 @@ def _prog_rename(self, progid=None, progname=None):
     var_et = ET.fromstring(result)
 
     p = var_et.find("trigger/name")
-    if not p is None:
+    if p is not None:
         p.text = progname
     else:
         errorstr = "Internal Error, \"name\" element missing from D2D code :\n{0}\n".format(result)

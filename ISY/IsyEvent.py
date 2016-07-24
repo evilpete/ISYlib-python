@@ -2,7 +2,7 @@
 """
         Ugly...
 
-        work in progress, ment as proof of concept
+        work in progress, meant as proof of concept
 
         needs rewrite or cleanup
 """
@@ -53,7 +53,7 @@ class ISYEvent(object):
         self.process_func = kwargs.get("process_func", _print_event)
         self.process_func_arg = kwargs.get("process_func_arg", None)
 
-	print "_print_event", _print_event
+        print "_print_event", _print_event
         if self.process_func:
             assert isinstance(self.process_func, collections.Callable), \
                     "process_func Arg must me callable"
@@ -70,8 +70,8 @@ class ISYEvent(object):
     def set_process_func(self, func, arg):
 
         if func:
-	    # if self.debug & 0x01:
-	    print "set_process_func", func
+            # if self.debug & 0x01:
+            print "set_process_func", func
             self.process_func = func
             assert isinstance(self.process_func, collections.Callable), \
                     "process_func Arg must me callable"
@@ -117,7 +117,7 @@ class ISYEvent(object):
                 level = debug level
         """
 
-        addr  = kwargs.get("addr", None)
+        addr = kwargs.get("addr", None)
 
         if self.debug & 0x01:
             print("subscribe ", addr)
@@ -227,7 +227,7 @@ class ISYEvent(object):
 
         # ev = ET.fromstring(data)
         try:
-            ev =  ET.fromstring(data)
+            ev = ET.fromstring(data)
         except ET.ParseError as e:
             print "Etree ParseError "
             print "data = ", data,
@@ -305,7 +305,7 @@ class ISYEvent(object):
         children = list(et)
         if et.attrib:
             for k, v in list(et.items()):
-                d[et.tag + "-" + k] =  v
+                d[et.tag + "-" + k] = v
         if children:
             for child in children:
                 if child.tag in d:
@@ -503,7 +503,7 @@ class ISYEventConnection(object):
         server_address = (self.authtuple[0], 80)
         self.event_sock = socket.create_connection(server_address, 10)
 
-        #sn =  sock.getsockname()
+        #sn = sock.getsockname()
         #self.myip = sn[0]
         #print "P ", self.myip
 

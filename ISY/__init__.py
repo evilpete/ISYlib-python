@@ -36,7 +36,7 @@ Files:
     bin/isy_net_res.py  - call registered net resorces on ISY
     bin/isy_net_wol.py  - send WOL to registered devices
 
-The example code included it ment to demonstrate API use with minimal
+The example code included it meant to demonstrate API use with minimal
 code for clarity.
 
 
