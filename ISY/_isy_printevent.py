@@ -35,7 +35,7 @@ def _print_event(*arg):
 #
     ti = time.strftime('%X')
     try:
-        if "control" not in ddat or  ddat["control"] is None:
+        if "control" not in ddat or ddat["control"] is None:
             return
 
         control_val = ddat["control"]

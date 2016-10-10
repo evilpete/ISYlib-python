@@ -111,7 +111,7 @@ class ISYEvent(object):
             receive events from
 
             named args:
-                addr = IP address  or hostname of isydevice
+                addr = IP address or hostname of isydevice
                 userl = isy admin login
                 userp = isy admin password
                 level = debug level
@@ -149,7 +149,7 @@ class ISYEvent(object):
             this function removes an ISY device to the list of devices to
             receive events from
 
-            arg: IP address  or hostname of isydevice
+            arg: IP address or hostname of isydevice
         """
         remote_ip = socket.gethostbyname(addr)
         if not addr in self.connect_list:
@@ -259,7 +259,7 @@ class ISYEvent(object):
             if an invalid arg is passed a empty dict is retrurned
 
 
-            arg: ETree Element  obj
+            arg: ETree Element obj
 
             returns: a dict obj
         """

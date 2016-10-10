@@ -90,7 +90,7 @@ def net_resource_run(self, rrid):
         print("wol : xurl = " + xurl)
     resp = self._getXMLetree(xurl)
     # self._printXML(resp)
-    if resp is None or  resp.attrib["succeeded"] != 'true':
+    if resp is None or resp.attrib["succeeded"] != 'true':
         raise IsyResponseError("ISY network resources error : rid=" + str(rid))
 
 

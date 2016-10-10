@@ -95,7 +95,7 @@ def load_vars(self):
 #        if varid in self._vardict:
 #            self._set_var_value(varid, val, init)
 #        else:
-#            raise IsyLookupError("var_set_value: unknown var : " + str(var) )
+#            raise IsyLookupError("var_set_value: unknown var : " + str(var))
 #
 #
 #    def _set_var_value(self, varid, val, init=0):
@@ -162,7 +162,7 @@ def var_set_value(self, var, val, prop="val"):
             IsyLookupError :  if var name or Id is invalid
             TypeError :  if property is not 'val or 'init'
 
-        max values are a signed 32bit int ( -214748364 to 2147483647 )
+        max values are a signed 32bit int ( -214748364 to 2147483647)
     """
     if self.debug & 0x04:
         print("var_set_value ", val, " : ", prop)
