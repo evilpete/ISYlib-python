@@ -500,7 +500,14 @@ class ISYEventConnection(object):
 
         # self.event_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-        server_address = (self.authtuple[0], 80)
+        host_port = 80
+
+        addr_l = self.authtuple[0].split(":")
+        host_addr=addr_l[0]
+        if len(addr_l) > 1:
+            host_port=addr_l[1]
+        server_address = (host_addr, host_port)
+
         self.event_sock = socket.create_connection(server_address, 10)
 
         #sn = sock.getsockname()
