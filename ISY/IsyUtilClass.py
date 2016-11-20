@@ -294,7 +294,7 @@ class IsyUtil(object):
             if self.debug & 0x20:
                 print "using provided data as data src"
 
-        self._sendfile(filename=filename, data=data, load="n")
+        return self._sendfile(filename=filename, data=data, load="n")
 
 
     def _sendfile(self, filename="", data="", load="n"):
