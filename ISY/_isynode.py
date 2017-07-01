@@ -225,6 +225,20 @@ def _gen_nodegroups(self, nodeinfo, rload=0):
             # should raise an exception ?
             self._printinfo(grp, "Error : no address in group :")
 
+#import pprint
+#def _status_reload(self):
+#    # print "self._nodedict = ", self._nodedict
+#    resp = self._getXMLetree("/rest/status/")
+#    for inode in resp.iter('node'):
+#	if not 'id' in inode.attrib:
+#	    continue
+#	n_id = inode.attrib['id']
+#
+#	print "self._nodedict = ", n_id
+#	pprint.pprint(self._nodedict[n_id])
+
+
+
 
 def _gen_nodedict(self, nodeinfo, rload=0):
     """ generate node dictionary for load_node() """
