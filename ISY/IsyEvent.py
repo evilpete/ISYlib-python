@@ -462,8 +462,17 @@ class ISYEventConnection(object):
     def reconnect(self):
         # print "--reconnect to self.authtuple[0]--"
         self.error += 1
-        self.disconnect()
-        self.connect()
+
+        retry = True
+        while retry:
+            try:
+                self.disconnect()
+                self.connect()
+                retry = False
+            except socket.error as e:
+                print("socket error - reconnecting({0}): {1}".format(e.errno, e.strerror))
+                time.sleep(1)
+                retry = True
 
     def disconnect(self):
         try:
@@ -509,6 +518,14 @@ class ISYEventConnection(object):
         server_address = (host_addr, host_port)
 
         self.event_sock = socket.create_connection(server_address, 10)
+        self.event_sock.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
+
+        if hasattr(socket, 'TCP_KEEPINTVL'):
+           self.event_sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPINTVL, 1)
+        if hasattr(socket, 'TCP_KEEPCNT'):
+           self.event_sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPCNT, 5)
+        if hasattr(socket, 'TCP_KEEPIDLE'):
+           self.event_sock.setsockopt(socket.SOL_TCP, socket.TCP_KEEPIDLE, 10)
 
         #sn = sock.getsockname()
         #self.myip = sn[0]
