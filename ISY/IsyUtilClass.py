@@ -1,13 +1,10 @@
 
-__author__ = 'Peter Shipley <peter.shipley@gmail.com>'
-__copyright__ = "Copyright (C) 2015 Peter Shipley"
-__license__ = "BSD"
 
 # from xml.dom.minidom import parse, parseString
 #from StringIO import StringIO
 import xml.etree.ElementTree as ET
-from xml.etree.ElementTree import  iselement
-from ISY.IsyExceptionClass import IsyPropertyError, IsyValueError, IsySoapError
+# from xml.etree.ElementTree import  iselement
+from pprint import pprint
 # import base64
 import sys
 if sys.hexversion < 0x3000000:
@@ -16,10 +13,17 @@ if sys.hexversion < 0x3000000:
 else:
     import urllib as URL
 # import re
-from pprint import pprint
+from ISY.IsyExceptionClass import IsyPropertyError, IsyValueError, IsySoapError
+
+__author__ = 'Peter Shipley <peter.shipley@gmail.com>'
+__copyright__ = "Copyright (C) 2015 Peter Shipley"
+__license__ = "BSD"
 
 #__all__ = ['IsyUtil', 'IsySubClass' ]
 __all__ = ['format_node_addr']
+
+# pylint: disable=superfluous-parens,unsubscriptable-object
+# disable=unsubscriptable-object,unsupported-membership-test,unused-argument
 
 
 
@@ -63,7 +67,8 @@ def et2d(et):
     if children:
         for child in children:
             if child.tag in d:
-                if type(d[child.tag]) != list:
+                # if type(d[child.tag]) != list:
+                if not isinstance(d[child.tag], list):
                     t = d[child.tag]
                     d[child.tag] = [t]
             if list(child) or child.attrib:
@@ -81,7 +86,7 @@ def et2d(et):
 
 def format_node_addr(naddr):
     if not isinstance(naddr, str):
-         raise IsyValueError("{0} arg not string".format(__name__))
+	raise IsyValueError("{0} arg not string".format(__name__))
     addr_el = naddr.upper().split()
     a = "{0:0>2}' '{1:0>2}' '{2:0>2}' ".format(*addr_el)
     return a
@@ -128,7 +133,8 @@ class IsyUtil(object):
             self.error_str = str("Response Code : {0} : {1}").format(e.code, xurl)
             return None
 
-        if len(self.error_str) : self.error_str = ""
+        if len(self.error_str):
+            self.error_str = ""
         if self.debug & 0x200:
             print res.info()
             print data
@@ -145,7 +151,7 @@ class IsyUtil(object):
                 return et
 
         else:
-                return None
+	    return None
 
     def _gensoap(self, cmd, **kwargs):
 
@@ -180,7 +186,7 @@ class IsyUtil(object):
         """
 
         if not isinstance(cmd, str) or not len(cmd):
-             raise IsyValueError("SOAP Method name missing")
+	    raise IsyValueError("SOAP Method name missing")
 
         if self.debug & 0x02:
             print "sendcomm : ", cmd
@@ -206,9 +212,9 @@ class IsyUtil(object):
 
             self.error_str = str("Reponse Code : {0} : {1} {2}").format(e.code, xurl, cmd)
             if ((cmd == "DiscoverNodes" and e.code == 803)
-                or (cmd == "CancelNodesDiscovery" and e.code == 501)
-                # or (cmd == "RemoveNode" and e.code == 501)
-                ):
+                    or (cmd == "CancelNodesDiscovery" and e.code == 501)
+                    # or (cmd == "RemoveNode" and e.code == 501)
+               ):
 
 
                 if self.debug & 0x02:
@@ -232,14 +238,15 @@ class IsyUtil(object):
             # This a messy and should change
             raise IsySoapError(mess, httperr=e)
         else:
-            if len(self.error_str) : self.error_str = ""
+            if len(self.error_str):
+                self.error_str = ""
             if self.debug & 0x200:
                 print data
             return data
 
 
 
-    def sendDeviceSpecific(command, s1, s2, s3, s4, stringbuffer):
+    def sendDeviceSpecific(self, command, s1, s2, s3, s4, stringbuffer):
         pass
 #
 #   public Object sendDeviceSpecific(String s, String s1, String s2, String s3, String s4, StringBuffer stringbuffer)
@@ -376,10 +383,10 @@ class IsySubClass(IsyUtil):
 
     """
 
-    _getlist = [ "name", "id", "value", "address", "type", "enabled" ]
-    _setlist = [ ]
-    _propalias = { }
-    _boollist = [ "enabled" ]
+    _getlist = ["name", "id", "value", "address", "type", "enabled"]
+    _setlist = []
+    _propalias = {}
+    _boollist = ["enabled"]
 
     def __init__(self, isy, objdict):
         """ INIT """
@@ -507,8 +514,12 @@ class IsySubClass(IsyUtil):
 
 
     def __repr__(self):
-        return "<%s %s @ %s at 0x%x>" % (self.__class__.__name__,
-                self._get_prop("id"), self.isy.addr, id(self))
+
+        #return "<%s %s @ %s at 0x%x>" %
+        return "<{} %s @ {} at 0x{:x}>".format(
+            self.__class__.__name__,
+            self._get_prop("id"),
+            self.isy.addr, id(self))
 
 
 
@@ -521,7 +532,7 @@ class IsySubClass(IsyUtil):
 #       if isinstance(other, str):
 #        if not hasattr(other, "myval"):
 #            return -1
-#        return (str.__cmp__(self.myval, other.myval))
+#        return str.__cmp__(self.myval, other.myval)
 
     def __getattr__(self, attr):
         # print("U attr =", attr)
@@ -557,7 +568,6 @@ class IsySubClass(IsyUtil):
 # (syntax check)
 #
 if __name__ == "__main__":
-    import __main__
     print(__main__.__file__)
     print("syntax ok")
     exit(0)

@@ -1,3 +1,4 @@
+#!/usr/bin/python
 
 """Simple Python lib for the ISY home automation netapp
 
@@ -6,10 +7,11 @@
  and well as a method of setting or querying vars
 
 """
-__author__ = 'Peter Shipley <peter.shipley@gmail.com>'
-__copyright__ = "Copyright (C) 2015 Peter Shipley"
-__license__ = "BSD"
-__version__ = "0.1.20160710"
+
+# pylint: disable=unsubscriptable-object,unsupported-membership-test,unused-argument
+
+# pylint: disable=superfluous-parens,unsubscriptable-object
+# global-statement,protected-access,invalid-name,missing-docstring,broad-except
 
 
 #from xml.dom.minidom import parse, parseString
@@ -19,17 +21,18 @@ __version__ = "0.1.20160710"
 import re
 import os
 import sys
-#import string
+ #import string
 import time
 from warnings import warn
-import logging
+ #import logging
 import xml.etree.ElementTree as ET
+from ConfigParser import SafeConfigParser as ConfigParser
+# from ConfigParser import Error as ConfigParserError
 
 import json
 
 
 #logging.basicConfig(level=logging.INFO)
-
 
 import collections
 
@@ -42,27 +45,33 @@ import collections
 #    suds_import = 0
 
 
+import pprint
+
+from ISY.IsyDebug import *
+from ISY.IsyExceptionClass import *
 from ISY.IsyUtilClass import IsyUtil, IsySubClass, et2d
 # from ISY.IsyNodeClass import IsyNode, IsyScene, IsyNodeFolder, _IsyNodeBase
 from ISY.IsyProgramClass import *
 #from ISY.IsyVarClass import IsyVar
-from ISY.IsyExceptionClass import *
 from ISY.IsyEvent import ISYEvent
-from ISY.IsyDebug import *
-import pprint
-
 
 if sys.hexversion < 0x3000000:
     import urllib2 as URL
+    # from urllib import urlopen
     # HTTPPasswordMgrWithDefaultRealm = URL.HTTPPasswordMgrWithDefaultRealm
     # Request, build_opener, request, HTTPBasicAuthHandler, HTTPPasswordMgrWithDefaultRealm, URLError, HTTPError
-
 else:
     import urllib as URL
-    from urllib.request import HTTPPasswordMgrWithDefaultRealm
+    # from urllib.request import HTTPPasswordMgrWithDefaultRealm
+    #from urllib.request import urlopen
 
 
 # import netrc
+
+__author__ = 'Peter Shipley <peter.shipley@gmail.com>'
+__copyright__ = "Copyright (C) 2015 Peter Shipley"
+__license__ = "BSD"
+__version__ = "0.1.20160710"
 
 # Debug Flags:
 # 0x0001 = report loads
@@ -161,14 +170,14 @@ class Isy(IsyUtil):
     from ISY._isynode import load_nodes, _gen_member_list, _gen_folder_list, \
         _gen_nodegroups, _gen_nodedict, node_names, scene_names, \
         node_addrs, scene_addrs, get_node, _node_get_id, node_get_prop, \
-        node_set_prop, _node_send, node_comm, _updatenode, \
+        node_set_prop, _node_send, node_comm, \
         load_node_types, node_get_type, node_iter, _updatenode, \
         node_get_path, _node_get_path, _node_get_name, \
         node_set_powerinfo, node_enable, \
         node_del, _node_remove, \
         node_restore, node_restore_all, \
         node_get_notes
-	# _status_reload
+        # _status_reload
         # node_rename,
 
     from ISY._isynet_resources import _load_networking, load_net_resource, \
@@ -197,19 +206,30 @@ class Isy(IsyUtil):
         _opener = URL.request.build_opener(_handler)
 
     def __init__(self, **kwargs):
+        # pylint: disable=super-init-not-called,too-many-statements,too-many-branches
+
+
+        # default
+        self.userl = self.userp = "admin"
+        self.parsearg = None
+        self.debug = 0
+
+        # check for "isylib.cfg"
+        self.read_config()
 
         #
-        # Keyword args
+        # Keyword args and env
         #
-        self.userl = kwargs.get("userl", os.getenv('ISY_USER', "admin"))
-        self.userp = kwargs.get("userp", os.getenv('ISY_PASS', "admin"))
-        self.addr = kwargs.get("addr", os.getenv('ISY_ADDR', None))
+        self.userl = kwargs.get("userl", os.getenv('ISY_USER', self.userl))
+        self.userp = kwargs.get("userp", os.getenv('ISY_PASS', self.userp))
+        self.addr = kwargs.get("addr", os.getenv('ISY_ADDR', self.addr))
 
         # (self.userl, self.userp, self.addr) = authtuple
 
         # print "AUTH: ", self.addr, self.userl, self.userp
 
-        self.debug = kwargs.get("debug", 0)
+        if 'debug' in kwargs:
+            self.debug = kwargs['debug']
 
         if "ISY_DEBUG" in os.environ:
             self.debug = self.debug & int(os.environ["ISY_DEBUG"])
@@ -268,7 +288,7 @@ class Isy(IsyUtil):
 #       print "\n\taddr", "=>", self.addr, "\n\n"
 
 
-#       if ( not self.userl or not self.userp ):
+#       if (not self.userl or not self.userp):
 #           netrc_info = netrc.netrc()
 #           login, account, password = netrc_info.authenticators(self.addr)
 #           print "login", "=>", repr(login)
@@ -335,23 +355,23 @@ class Isy(IsyUtil):
         parser = argparse.ArgumentParser(add_help=False)
 
         parser.add_argument("-d", "--debug", dest="debug",
-                default=self.debug,
-                type=int,
-                # action="count",
-                nargs='?',
-                help="debug options")
+                            default=self.debug,
+                            type=int,
+                            # action="count",
+                            nargs='?',
+                            help="debug options")
 
         parser.add_argument("-a", "--address", dest="addr",
-                default=os.getenv('ISY_ADDR', None),
-                help="hostname or IP device")
+                            default=os.getenv('ISY_ADDR', None),
+                            help="hostname or IP device")
 
         parser.add_argument("-u", "--user", dest="user",
-                default=os.getenv('ISY_USER', None),
-                help="Admin Username")
+                            default=os.getenv('ISY_USER', None),
+                            help="Admin Username")
 
         parser.add_argument("-p", "--pass", dest="passw",
-                default=os.getenv('ISY_PASS', None),
-                help="Admin Password")
+                            default=os.getenv('ISY_PASS', None),
+                            help="Admin Password")
 
         args, self.unknown_args = parser.parse_known_args()
 
@@ -369,6 +389,26 @@ class Isy(IsyUtil):
 
         self.parser = parser
 
+    def read_config(self):
+
+        ini = ConfigParser()
+        # ?? os.path.expanduser('~/.config/isylib/isylib.cfg')
+        ini.read(['isylib.cfg', os.path.expanduser('~/.isylib.cfg')])
+
+        if ini.has_option('libisy', 'addr'):
+            self.addr = ini.get('libisy', 'addr')
+        if ini.has_option('libisy', 'user'):
+            self.userl = ini.get('libisy', 'user')
+
+        if ini.has_option('libisy', 'pass'):
+            self.userp = ini.get('libisy', 'pass')
+
+        if ini.has_option('libisy', 'debug'):
+            self.debug = ini.getint('libisy', 'debug')
+
+
+
+
     #
     # Event Subscription Code
     # Allows for threaded realtime node status updating
@@ -382,7 +422,7 @@ class Isy(IsyUtil):
         """
         from threading import Thread
 
-        if (self.debug & 0x40):
+        if self.debug & 0x40:
             print "start_event_thread"
 
         # if thread already runing we should update mask
@@ -424,20 +464,24 @@ class Isy(IsyUtil):
             internal function call
 
         """
+
+        # pylint: disable=too-many-branches,too-many-statements,too-many-locals
+        # pylint: disable=unsubscriptable-object,unsupported-membership-test,unused-variable
+
         # print("_read_event")
         skip_default = [
+            "DON", "DOF",
+        ]
 #               "_0", "_2", "_4", "_5", "_6", "_7", "_8",
 #               "_9", "_10", "_11", "_12", "_13", "_14",
 #               "_15", "_16", "_17", "_18", "_19", "_20",
-                "DON", "DOF",
-                ]
 
-        skip = skip_default
+        # skip = skip_default
 
         assert isinstance(evnt_dat, dict), "_read_event Arg must me dict"
 
         # event_targ holds the node address or var id
-        # for the current event ( if applicable )
+        # for the current event ( if applicable)
         event_targ = None
 
         #if evnt_dat["control"] in skip:
@@ -445,13 +489,13 @@ class Isy(IsyUtil):
 
         # print "evnt_dat ", evnt_dat
 
-	control_val= _action_val(evnt_dat["control"])
-	action_val= _action_val(evnt_dat["action"])
+        control_val = _action_val(evnt_dat["control"])
+        # action_val = _action_val(evnt_dat["action"])
 
         #
         # Status/property changed
         #
-        if control_val in ["ST", "RR", "OL","DON"]:
+        if control_val in ["ST", "RR", "OL", "DON"]:
             if evnt_dat["node"] in self._nodedict:
                 # ADD LOCK ON NODE DATA
                 # print("===evnt_dat :", evnt_dat)
@@ -470,7 +514,7 @@ class Isy(IsyUtil):
                 target_node["property"][control_val]["formatted"] \
                         = self._format_val(evnt_dat["action"])
 
-                if (self.debug & 0x10):
+                if self.debug & 0x10:
                     print("_read_event :", evnt_dat["node"], control_val, evnt_dat["action"])
                     print(">>>", self._nodedict[evnt_dat["node"]]["property"])
             else:
@@ -494,13 +538,13 @@ class Isy(IsyUtil):
             # action = "4" -> IR Learn Mode
             # action = "5" -> Schedule (schedule status changed)
             # action = "6" -> Variable Status (status of variable changed)
-            # action = "7" -> Variable Initialized (initial value of a variable    )
+            # action = "7" -> Variable Initialized (initial value of a variable )
             #
             if evnt_dat["action"] == "0" and 'nr' in evnt_dat['eventInfo']:
                 prog_id = '{0:0>4}'.format(evnt_dat['eventInfo']['id'])
                 event_targ = prog_id
 
-                if (self.debug & 0x40):
+                if self.debug & 0x40:
                     print "Prog Change/Updated :\t{0}".format(evnt_dat['eventInfo']['id'])
                     print "Prog Id :\t", prog_id
                     print "evnt_dat :\t", evnt_dat
@@ -531,27 +575,27 @@ class Isy(IsyUtil):
                     if 'nsr' in evnt_dat['eventInfo']:
                         prog_dict['nextScheduledRunTime'] = evnt_dat['eventInfo']['nsr']
 
-		    if 's' in evnt_dat['eventInfo']:
-			ev_status = int(evnt_dat['eventInfo']['s'])
-			if ev_status & 0x01:
-			    prog_dict['running'] = 'idle'
-			elif ev_status & 0x02:
-			    prog_dict['running'] = 'then'
-			elif ev_status & 0x03:
-			    prog_dict['running'] = 'else'
+                    if 's' in evnt_dat['eventInfo']:
+                        ev_status = int(evnt_dat['eventInfo']['s'])
+                        if ev_status & 0x01:
+                            prog_dict['running'] = 'idle'
+                        elif ev_status & 0x02:
+                            prog_dict['running'] = 'then'
+                        elif ev_status & 0x03:
+                            prog_dict['running'] = 'else'
 
-			if ev_status & 0x10:
-			    prog_dict['status'] = 'unknown'
-			elif ev_status & 0x20:
-			    prog_dict['status'] = 'true'
-			elif ev_status & 0x30:
-			    prog_dict['status'] = 'false'
-			elif ev_status & 0xF0:
-			    prog_dict['status'] = 'not_loaded'
+                        if ev_status & 0x10:
+                            prog_dict['status'] = 'unknown'
+                        elif ev_status & 0x20:
+                            prog_dict['status'] = 'true'
+                        elif ev_status & 0x30:
+                            prog_dict['status'] = 'false'
+                        elif ev_status & 0xF0:
+                            prog_dict['status'] = 'not_loaded'
 
-		else:
-		    # TODO : Figure out why we are here...
-		    pass
+                else:
+                    # TODO : Figure out why we are here...
+                    pass
 
 
 
@@ -591,7 +635,7 @@ class Isy(IsyUtil):
             pass
 
         elif control_val == "_3":  # Node Change/Updated Event
-            if (self.debug & 0x40):
+            if self.debug & 0x40:
                 print("Node Change/Updated Event:  {0}".format(evnt_dat["node"]))
                 print("evnt_dat : ", evnt_dat)
             #
@@ -644,22 +688,20 @@ class Isy(IsyUtil):
                         del self._name2id[oldname]
 
             elif evnt_dat['action'] == 'GR':  # Group Removed/Deleted
-                    if (self.debug & 0x40):
+                    if self.debug & 0x40:
                         print("evnt_dat:", evnt_dat)
-                    pass
-            elif evnt_dat['action'] == 'GD':  # New Group Added
-                    if (self.debug & 0x40):
-                        print("evnt_dat:", evnt_dat)
-                    pass
 
+            elif evnt_dat['action'] == 'GD':  # New Group Added
+                    if self.debug & 0x40:
+                        print("evnt_dat:", evnt_dat)
 
             elif evnt_dat['action'] == 'ND':
                 node_id = evnt_dat["node"]
                 node_dat = evnt_dat['eventInfo']['node']
-                if node_id in self.nodedict:
-                    self.nodedict[node_id].update(node_dat)
+                if node_id in self._nodedict:
+                    self._nodedict[node_id].update(node_dat)
                 else:
-                    self.nodedict[node_id] = node_dat
+                    self._nodedict[node_id] = node_dat
 
 
             #
@@ -668,19 +710,18 @@ class Isy(IsyUtil):
             #
             elif evnt_dat['action'] == 'NR':
                 node_id = evnt_dat["node"]
-                if node_id in self.nodedict:
-                    node_name = self.nodedict[node_id]["name"]
-                    if "property" in self.nodedict[node_id]:
-                        self.nodedict[node_id]["property"].clear()
-                        del self.nodedict[node_id]["property"]
+                if node_id in self._nodedict:
+                    node_name = self._nodedict[node_id]["name"]
+                    if "property" in self._nodedict[node_id]:
+                        self._nodedict[node_id]["property"].clear()
+                        del self._nodedict[node_id]["property"]
                     if self._node2addr and node_name in self._node2addr:
-                        self._node2addr[node_name]
+                        del self._node2addr[node_name]
                     if self._name2id and node_name in self._name2id:
-                        self._name2id[node_name]
+                        del self._name2id[node_name]
 
                 if node_id in self.nodeCdict:
-                    self.nodeCdict[node_id]
-
+                   del self.nodeCdict[node_id]
 
 
             elif evnt_dat['action'] == 'FD':
@@ -702,7 +743,6 @@ class Isy(IsyUtil):
                     del self._folder2addr[oldname]
 
         elif control_val == "_4":  # System Configuration Updated
-            pass
             #
             # action = "0" -> Time Changed
             # action = "1" -> Time Configuration Changed
@@ -721,18 +761,10 @@ class Isy(IsyUtil):
             #    </eventInfo>
             if evnt_dat['action'] == '5':
                 if 'status' in evnt_dat['eventInfo']:
-                    if evnt_dat['eventInfo']['status'] == "1":
-                        self.isy_status['batchmode'] = True
-                    else:
-                        self.isy_status['batchmode'] = False
-                    # self.isy_status['batchmode'] = (evnt_dat['eventInfo']['status'] == "1")
+                    self.isy_status['batchmode'] = (evnt_dat['eventInfo']['status'] == "1")
             elif evnt_dat['action'] == '6':
                 if 'status' in evnt_dat['eventInfo']:
-                    if evnt_dat['eventInfo']['status'] == "1":
-                        self.isy_status['battery_mode_prog_update'] = True
-                    else:
-                        self.isy_status['battery_mode_prog_update'] = False
-                    #self.isy_status['battery_mode_prog_update'] = (evnt_dat['eventInfo']['status'] == "1")
+                    self.isy_status['battery_mode_prog_update'] = (evnt_dat['eventInfo']['status'] == "1")
 
                 # status_battery_mode_prog_update
 
@@ -815,7 +847,7 @@ class Isy(IsyUtil):
 
 
         else:
-            if (self.debug & 0x40):
+            if self.debug & 0x40:
                 print("evnt_dat :", evnt_dat)
                 print("Event fall though : '{0}'".format(evnt_dat["node"]))
 
@@ -825,7 +857,7 @@ class Isy(IsyUtil):
             if event_targ in self.callbacks:
                 call_targ = event_targ
             elif control_val in self.callbacks:
-                call_targ = control_val 
+                call_targ = control_val
 
             if call_targ is not None:
                 cb = self.callbacks[call_targ]
@@ -833,17 +865,16 @@ class Isy(IsyUtil):
                     try:
                         cb[0](evnt_dat, *cb[1])
                     except Exception as e:
-                        print "e=",e
-                        print "sys.exc_info()=",sys.exc_info()
+                        print "e=", e
+                        print "sys.exc_info()=", sys.exc_info()
                         print("Callback Error:", sys.exc_info()[0])
 
                 else:
                     warn("callback for {!s} not callable, deleting callback".format(call_targ),
-                            IsyRuntimeWarning)
+                         IsyRuntimeWarning)
                     del self.callbacks[call_targ]
 
         return
-
 
 
 
@@ -859,34 +890,34 @@ class Isy(IsyUtil):
         except ValueError:
             return "0"
         else:
-            if ( v == 0):
+            if v == 0:
                 return "off"
             elif v == 255:
                 return "on"
             else:
-                return str ( (int(v)*100) // 255)
+                return str((int(v)*100) // 255)
 
 
 
-    def addnode(self, id=None, nname=None, ntype=None, flag="0"):
+    def addnode(self, nid=None, nname=None, ntype=None, flag="0"):
         """
             Adds a predefined node for a device with a given address
 
             args:
-                id
+                nid
                 nname
                 ntype
                 flag
 
         """
         if nname is None:
-            nname = id
-        if id is None:
+            nname = nid
+        if nid is None:
             raise IsyValueError("invalid node id : " + type)
         if type is None:
             raise IsyValueError("invalid node type : " + type)
 
-        return  self.soapcomm("AddNode", id=id, name=nname, type=ntype, flag=flag)
+        return  self.soapcomm("AddNode", nid=nid, name=nname, type=ntype, flag=flag)
 
 
     def getsystemdatetime(self):
@@ -894,14 +925,14 @@ class Isy(IsyUtil):
             timestamp of when ISY was last started
         """
         r = self.soapcomm("GetSystemDateTime")
-        return (r)
+        return r
 
     def startuptime(self):
         """
             timestamp of when ISY was last started
         """
         r = self.soapcomm("GetStartupTime")
-        return (r)
+        return r
 
     def webcam_get(self):
         """
@@ -912,6 +943,7 @@ class Isy(IsyUtil):
         #campath="/WEB/CONF/cams.jsn"
         r = self.soapcomm("GetSysConf", name="/WEB/CONF/cams.jsn")
         return json.loads(r)
+
 
 
 
@@ -929,7 +961,8 @@ class Isy(IsyUtil):
                     passwd
 
         """
-        if not ( brand is None) and (brand.lower() not in ["foscam", "smarthome", "axis", "panasonic", "mjpgstreamer"]):
+        # pylint: disable=too-many-arguments
+        if not (brand is None) and (brand.lower() not in ["foscam", "smarthome", "axis", "panasonic", "mjpgstreamer"]):
             raise IsyValueError("webcam_add : invalid value for arg 'brand' ")
         else:
             brand = brand.lower()
@@ -943,7 +976,7 @@ class Isy(IsyUtil):
         camlist = self.webcam_get()
 
         if 'lastId' in camlist:
-            maxid = int( camlist['lastId']) + 2
+            maxid = int(camlist['lastId']) + 2
         else:
             maxid = camlist.__len__() + 2
 
@@ -953,7 +986,7 @@ class Isy(IsyUtil):
                     num = str(i)
                     break
             else:
-                raise RuntimeError( "webcam_add : failed cam index")
+                raise RuntimeError("webcam_add : failed cam index")
         elif isinstance(num, int):
             num = str(num)
 
@@ -999,14 +1032,14 @@ class Isy(IsyUtil):
         del camlist[camid]
 
         if 'lastId' in camlist:
-            maxid = int( camlist['lastId']) + 2
+            maxid = int(camlist['lastId']) + 2
         else:
             maxid = camlist.__len__() + 2
 
         lastid = -1
         for i in range(1, maxid):
             if str(i) in camlist and lastid < i:
-                    lastid = i
+                lastid = i
 
         camlist['lastId'] = str(lastid)
 
@@ -1032,7 +1065,7 @@ class Isy(IsyUtil):
         ret = self.soapcomm("SetDebugLevel", option=level)
         return ret
 
-    def get_debug_level(self, level=1):
+    def get_debug_level(self):
         """
             Gets the debug options and current level
         """
@@ -1086,7 +1119,7 @@ class Isy(IsyUtil):
 #
 #       if not node_id:
 #           raise LookupError(
-#               "node_del: {0} not a node ( {1}={2} )".format(
+#               "node_del: {0} not a node ({1}={2} )".format(
 #                       naddr, node_id, nodetype))
 #
 #       try:
@@ -1100,7 +1133,7 @@ class Isy(IsyUtil):
 #               return None
 #           raise
 #       else:
-#           return et2d( ET.fromstring(r))
+#           return et2d(ET.fromstring(r))
 
 
 
@@ -1132,7 +1165,7 @@ class Isy(IsyUtil):
         elif idtype == "prog":
             raise IsyValueError("can not rename prog use prog_rename() ")
         else:
-            raise IsyValueError("node/obj " + objid + " not node (" + idtype + ")" )
+            raise IsyValueError("node/obj " + objid + " not node (" + idtype + ")")
 
     #
     # need to add code to update name2id and *2addr lookup arrays
@@ -1146,7 +1179,8 @@ class Isy(IsyUtil):
 
             calls SOAP RenameNode()
         """
-        (idtype, nid) = self._node_get_id(nodeid)
+        # idtype
+        (_, nid) = self._node_get_id(nodeid)
         if nid is None:
             raise IsyValueError("unknown node/obj : " + nodeid)
         print "nodeid ", nodeid
@@ -1172,7 +1206,7 @@ class Isy(IsyUtil):
 
             calls SOAP RenameGroup()
         """
-        (idtype, grid) = self._node_get_id(sid)
+        (_, grid) = self._node_get_id(sid)
         return self.soapcomm("RenameGroup", id=grid, name=fname)
 
     #
@@ -1186,7 +1220,7 @@ class Isy(IsyUtil):
 
             calls SOAP RemoveGroup()
         """
-        (idtype, sceneid) = self._node_get_id(sid)
+        (_, sceneid) = self._node_get_id(sid)
         if sceneid is None:
             raise IsyValueError("no such Scene : " + str(sid))
         #
@@ -1216,7 +1250,7 @@ class Isy(IsyUtil):
             nid = str(iid)
             while nid in self._nodefolder or nid in self._nodegroups:
                 iid += 1
-                nid=str(iid)
+                nid = str(iid)
         if sname is None:
             sname = nid
         self.soapcomm("AddGroup", id=nid, name=sname)
@@ -1239,7 +1273,7 @@ class Isy(IsyUtil):
 
             calls SOAP MoveNode()
         """
-        (idtype, nodeid) = self._node_get_id(nid)
+        (_, nodeid) = self._node_get_id(nid)
         if nodeid is None:
             raise IsyValueError("no such Node : " + str(nid))
         r = self.soapcomm("MoveNode", group=groupid, node=nodeid, flag=nflag)
@@ -1254,7 +1288,7 @@ class Isy(IsyUtil):
 
             calls SOAP RemoveFromGroup()
         """
-        (idtype, nodeid) = self._node_get_id(nid)
+        (_, nodeid) = self._node_get_id(nid)
         if nodeid is None:
             raise IsyValueError("no such Node : " + str(nid))
         r = self.soapcomm("RemoveFromGroup", group=groupid, id=nodeid)
@@ -1274,7 +1308,7 @@ class Isy(IsyUtil):
 
             calls SOAP RenameFolder()
         """
-        (idtype, fid) = self._node_get_id(fid)
+        (_, fid) = self._node_get_id(fid)
         r = self.soapcomm("RenameFolder", id=fid, name=fname)
         return r
 
@@ -1290,6 +1324,9 @@ class Isy(IsyUtil):
 
             calls SOAP AddFolder()
         """
+        # ppylint: disable=unsubscriptable-object
+        if self._nodefolder is None:
+            self.load_nodes()
         if fid == 0:
             iid = 50001
             fid = str(iid)
@@ -1305,14 +1342,14 @@ class Isy(IsyUtil):
 
         return r
 
-    def folder_del(self,fid):
+    def folder_del(self, fid):
         """ delete folder
                 args:
                     fid : folder address, name or Folder Obj
 
             calls SOAP RemoveFolder()
         """
-        (idtype, fid) = self._node_get_id(fid)
+        (_, fid) = self._node_get_id(fid)
         if fid is None:
             raise IsyValueError("Unknown Folder : " + str(fid))
         r = self.soapcomm("RemoveFolder", id=fid)
@@ -1333,12 +1370,13 @@ class Isy(IsyUtil):
 
             calls SOAP SetParent()
         """
-        (idtype, nodeid) = self._node_get_id(nid)
+        # idtype
+        (_, nodeid) = self._node_get_id(nid)
         if nodeid is None:
             raise IsyValueError("no such Node/Scene : " + str(nid))
 
         if parent != "":
-            (idtype, fldid) = self._node_get_id(parent)
+            (_, fldid) = self._node_get_id(parent)
             if fldid is None:
                 raise IsyValueError("no such Folder : " + str(parent))
             parentid = fldid
@@ -1355,7 +1393,7 @@ class Isy(IsyUtil):
                 node
                 nodeType
 
-            remove node/scene from folder ( moves to default/main folder)
+            remove node/scene from folder (moves to default/main folder)
 
             calls SOAP SetParent()
         """
@@ -1365,7 +1403,7 @@ class Isy(IsyUtil):
 
     def set_user_credentials(self, name=None, password=None):
         """
-            Changes the userid and password for a user ( admin )
+            Changes the userid and password for a user (admin )
 
             args:
                 name         user name
@@ -1394,7 +1432,7 @@ class Isy(IsyUtil):
             calls SOAP GetFSStat()
         """
         r = self.soapcomm("GetFSStat")
-        return et2d( ET.fromstring(r))
+        return et2d(ET.fromstring(r))
 
 
     def user_dir(self, name="", pattern=""):
@@ -1408,7 +1446,7 @@ class Isy(IsyUtil):
         """
         r = self.soapcomm("GetUserDirectory", name=name, pattern=pattern)
         # print "GetUserDirectory : ", r
-        return et2d( ET.fromstring(r))
+        return et2d(ET.fromstring(r))
 
     def user_mkdir(self, name=None):
         """ Make new User Folder/Directory
@@ -1423,7 +1461,7 @@ class Isy(IsyUtil):
         if name[0] != "/":
             name = "/USER/WEB/" + name
         r = self.soapcomm("MakeUserDirectory", name=name)
-        return et2d( ET.fromstring(r))
+        return et2d(ET.fromstring(r))
 
     def user_rmdir(self, name=None):
         """ Remove User Folder/Directory
@@ -1439,7 +1477,7 @@ class Isy(IsyUtil):
         if name[0] != "/":
             name = "/USER/WEB/" + name
         r = self.soapcomm("RemoveUserDirectory", name=name)
-        return et2d( ET.fromstring(r))
+        return et2d(ET.fromstring(r))
 
 
     def user_mv(self, name=None, newName=None):
@@ -1521,10 +1559,11 @@ class Isy(IsyUtil):
         """
         soapargs = dict()
         if node is not None:
-            soapargs['node'] = ntype
+            soapargs['node'] = node # ntype
         if flag is not None:
             soapargs['flag'] = flag
         r = self.soapcomm("QueryAll", **soapargs)
+        return r
 
 
     #
@@ -1594,6 +1633,7 @@ class Isy(IsyUtil):
             internal function call
 
         """
+        # pylint: disable=too-many-branches
         if self.debug & 0x01:
             print("load_conf")
         configinfo = self._getXMLetree("/rest/config")
@@ -1623,8 +1663,10 @@ class Isy(IsyUtil):
                 else:
                     # self._printinfo(child, "child")
                     cprop[child.tag] = child.text
-            for n, v in child.items():
-                cprop[n] = v
+
+                # check this
+                for n, v in child.items():
+                    cprop[n] = v
 
             # print("cprop ", cprop)
             if "name" in cprop:
@@ -1634,8 +1676,8 @@ class Isy(IsyUtil):
                         = cprop["name"].upper()
 
         self.config = dict()
-        for v in ( "platform", "app_version", "driver_timestamp",
-                    "app", " build_timestamp"):
+        for v in ("platform", "app_version", "driver_timestamp",
+                  "app", "build_timestamp"):
             n = configinfo.find(v)
             if n is not None:
                 if isinstance(n.text, str):
@@ -1705,7 +1747,6 @@ class Isy(IsyUtil):
         """
         if self.debug & 0x01:
             print("load_log_type")
-        pass
 
     def load_log_id(self):
         """ load log id tables
@@ -1714,9 +1755,8 @@ class Isy(IsyUtil):
         """
         if self.debug & 0x01:
             print("load_log_id")
-        pass
 
-    def log_reset(self, errorlog = 0):
+    def log_reset(self, errorlog=0):
         """ clear log lines in ISY
 
             args:
@@ -1725,7 +1765,7 @@ class Isy(IsyUtil):
         """
         self.log_query(errorlog, 1)
 
-    def log_iter(self, error = 0):
+    def log_iter(self, error=0):
         """ iterate though log lines
 
             args:
@@ -1737,7 +1777,7 @@ class Isy(IsyUtil):
         for l in self.log_query(error):
             yield l
 
-    def log_query(self, errorlog = 0, resetlog = 0):
+    def log_query(self, errorlog=0, resetlog=0):
         """ get log from ISY """
         xurl = self.baseurl + "/rest/log"
         if errorlog:
@@ -1751,9 +1791,9 @@ class Isy(IsyUtil):
 
             res = self._opener.open(req)
 
-        except URL.URLError as e:
-            # Error log can return a 404 is there are not logs ( yet )
-            return [ ]
+        except URL.URLError: #as e:
+            # Error log can return a 404 is there are not logs (yet)
+            return []
 
         else:
             data = res.read()
@@ -1771,8 +1811,9 @@ class Isy(IsyUtil):
     ##
     ## X10 Code
     ##
-    _x10re = re.compile('([a-pA-P]\d{,2)')
-    _x10comm = { 'alllightsoff' : 1,
+    _x10re = re.compile(r'([a-pA-P]\d{,2)')
+    _x10comm = {
+        'alllightsoff' : 1,
         'status off' : 2,
         'on' : 3,
         'Preset dim' : 4,
@@ -1787,7 +1828,8 @@ class Isy(IsyUtil):
         'alloff' : 13,
         'Hail Req' : 14,
         'dim' : 15,
-        'extended data' : 16 }
+        'extended data' : 16
+        }
 
     def _get_x10_comm_id(self, comm):
         """ X10 command name to id """
@@ -1808,12 +1850,13 @@ class Isy(IsyUtil):
         xcmd = self._get_x10_comm_id(str(cmd))
         unit = unit.strip().upper()
 
-        if not re.match("[A-P]\d{,2}", unit):
+        if not re.match(r'[A-P]\d{,2}', unit):
             raise IsyValueError("bad x10 unit name : " + unit)
 
 #        print("X10 sent : " + str(unit) + ": " + str(xcmd))
         xurl = "/rest/X10/" + str(unit) + "/" + str(xcmd)
-        if self.debug & 0x02 : print("xurl = " + xurl)
+        if self.debug & 0x02:
+            print("xurl = " + xurl)
         resp = self._getXMLetree(xurl)
         #self._printXML(resp)
         #self._printinfo(resp)
@@ -1841,7 +1884,8 @@ class Isy(IsyUtil):
         calls : /rest/subscriptions
         """
         xurl = "/rest/subscriptions"
-        if self.debug & 0x02 : print("xurl = " + xurl)
+        if self.debug & 0x02:
+            print("xurl = " + xurl)
         resp = self._getXMLetree(xurl)
         #self._printXML(resp)
         return et2d(resp)
@@ -1856,7 +1900,8 @@ class Isy(IsyUtil):
         """
 
         xurl = "/rest/network"
-        if self.debug & 0x02 : print("xurl = " + xurl)
+        if self.debug & 0x02:
+            print("xurl = " + xurl)
         resp = self._getXMLetree(xurl)
         #self._printXML(resp)
         return et2d(resp)
@@ -1869,7 +1914,8 @@ class Isy(IsyUtil):
         calls : /rest/sys
         """
         xurl = "/rest/sys"
-        if self.debug & 0x02 : print("xurl = " + xurl)
+        if self.debug & 0x02:
+            print("xurl = " + xurl)
         resp = self._getXMLetree(xurl)
         #self._printXML(resp)
         return et2d(resp)
@@ -1903,7 +1949,8 @@ class Isy(IsyUtil):
         elif on == 1:
             xurl += "/on"
 
-        if self.debug & 0x02 : print("xurl = " + xurl)
+        if self.debug & 0x02:
+                print("xurl = " + xurl)
         resp = self._getXMLetree(xurl)
         if resp is None:
             print 'The server couldn\'t fulfill the request.'
@@ -1931,7 +1978,8 @@ class Isy(IsyUtil):
         elif on == 1:
             xurl += "/on"
 
-        if self.debug & 0x02 : print("xurl = " + xurl)
+        if self.debug & 0x02:
+            print("xurl = " + xurl)
         resp = self._getXMLetree(xurl)
         if resp is not None:
             #self._printXML(resp)
@@ -1987,9 +2035,10 @@ class Isy(IsyUtil):
         if self.callbacks is None:
             self.callbacks = dict()
 
-        (idtype, nodeid) = self._node_get_id(nid)
+        #(idtype, nodeid) = self._node_get_id(nid)
+        (_, nodeid) = self._node_get_id(nid)
         if nodeid is None:
-            # raise LookupError("no such Node : " + str(nodeid) )
+            # raise LookupError("no such Node : " + str(nodeid))
             self.callbacks[nid] = (func, args)
         else:
             self.callbacks[nodeid] = (func, args)
@@ -2005,7 +2054,7 @@ class Isy(IsyUtil):
         """
 
         if self.callbacks is not None:
-            (idtype, nodeid) = self._node_get_id(nid)
+            (_, nodeid) = self._node_get_id(nid)
 
             if nodeid is not None and nodeid in self.callbacks:
                 return self.callbacks[nodeid]
@@ -2024,7 +2073,7 @@ class Isy(IsyUtil):
             no error is raised if callback does not exist
         """
         if self.callbacks is not None:
-            (idtype, nodeid) = self._node_get_id(nid)
+            (_, nodeid) = self._node_get_id(nid)
             if nodeid is not None and nodeid in self.callbacks:
                 del self.callbacks[nodeid]
 
@@ -2048,20 +2097,21 @@ class Isy(IsyUtil):
     def gettype(self, nobj):
         if isinstance(nobj, IsySubClass):
               return nobj.objtype()
-        (idtype, nid) = self._node_get_id(nobj)
-        return idtype 
+        #(idtype, nid) = self._node_get_id(nobj)
+        (idtype, _) = self._node_get_id(nobj)
+        return idtype
 
     #
     # Untested
     #
     def getid(self, objaddr):
-        (idtype, nid) = self._node_get_id(objaddr)
+        (_, nid) = self._node_get_id(objaddr)
         return nid
 
     #
     # Untested
     #
-    def getobj(self, objaddr):
+    def getobj(self, objid):
         """ access node obj line a dictionary entery """
         (idtype, nid) = self._node_get_id(objid)
         if nid is None:
@@ -2101,7 +2151,7 @@ class Isy(IsyUtil):
             self.node_comm(nodeaddr, "DOF")
 
     def __delitem__(self, nodeaddr):
-        raise IsyPropertyError("__delitem__ : can't delete nodes :  " + str(nodeaddr) )
+        raise IsyPropertyError("__delitem__ : can't delete nodes :  " + str(nodeaddr))
 
     def __iter__(self):
         """ iterate though Node Obj (see: node_iter() ) """
@@ -2118,16 +2168,16 @@ class Isy(IsyUtil):
             if hasattr(self._isy_event, "_shut_down"):
                 self._isy_event._shut_down = 1
 
-        if hasattr(self, "nodeCdict" ):
+        if hasattr(self, "nodeCdict"):
             self.nodeCdict.clear()
 
-        if hasattr(self, "varCdict" ):
+        if hasattr(self, "varCdict"):
             self.varCdict.clear()
 
-        if hasattr(self, "progCdict" ):
+        if hasattr(self, "progCdict"):
             self.progCdict.clear()
 
-        if hasattr(self, "folderCdict" ):
+        if hasattr(self, "folderCdict"):
             self.folderCdict.clear()
 
         # the reasion for this is that
@@ -2148,13 +2198,16 @@ class Isy(IsyUtil):
 #       print("debugerror")
 #        raise IsyPropertyError("debugerror : test IsyPropertyError  ")
 
-    def _printdict(self, dic):
+
+    @staticmethod
+    def _printdict(dic):
         """ Pretty Print dictionary """
         print("===START===")
         pprint.pprint(dic)
         print("===END===")
 
-    def _writedict(self, d, filen):
+    @staticmethod
+    def _writedict(d, filen):
         """ Pretty Print dict to file  """
         with open(filen, 'w') as fi:
             pprint.pprint(d, fi)
@@ -2166,9 +2219,9 @@ def IsyGetArg(lineargs):
         takes argv and extracts name/pass/ipaddr options
     """
     # print "IsyGetArg ", lineargs
-    addr=""
-    upass=""
-    uname=""
+    addr = ""
+    upass = ""
+    uname = ""
 
     i = 0
     while i < len(lineargs):
@@ -2217,7 +2270,7 @@ def log_time_offset():
 # (syntax check)
 #
 if __name__ == "__main__":
-    import __main__
+    # import __main__
     print(__main__.__file__)
 
     print("syntax ok")

@@ -53,7 +53,7 @@ class ISYEvent(object):
         self.process_func = kwargs.get("process_func", _print_event)
         self.process_func_arg = kwargs.get("process_func_arg", None)
 
-        print "_print_event", _print_event
+        # print "_print_event", _print_event
         if self.process_func:
             assert isinstance(self.process_func, collections.Callable), \
                     "process_func Arg must me callable"
@@ -71,7 +71,8 @@ class ISYEvent(object):
 
         if func:
             # if self.debug & 0x01:
-            print "set_process_func", func
+	    if self.debug & 0x01:
+		print "set_process_func", func
             self.process_func = func
             assert isinstance(self.process_func, collections.Callable), \
                     "process_func Arg must me callable"
@@ -124,7 +125,8 @@ class ISYEvent(object):
 
         if addr in self.connect_list:
             # print "addr :", addr
-            print "connect_list :", self.connect_list
+	    if self.debug & 0x01:
+		print "connect_list :", self.connect_list
             warnstr = str("Duplicate addr : {0}").format(addr)
             warnings.warn(warnstr, RuntimeWarning)
             return
@@ -470,7 +472,8 @@ class ISYEventConnection(object):
                 self.connect()
                 retry = False
             except socket.error as e:
-                print("socket error - reconnecting({0}): {1}".format(e.errno, e.strerror))
+		if self.debug & 0x01:
+		    print("socket error - reconnecting({0}): {1}".format(e.errno, e.strerror))
                 time.sleep(1)
                 retry = True
 
