@@ -211,8 +211,12 @@ class Isy(IsyUtil):
 
         # default
         self.userl = self.userp = "admin"
+	self.addr = None
         self.parsearg = None
         self.debug = 0
+
+        
+        self.config_file = kwargs.get("config_file", "isylib.cfg")
 
         # check for "isylib.cfg"
         self.read_config()
@@ -393,10 +397,11 @@ class Isy(IsyUtil):
 
         ini = ConfigParser()
         # ?? os.path.expanduser('~/.config/isylib/isylib.cfg')
-        ini.read(['isylib.cfg', os.path.expanduser('~/.isylib.cfg')])
+        ini.read([self.config_file, "." + self.config_file, os.path.expanduser('~/.' + self.config_file)])
 
         if ini.has_option('libisy', 'addr'):
             self.addr = ini.get('libisy', 'addr')
+
         if ini.has_option('libisy', 'user'):
             self.userl = ini.get('libisy', 'user')
 
@@ -405,8 +410,6 @@ class Isy(IsyUtil):
 
         if ini.has_option('libisy', 'debug'):
             self.debug = ini.getint('libisy', 'debug')
-
-
 
 
     #
@@ -2270,7 +2273,7 @@ def log_time_offset():
 # (syntax check)
 #
 if __name__ == "__main__":
-    # import __main__
+    import __main__
     print(__main__.__file__)
 
     print("syntax ok")
