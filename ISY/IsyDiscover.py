@@ -95,13 +95,13 @@ def isy_discover(**kwargs):
         if platform.system() == 'Windows':
             use_addr = socket.inet_aton(socket.gethostbyname(socket.gethostname()))
 
-        # Create the socket
-        sock = socket.socket(socket.AF_INET, use_addr)
+        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         sock.bind(server_address)
         group = socket.inet_aton(multicast_group)
 
-        mreq = struct.pack('4sL', group, socket.INADDR_ANY)
+        mreq = struct.pack('4sL', group, use_addr)
+        # mreq = struct.pack('4sL', group, socket.INADDR_ANY)
         sock.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
 
         if not ddata.passive:
