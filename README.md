@@ -27,7 +27,7 @@ Note:
 
 This is a work in progress ( so expect new features )
 
-see [/bin]  (/bin) for more examples
+see [/bin](/bin) for more examples
 
 nodes, programs and iay  vars can be controlled via objects or call methods.
 
