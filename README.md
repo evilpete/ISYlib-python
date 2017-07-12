@@ -27,7 +27,7 @@ Note:
 
 This is a work in progress ( so expect new features )
 
-see [/bin]  (/bin) for more examples
+see [/bin](/bin) for more examples
 
 nodes, programs and iay  vars can be controlled via objects or call methods.
 
@@ -129,11 +129,11 @@ ISYlib-python Documentation
 ---------------------------
 [This needs to be updated]
 
-* [Using_Isy_Class]  (/docs/Using_Isy_Class.txt) This is the main class that used to represent the ISY device iitself
+* [Using_Isy_Class](/docs/Using_Isy_Class.txt) This is the main class that used to represent the ISY device iitself
 
-* [Using_IsyNode_Class]  (/docs/Using_IsyNode_Class.txt) This class is used to represent and control individual Nodes ( aka: sensors and light switches ) 
+* [Using_IsyNode_Class](/docs/Using_IsyNode_Class.txt) This class is used to represent and control individual Nodes ( aka: sensors and light switches ) 
 
-* [Using_IsyVar_Class]  (/docs/Using_IsyVar_Class.txt) This class is used to represent varabibles internal to the ISY
+* [Using_IsyVar_Class](/docs/Using_IsyVar_Class.txt) This class is used to represent varabibles internal to the ISY
 
 [![Analytics](https://ga-beacon.appspot.com/UA-63572697-1/evilpete/isylib)]
 =======
