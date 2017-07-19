@@ -92,15 +92,15 @@ __copyright__ = "Copyright (C) 2016 Peter Shipley"
 __license__ = "BSD"
 
 #
-# from ISY.IsyUtilClass import IsyUtil
+# from .IsyUtilClass import IsyUtil
 #
-from ISY.IsyClass import Isy, IsyGetArg
-from ISY.IsyDiscover import isy_discover
-from ISY.IsyNodeClass import IsyNode, IsyScene, IsyNodeFolder
-from ISY.IsyVarClass import IsyVar
-from ISY.IsyProgramClass import IsyProgram
-from ISY.IsyExceptionClass import IsyError
-from ISY.IsyDebug import *
+from .IsyClass import Isy, IsyGetArg
+from .IsyDiscover import isy_discover
+from .IsyNodeClass import IsyNode, IsyScene, IsyNodeFolder
+from .IsyVarClass import IsyVar
+from .IsyProgramClass import IsyProgram
+from .IsyExceptionClass import IsyError
+from .IsyDebug import *
 #
 
 

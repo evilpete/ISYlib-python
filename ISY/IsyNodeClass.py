@@ -42,8 +42,8 @@ __license__ = "BSD"
 
 import hashlib
 
-from ISY.IsyUtilClass import IsySubClass, val2bool
-from ISY.IsyExceptionClass import *
+from .IsyUtilClass import IsySubClass, val2bool
+from .IsyExceptionClass import *
 # from IsyClass import *
 # from IsyNodeClass import *
 # from IsyProgramClass import *

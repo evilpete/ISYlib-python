@@ -13,7 +13,7 @@ if sys.hexversion < 0x3000000:
 else:
     import urllib as URL
 # import re
-from ISY.IsyExceptionClass import IsyPropertyError, IsyValueError, IsySoapError
+from .IsyExceptionClass import IsyPropertyError, IsyValueError, IsySoapError
 
 __author__ = 'Peter Shipley <peter.shipley@gmail.com>'
 __copyright__ = "Copyright (C) 2015 Peter Shipley"

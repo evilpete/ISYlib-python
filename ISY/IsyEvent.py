@@ -25,8 +25,8 @@ import select
 
 import xml.etree.ElementTree as ET
 
-from ISY.IsyEventData import EVENT_CTRL
-from ISY._isy_printevent import _print_event
+from .IsyEventData import EVENT_CTRL
+from ._isy_printevent import _print_event
 import collections
 
 try:

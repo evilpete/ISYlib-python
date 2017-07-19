@@ -9,7 +9,7 @@ __license__ = "BSD"
 
 import time
 import sys
-from ISY.IsyEventData import EVENT_CTRL, EVENT_CTRL_ACTION
+from .IsyEventData import EVENT_CTRL, EVENT_CTRL_ACTION
 
 
 # @staticmethod

@@ -8,8 +8,8 @@ These funtions are accessable via the Isy class opj
 # copyrigh :  Copyright (C) 2015 Peter Shipley
 # license : BSD
 
-from ISY.IsyExceptionClass import IsyInvalidCmdError, IsyResponseError
-from ISY.IsyProgramClass import IsyProgram
+from .IsyExceptionClass import IsyInvalidCmdError, IsyResponseError
+from .IsyProgramClass import IsyProgram
 import xml.etree.ElementTree as ET
 from warnings import warn
 

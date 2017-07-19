@@ -47,13 +47,13 @@ import collections
 
 import pprint
 
-from ISY.IsyDebug import *
-from ISY.IsyExceptionClass import *
-from ISY.IsyUtilClass import IsyUtil, IsySubClass, et2d
-# from ISY.IsyNodeClass import IsyNode, IsyScene, IsyNodeFolder, _IsyNodeBase
-from ISY.IsyProgramClass import *
-#from ISY.IsyVarClass import IsyVar
-from ISY.IsyEvent import ISYEvent
+from .IsyDebug import *
+from .IsyExceptionClass import *
+from .IsyUtilClass import IsyUtil, IsySubClass, et2d
+# from .IsyNodeClass import IsyNode, IsyScene, IsyNodeFolder, _IsyNodeBase
+from .IsyProgramClass import *
+#from .IsyVarClass import IsyVar
+from .IsyEvent import ISYEvent
 
 if sys.hexversion < 0x3000000:
     import urllib2 as URL
@@ -152,8 +152,8 @@ class Isy(IsyUtil):
     """
 
     # import functions
-    from ISY._isyclimate import load_clim, clim_get_val, clim_query, clim_iter
-    from ISY._isyvar import load_vars, \
+    from ._isyclimate import load_clim, clim_get_val, clim_query, clim_iter
+    from ._isyvar import load_vars, \
         var_get_value, var_set_value, _var_set_value, \
         var_addrs, var_ids, get_var, _var_get_id, \
         var_get_type, var_iter, var_add, \
@@ -161,13 +161,13 @@ class Isy(IsyUtil):
         var_rename, _var_rename, \
         var_refresh_value
 
-    from ISY._isyprog import load_prog, get_prog, _prog_get_id, \
+    from ._isyprog import load_prog, get_prog, _prog_get_id, \
         prog_iter, prog_get_src, prog_addrs, \
         prog_comm, _prog_comm, \
         prog_get_path, _prog_get_path, \
         prog_rename, _prog_rename
 
-    from ISY._isynode import load_nodes, _gen_member_list, _gen_folder_list, \
+    from ._isynode import load_nodes, _gen_member_list, _gen_folder_list, \
         _gen_nodegroups, _gen_nodedict, node_names, scene_names, \
         node_addrs, scene_addrs, get_node, _node_get_id, node_get_prop, \
         node_set_prop, _node_send, node_comm, \
@@ -180,13 +180,13 @@ class Isy(IsyUtil):
         # _status_reload
         # node_rename,
 
-    from ISY._isynet_resources import _load_networking, load_net_resource, \
+    from ._isynet_resources import _load_networking, load_net_resource, \
         _net_resource_get_id, net_resource_run, \
         net_resource_names, net_resource_iter, \
         load_net_wol, net_wol, _net_wol_get_id, net_wol_names, net_wol_iter, \
         net_wol_ids, net_resource_ids
 
-#    from ISY._isyzb import load_zb, zb_scannetwork, zb_ntable, zb_ping_node, \
+#    from ._isyzb import load_zb, zb_scannetwork, zb_ntable, zb_ping_node, \
 #               zbnode_addrs, zbnode_names, zbnode_iter
 
 
@@ -276,7 +276,7 @@ class Isy(IsyUtil):
         self.zigbee = dict()
 
         if self.addr is None:
-            from ISY.IsyDiscover import isy_discover
+            from .IsyDiscover import isy_discover
 
             units = isy_discover(count=1)
             for device in units.values():

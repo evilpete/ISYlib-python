@@ -10,8 +10,8 @@ __license__ = "BSD"
 
 
 import xml.etree.ElementTree as ET
-from ISY.IsyVarClass import IsyVar
-from ISY.IsyExceptionClass import IsyError, IsyInternalError, IsyValueError, \
+from .IsyVarClass import IsyVar
+from .IsyExceptionClass import IsyError, IsyInternalError, IsyValueError, \
                             IsyResponseError, IsyPropertyError, \
                             IsyLookupError, \
                             IsyRuntimeWarning, IsyWarning

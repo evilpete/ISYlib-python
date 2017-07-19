@@ -5,8 +5,8 @@ __copyright__ = "Copyright (C) 2015 Peter Shipley"
 __license__ = "BSD"
 
 
-from ISY.IsyExceptionClass import *
-from ISY.IsyUtilClass import IsySubClass
+from .IsyExceptionClass import *
+from .IsyUtilClass import IsySubClass
 
 __all__ = ['IsyVar']
 

@@ -9,9 +9,9 @@ __copyright__ = "Copyright (C) 2015 Peter Shipley"
 __license__ = "BSD"
 
 
-from ISY.IsyNodeClass import IsyNode, IsyScene, IsyNodeFolder#, _IsyNodeBase
-from ISY.IsyUtilClass import IsySubClass
-from ISY.IsyExceptionClass import IsyPropertyError, IsyResponseError, IsyRuntimeWarning, IsyWarning, IsyCommunicationError, IsyInvalidCmdError, IsySoapError
+from .IsyNodeClass import IsyNode, IsyScene, IsyNodeFolder#, _IsyNodeBase
+from .IsyUtilClass import IsySubClass
+from .IsyExceptionClass import IsyPropertyError, IsyResponseError, IsyRuntimeWarning, IsyWarning, IsyCommunicationError, IsyInvalidCmdError, IsySoapError
 
 import warnings
 # import string

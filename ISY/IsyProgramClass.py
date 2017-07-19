@@ -4,10 +4,10 @@ __author__ = 'Peter Shipley <peter.shipley@gmail.com>'
 __copyright__ = "Copyright (C) 2015 Peter Shipley"
 __license__ = "BSD"
 
-from ISY.IsyUtilClass import IsySubClass, val2bool
-from ISY.IsyClass import  *
-#fromm ISY.IsyNodeClass import *
-# fromm ISY.IsyVarClass import *
+from .IsyUtilClass import IsySubClass, val2bool
+from .IsyClass import  *
+#fromm .IsyNodeClass import *
+# fromm .IsyVarClass import *
 
 __all__ = ['IsyProgram']
 

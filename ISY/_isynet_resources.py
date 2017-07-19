@@ -9,8 +9,8 @@ These funtions are accessable via the Isy class opj
 # copyrigh :  Copyright (C) 2015 Peter Shipley
 # license : BSD
 
-from ISY.IsyUtilClass import et2d
-from ISY.IsyExceptionClass import IsyResponseError, IsyValueError
+from .IsyUtilClass import et2d
+from .IsyExceptionClass import IsyResponseError, IsyValueError
 
 ##
 ## networking resources
