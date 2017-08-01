@@ -88,7 +88,7 @@ class _IsyNodeBase(IsySubClass):
 
         if "property" in self._mydict:
             if "ST" in  self._mydict["property"]:
-                self._mydict["property"]["ST"]["value"] = val
+                self._mydict["property"]["ST"]["value"] = str(val)
                 if self._dimable:
                     self._mydict["property"]["ST"]["formatted"] = "{:.0%}".format(val/255)
                 else:
@@ -120,7 +120,7 @@ class _IsyNodeBase(IsySubClass):
         if "property" in self._mydict:
             # self._mydict["property"]["time"] = 0
             if "ST" in  self._mydict["property"]:
-                self._mydict["property"]["ST"]["value"] = 0
+                self._mydict["property"]["ST"]["value"] = str(0)
                 self._mydict["property"]["ST"]["formatted"] = "Off"
 
     def beep(self):
@@ -541,7 +541,7 @@ class IsyNode(_IsyNodeBase):
     def __bool__(self):
         #print "__nonzero__ call", self._mydict["property"]["ST"]["value"], \
         #        " :: ", int(self._mydict["property"]["ST"]["value"])
-        return(bool(self._mydict["property"]["ST"]["value"]) > 0)
+        return(bool(int(self._mydict["property"]["ST"]["value"])) > 0)
 
     # use the node address as the hash value
     def __hash__(self):

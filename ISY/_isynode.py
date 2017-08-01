@@ -451,7 +451,7 @@ def _node_get_id(self, nid):
         self.load_nodes()
 
     if isinstance(nid, IsySubClass):
-         return nid["addr"]
+         return (nid.objtype, nid["addr"])
     else:
         n = str(nid).strip()
 

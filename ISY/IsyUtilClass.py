@@ -543,7 +543,7 @@ class IsySubClass(IsyUtil):
 #            print("attr =", attr, self.address)
 #           print("self type = ", type(self))
 #           pprint(self._mydict)
-            raise(AttributeError, attr)
+            raise AttributeError("bad attr = {}".format(attr))
 
 
     # This allows for

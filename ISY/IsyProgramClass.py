@@ -37,11 +37,11 @@ class IsyProgram(IsySubClass):
 
             get_prog_ts() :     get timestamp
             get_prog_type() :   get Prog type
-            get_prog_init() :   get  inital value for Var
-            set_prog_init(new_value) :  set inital value for Var
+            get_prog_init() :   get  inital value for Prog
+            set_prog_init(new_value) :  set inital value for Prog
             get_prog_value() :  get current value
-            set_prog_value(new_value) : set new value for Var
-            get_prog_id() :     get unique for Var used by ISY
+            set_prog_value(new_value) : set new value for Prog
+            get_prog_id() :     get unique for Prog used by ISY
             get_prog_name() :   get name of var
 
     """
@@ -79,6 +79,18 @@ class IsyProgram(IsySubClass):
         self._mydict["enabled"] = rval
         return rval
     enabled = property(get_prog_enable, set_prog_enable)
+
+    def run(self):
+	self.isy.prog_comm(self._mydict['id'], "run")
+
+    def stop(self):
+	self.isy.prog_comm(self._mydict['id'], "stop")
+
+    def runThen(self):
+	self.isy.prog_comm(self._mydict['id'], "runThen")
+
+    def runElse(self):
+	self.isy.prog_comm(self._mydict['id'], "runElse")
 
     def get_prog_runatstart(self):
         """ check property runAtStartup (bool) """
