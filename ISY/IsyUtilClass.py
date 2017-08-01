@@ -516,7 +516,7 @@ class IsySubClass(IsyUtil):
     def __repr__(self):
 
         #return "<%s %s @ %s at 0x%x>" %
-        return "<{} %s @ {} at 0x{}>".format(
+        return "<{} {} @ {} at 0x{:x}>".format(
             self.__class__.__name__,
             self._get_prop("id"),
             self.isy.addr, id(self))
