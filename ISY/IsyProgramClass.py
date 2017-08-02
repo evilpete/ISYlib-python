@@ -6,8 +6,6 @@ __license__ = "BSD"
 
 from .IsyUtilClass import IsySubClass, val2bool
 from .IsyClass import  *
-#fromm .IsyNodeClass import *
-# fromm .IsyVarClass import *
 
 __all__ = ['IsyProgram']
 
