@@ -86,7 +86,7 @@ def et2d(et):
 
 def format_node_addr(naddr):
     if not isinstance(naddr, str):
-	raise IsyValueError("{0} arg not string".format(__name__))
+        raise IsyValueError("{0} arg not string".format(__name__))
     addr_el = naddr.upper().split()
     a = "{0:0>2}' '{1:0>2}' '{2:0>2}' ".format(*addr_el)
     return a
@@ -151,7 +151,7 @@ class IsyUtil(object):
                 return et
 
         else:
-	    return None
+            return None
 
     def _gensoap(self, cmd, **kwargs):
 
@@ -186,7 +186,7 @@ class IsyUtil(object):
         """
 
         if not isinstance(cmd, str) or not len(cmd):
-	    raise IsyValueError("SOAP Method name missing")
+            raise IsyValueError("SOAP Method name missing")
 
         if self.debug & 0x02:
             print "sendcomm : ", cmd

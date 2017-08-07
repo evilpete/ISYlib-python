@@ -79,16 +79,16 @@ class IsyProgram(IsySubClass):
     enabled = property(get_prog_enable, set_prog_enable)
 
     def run(self):
-	self.isy.prog_comm(self._mydict['id'], "run")
+        self.isy.prog_comm(self._mydict['id'], "run")
 
     def stop(self):
-	self.isy.prog_comm(self._mydict['id'], "stop")
+        self.isy.prog_comm(self._mydict['id'], "stop")
 
     def runThen(self):
-	self.isy.prog_comm(self._mydict['id'], "runThen")
+        self.isy.prog_comm(self._mydict['id'], "runThen")
 
     def runElse(self):
-	self.isy.prog_comm(self._mydict['id'], "runElse")
+        self.isy.prog_comm(self._mydict['id'], "runElse")
 
     def get_prog_runatstart(self):
         """ check property runAtStartup (bool) """

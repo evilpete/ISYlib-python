@@ -230,12 +230,12 @@ def _gen_nodegroups(self, nodeinfo, rload=0):
 #    # print "self._nodedict = ", self._nodedict
 #    resp = self._getXMLetree("/rest/status/")
 #    for inode in resp.iter('node'):
-#	if not 'id' in inode.attrib:
-#	    continue
-#	n_id = inode.attrib['id']
+#       if not 'id' in inode.attrib:
+#           continue
+#       n_id = inode.attrib['id']
 #
-#	print "self._nodedict = ", n_id
-#	pprint.pprint(self._nodedict[n_id])
+#       print "self._nodedict = ", n_id
+#       pprint.pprint(self._nodedict[n_id])
 
 
 
