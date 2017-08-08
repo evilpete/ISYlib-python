@@ -31,6 +31,7 @@ def list_nodes(isy):
 
 if __name__ == '__main__':
     myisy = ISY.Isy(parsearg=1) # debug=0x80
+    #myisy = ISY.Isy(parsearg=1, debug=0x082)
     list_nodes(myisy)
     exit(0)
 

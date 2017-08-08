@@ -8,11 +8,12 @@ import xml.etree.ElementTree as ET
 from pprint import pprint
 # import base64
 import sys
-if sys.hexversion < 0x3000000:
-    import urllib2 as URL
-    from urllib2 import URLError, HTTPError
-else:
-    import urllib as URL
+import requests
+# if sys.hexversion < 0x3000000:
+#     import urllib2 as URL
+#     from urllib2 import URLError, HTTPError
+# else:
+#     import urllib as URL
 # import re
 from .IsyExceptionClass import IsyPropertyError, IsyValueError, IsySoapError
 
@@ -25,7 +26,6 @@ __all__ = ['format_node_addr']
 
 # pylint: disable=superfluous-parens,unsubscriptable-object
 # disable=unsubscriptable-object,unsupported-membership-test,unused-argument
-
 
 
 def val2bool(en):
@@ -104,6 +104,13 @@ class IsyUtil(object):
         self.baseurl = "" # never used
         # self.pp = pprint.PrettyPrinter(indent=4)
 
+    def _initReqSession(self):
+        print("_initReqSession")
+        self._req_session = requests.Session()
+        print("_initReqSession", self._req_session)
+        # if debug
+        # self._req_session.register_hook(dict_HOOK)
+
 
     def _printXML(self, xml):
         """ Pretty Print XML, for internal debug"""
@@ -113,32 +120,49 @@ class IsyUtil(object):
     def _set_prop(self, *arg):
         pass
 
+
+    def _geturl(self, url, timeout=15):
+        self.error_str = ""
+        try:
+            # res = self._opener.open(req, None, timeout)
+            res = self._req_session.get(url, timeout=timeout)
+            return res.text # res.content
+        except requests.exceptions.RequestException as rex:
+            self.error_str = str("Response Code : {0} : {1} : {2}").format(
+                rsx.response.status_code, xurl ,str(rex))
+            return None
+
     def _getXMLetree(self, xmlpath, noquote=0, timeout=10):
         """ take a URL path, download XLM and return parsed Etree """
+
         if (noquote):
             xurl = self.baseurl + xmlpath
         else:
-            xurl = self.baseurl + URL.quote(xmlpath)
+            xurl = self.baseurl + requests.compat.quote(xmlpath)
+            # xurl = self.baseurl + URL.quote(xmlpath)
         if self.debug & 0x02:
             print("_getXMLetree: " + xurl)
+
         # print("_getXMLetree : URL.Request")
-        req = URL.Request(xurl)
+        # req = URL.Request(xurl)
         # print("_getXMLetree : self._opener.open ")
         # HTTPError
         try:
-            res = self._opener.open(req, None, timeout)
-            data = res.read()
+            # res = self._opener.open(req, None, timeout)
+            res = self._req_session.get(xurl, timeout=timeout)
+
+            data = res.text # res.content
             # print("res.getcode() ", res.getcode(), len(data))
-            res.close()
-        except URL.HTTPError as e:
-            self.error_str = str("Response Code : {0} : {1}").format(e.code, xurl)
+        except requests.exceptions.RequestException as rex:
+            self.error_str = str("Response Code : {0} : {1} : {2}").format(
+                rsx.response.status_code, xurl ,str(rex))
             return None
 
         if len(self.error_str):
             self.error_str = ""
         if self.debug & 0x200:
-            print(res.info())
-            print(data)
+            print("requests.response=", res)
+            print("requests.response.text=", data)
         et = None
         if len(data):
             try:
@@ -199,45 +223,55 @@ class IsyUtil(object):
             print("xurl = ", xurl)
             print("soap_cmd = ", soap_cmd)
 
-        req = URL.Request(xurl, soap_cmd, {'Content-Type': 'application/xml; charset="utf-8"'})
+        # req_headers = {'content-type': 'application/soap+xml'}
+        # req_headers = {'content-type': 'text/xml'}
+        req_headers = {'Content-Type': 'application/xml; charset="utf-8"'}
+
+        # req = URL.Request(xurl, soap_cmd, {'Content-Type': 'application/xml; charset="utf-8"'})
+
+        res = self._req_session.post(xurl, data=soap_cmd, headers=req_headers)
 
         data = ""
         try:
-            res = self._opener.open(req, None)
-            data = res.read()
-            if self.debug & 0x200:
-                print("res.getcode() ", res.getcode(), len(data))
-                print("data ", data)
-            res.close()
-        except URL.HTTPError as e:
+            # res = self._opener.open(req, None)
+            # data = res.read()
 
-            self.error_str = str("Reponse Code : {0} : {1} {2}").format(e.code, xurl, cmd)
-            if ((cmd == "DiscoverNodes" and e.code == 803)
-                    or (cmd == "CancelNodesDiscovery" and e.code == 501)
-                    # or (cmd == "RemoveNode" and e.code == 501)
+            res = self._req_session.post(xurl, data=soap_cmd, headers=req_headers)
+            data = res.text # res.content
+            if self.debug & 0x200:
+                print("res.status_code ", res.status_code, len(data))
+                print("data ", data)
+
+        # except URL.HTTPError as e:
+        except requests.exceptions.RequestException as rex:
+
+            status_code = rsx.response.status_code
+            self.error_str = str("Reponse Code : {0} : {1} {2}").format(status_code, xurl, cmd)
+            if ((cmd == "DiscoverNodes" and rsx.response.status_code == 803)
+                    or (cmd == "CancelNodesDiscovery" and status_code == 501)
+                    # or (cmd == "RemoveNode" and status_code == 501)
                ):
 
 
                 if self.debug & 0x02:
-                    print("spacial case : {0} : {1}".format(cmd, e.code))
-                    print("e.code = ", e.code)
-                    print("e.msg = ", e.msg)
-                    print("e.hdrs = ", e.hdrs)
-                    print("e.filename = ", e.filename)
-                    print("e.code = ", type(e.code), e.code)
+                    print("spacial case : {0} : {1}".format(cmd, status_code))
+                    print("status_code = ", status_code)
+                    print("response.reason = ", rsx.response.reason)
+                    print("response.headers = ", rsx.response.headers)
+                    # print("e.filename = ", e.filename)
                     print("\n")
 
                 return e.read()
 
             if self.debug & 0x202:
-                print("e.code = ", type(e.code), e.code)
+                print("status_code = ", status_code)
                 # print("e.read = ", e.read())
-                print("e = ", e)
+                print("RequestException = ", rex)
                 print("data = ", data)
 
-            mess = "{!s} : {!s} : {!s}".format(cmd, kwargs, e.code)
+            mess = "{!s} : {!s} : {!s}".format(cmd, kwargs, status_code)
             # This a messy and should change
-            raise IsySoapError(mess, httperr=e)
+            raise IsySoapError(mess, httperr=v)
         else:
             if len(self.error_str):
                 self.error_str = ""
@@ -314,17 +348,17 @@ class IsyUtil(object):
 
         if self.debug & 0x02:
             print("{0} xurl : {1}".format(__name__, xurl))
-        req = URL.Request(xurl, data, {'Content-Type': 'application/xml; charset="utf-8"'})
+        # req = URL.Request(xurl, data, {'Content-Type': 'application/xml; charset="utf-8"'})
+        req_headers = {'Content-Type': 'application/xml; charset="utf-8"'}
 
         try:
-            res = self._opener.open(req, None)
-            responce = res.read()
-            # print("res.getcode() ", res.getcode(), len(responce))
-            res.close()
-        except URL.HTTPError as e:
-            # print("e.read : ", e.read())
-            mess = "{!s} : {!s} : {!s}".format("/file/upload", filename, e.code)
-            raise IsySoapError(mess, httperr=e)
+            # res = self._opener.open(req, None)
+            res = self._req_session.post(xurl, data=data, headers=req_headers)
+            responce = res.text
+            # print("responce:", res.status_code, len(responce))
+        except requests.exceptions.RequestException as rex:
+            mess = "{!s} : {!s} : {!s}".format("/file/upload", filename, rsx.response.status_code)
+            raise IsySoapError(mess, httperr=rex)
         else:
             return responce
 

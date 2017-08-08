@@ -310,7 +310,8 @@ class IsyNode(_IsyNodeBase):
 #            if "node-flag" in self._mydict:
 #                self.update()
 
-        self._hash = hashlib.sha256(self._mydict["address"])
+        # print("addr", self._mydict["address"], type(self._mydict["address"]))
+        self._hash = hashlib.sha256(self._mydict["address"].encode('utf-8'))
 
         if self.debug & 0x01:
             print("Init Node : \"" + self._mydict["address"] + \

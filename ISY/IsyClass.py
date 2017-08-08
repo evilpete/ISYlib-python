@@ -57,15 +57,15 @@ from .IsyProgramClass import *
 # from .IsyVarClass import IsyVar
 from .IsyEvent import ISYEvent
 
-if sys.hexversion < 0x3000000:
-    import urllib2 as URL
-    # from urllib import urlopen
-    # HTTPPasswordMgrWithDefaultRealm = URL.HTTPPasswordMgrWithDefaultRealm
-    # Request, build_opener, request, HTTPBasicAuthHandler, HTTPPasswordMgrWithDefaultRealm, URLError, HTTPError
-else:
-    import urllib as URL
-    # from urllib.request import HTTPPasswordMgrWithDefaultRealm
-    # from urllib.request import urlopen
+# if sys.hexversion < 0x3000000:
+#     import urllib2 as URL
+#     # from urllib import urlopen
+#     # HTTPPasswordMgrWithDefaultRealm = URL.HTTPPasswordMgrWithDefaultRealm
+#     # Request, build_opener, request, HTTPBasicAuthHandler, HTTPPasswordMgrWithDefaultRealm, URLError, HTTPError
+# else:
+#     import urllib as URL
+#     # from urllib.request import HTTPPasswordMgrWithDefaultRealm
+#     # from urllib.request import urlopen
 
 
 # import netrc
@@ -195,17 +195,17 @@ class Isy(IsyUtil):
 ##    set_var_value, _set_var_value, var_names
 
 
-    if sys.hexversion < 0x3000000:
-        _password_mgr = URL.HTTPPasswordMgrWithDefaultRealm()
-        _handler = URL.HTTPBasicAuthHandler(_password_mgr)
-        _opener = URL.build_opener(_handler)
-        #_opener = URL.build_opener(_handler, URL.HTTPHandler(debuglevel=1))
-
-        # URL.HTTPHandler(debuglevel=1)
-    else:
-        _password_mgr = URL.request.HTTPPasswordMgrWithDefaultRealm()
-        _handler = URL.request.HTTPBasicAuthHandler(_password_mgr)
-        _opener = URL.request.build_opener(_handler)
+#    if sys.hexversion < 0x3000000:
+#        _password_mgr = URL.HTTPPasswordMgrWithDefaultRealm()
+#        _handler = URL.HTTPBasicAuthHandler(_password_mgr)
+#        _opener = URL.build_opener(_handler)
+#        #_opener = URL.build_opener(_handler, URL.HTTPHandler(debuglevel=1))
+#
+#        # URL.HTTPHandler(debuglevel=1)
+#    else:
+#        _password_mgr = URL.request.HTTPPasswordMgrWithDefaultRealm()
+#        _handler = URL.request.HTTPBasicAuthHandler(_password_mgr)
+#        _opener = URL.request.build_opener(_handler)
 
     def __init__(self, **kwargs):
         # pylint: disable=super-init-not-called,too-many-statements,too-many-branches
@@ -315,7 +315,14 @@ class Isy(IsyUtil):
         #
         # general setup logic
         #
-        Isy._handler.add_password(None, self.addr, self.userl, self.userp)
+
+        self._initReqSession()
+
+
+        print("ISYClass _initReqSession", self._req_session)
+        self._req_session.auth = (self.userl, self.userp)
+
+        # Isy._handler.add_password(None, self.addr, self.userl, self.userp)
         # self._opener = URL.build_opener(Isy._handler, URL.HTTPHandler(debuglevel=1))
         # self._opener = URL.build_opener(Isy._handler)
         if self.debug & 0x02:
@@ -324,11 +331,13 @@ class Isy(IsyUtil):
         if self.faststart < 2:
             try:
                 self.load_conf()
-            except URL.URLError as e:
+            # except URL.URLError as e:
+            except Exception as e:
                 print("Unexpected error:", sys.exc_info()[0])
                 print('Problem connecting with ISY device :', self.addr)
                 print(e)
-                raise IsyCommunicationError(e)
+                # raise IsyCommunicationError(e)
+                raise
 
 
         if not self.faststart:
@@ -1791,19 +1800,10 @@ class Isy(IsyUtil):
             xurl += "?reset=true"
         if self.debug & 0x02:
             print("xurl = " + xurl)
-        req = URL.Request(xurl)
-        try:
 
-            res = self._opener.open(req)
+        data = self._geturl(xurl)
 
-        except URL.URLError: # as e:
-            # Error log can return a 404 is there are not logs (yet)
-            return []
-
-        else:
-            data = res.read()
-            res.close()
-            return data.splitlines()
+        return data.splitlines()
 
     def log_format_line(self, line):
         """ format a ISY log line into a more human readable form
