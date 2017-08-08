@@ -10,7 +10,8 @@ These funtions are accessable via the Isy class opj
 # license : BSD
 
 from .IsyUtilClass import et2d
-from .IsyExceptionClass import IsyResponseError, IsyValueError
+# from .IsyExceptionClass import IsyResponseError, IsyValueError
+import ISY.IsyExceptionClass as IsyE
 
 ##
 ## networking resources
@@ -28,9 +29,9 @@ def _load_networking(self, resource_id):
     net_res_tree = self._getXMLetree(xurl)
     if net_res_tree is None:
         if ( len(self.error_str)):
-            raise IsyResponseError (self.error_str)
+            raise IsyE.IsyResponseError (self.error_str)
         else:
-            raise IsyResponseError (xurl)
+            raise IsyE.IsyResponseError (xurl)
     net_dict = dict()
     name2rid = dict()
     for netr in net_res_tree.iter('NetRule'):
@@ -82,7 +83,7 @@ def net_resource_run(self, rrid):
     rid = self._net_resource_get_id(rrid)
 
     if rid is None:
-        raise IsyValueError("net_resource_run : bad network resources ID : " + rrid)
+        raise IsyE.IsyValueError("net_resource_run : bad network resources ID : " + rrid)
 
     xurl = "/rest/networking/resources/{!s}".format(rid)
 
@@ -91,7 +92,7 @@ def net_resource_run(self, rrid):
     resp = self._getXMLetree(xurl)
     # self._printXML(resp)
     if resp is None or resp.attrib["succeeded"] != 'true':
-        raise IsyResponseError("ISY network resources error : rid=" + str(rid))
+        raise IsyE.IsyResponseError("ISY network resources error : rid=" + str(rid))
 
 
 def net_resource_get_src(self, rrid):
@@ -99,7 +100,7 @@ def net_resource_get_src(self, rrid):
     rid = self._net_resource_get_id(rrid)
 
     if rid is None:
-        raise IsyValueError("net_resource_get_src: bad network resources ID : " + rrid)
+        raise IsyE.IsyValueError("net_resource_get_src: bad network resources ID : " + rrid)
 
     r = self.soapcomm("GetSysConf", name="/CONF/NET/" + rrid + ".RES")
 
@@ -170,7 +171,7 @@ def net_wol(self, wid):
     # wol_id = str(wid).upper()
 
     if wol_id is None:
-        raise IsyValueError("bad wol ID : " + wid)
+        raise IsyE.IsyValueError("bad wol ID : " + wid)
 
     xurl = "/rest/networking/wol/" + wol_id
 
@@ -179,7 +180,7 @@ def net_wol(self, wid):
     resp = self._getXMLetree(xurl)
     # self._printXML(resp)
     if resp.attrib["succeeded"] != 'true':
-        raise IsyResponseError("ISY command error : cmd=wol wol_id=" \
+        raise IsyE.IsyResponseError("ISY command error : cmd=wol wol_id=" \
             + str(wol_id))
 
 

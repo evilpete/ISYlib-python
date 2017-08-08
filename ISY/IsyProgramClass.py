@@ -7,7 +7,7 @@ __copyright__ = "Copyright (C) 2015 Peter Shipley"
 __license__ = "BSD"
 
 from .IsyUtilClass import IsySubClass, val2bool
-from .IsyClass import  *
+# from .IsyClass import  *
 
 __all__ = ['IsyProgram']
 

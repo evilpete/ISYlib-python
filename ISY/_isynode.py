@@ -13,8 +13,9 @@ __license__ = "BSD"
 
 from .IsyNodeClass import IsyNode, IsyScene, IsyNodeFolder#, _IsyNodeBase
 from .IsyUtilClass import IsySubClass
-from .IsyExceptionClass import IsyPropertyError, IsyResponseError, IsyRuntimeWarning, \
-    IsyWarning, IsyCommunicationError, IsyInvalidCmdError, IsySoapError
+import ISY.IsyExceptionClass as IsyE
+#from .IsyExceptionClass import IsyPropertyError, IsyResponseError, IsyRuntimeWarning, \
+#    IsyWarning, IsyCommunicationError, IsyInvalidCmdError, IsySoapError
 
 import warnings
 # import string
@@ -57,7 +58,7 @@ def load_nodes(self, rload=0):
         print("load_nodes")
     nodeinfo = self._getXMLetree("/rest/nodes")
     if nodeinfo is None:
-        raise IsyCommunicationError("Load Node Info Fail : " \
+        raise IsyE.IsyCommunicationError("Load Node Info Fail : " \
                               + self.error_str)
     self._gen_folder_list(nodeinfo, rload=rload)
     self._gen_nodedict(nodeinfo, rload=rload)
@@ -359,7 +360,7 @@ def node_get_path(self, nodeid):
         self.load_node()
     node_type, node_id = self._node_get_id(nodeid)
     if not node_id:
-        raise IsyInvalidCmdError("node_path: unknown node : " + str(nodeid))
+        raise IsyE.IsyInvalidCmdError("node_path: unknown node : " + str(nodeid))
 
     return self._node_get_path(node_id, node_type)
 
@@ -522,18 +523,18 @@ def node_get_prop(self, naddr, prop_id):
         prop = prop_id
         if "isQueryAble" in self.controls[prop_id] and \
                 self.controls["prop_id"]["isQueryAble"] == "false":
-            raise IsyPropertyError("non Queryable property " + prop_id)
+            raise IsyE.IsyPropertyError("non Queryable property " + prop_id)
 
     if prop_id in ['ST', 'OL', 'RR']:
         if prop in self._nodedict[node_id]["property"]:
             return self._nodedict[node_id]["property"]["value"]
         else:
-            raise IsyPropertyError("unknown property " + prop_id)
+            raise IsyE.IsyPropertyError("unknown property " + prop_id)
 
     if prop in self._nodedict[node_id]:
         return self._nodedict[node_id][prop]
     else:
-        raise IsyPropertyError("unknown property " + prop_id)
+        raise IsyE.IsyPropertyError("unknown property " + prop_id)
 
 # Set property for a node
 #
@@ -563,14 +564,14 @@ def node_set_prop(self, naddr, prop, val):
         # raise TypeError("node_set_prop: unknown prop : " + str(cmd))
         if "readOnly" in self.controls[prop_id] and \
                 self.controls["prop_id"]["readOnly"] == "true":
-            raise IsyPropertyError("readOnly property " + prop_id)
+            raise IsyE.IsyPropertyError("readOnly property " + prop_id)
 
     prop = str(prop)
 
     if "isNumeric" in self.controls[prop_id] and \
             self.controls["prop_id"]["isNumeric"] == "true" and \
             not str(val).isdigit:
-        raise IsyPropertyError("Numeric property " + prop_id)
+        raise IsyE.IsyPropertyError("Numeric property " + prop_id)
 
 #        if not prop in ['ST', 'OL', 'RR']:
 #            raise TypeError("node_set_prop: unknown propery : " + str(prop))
@@ -592,7 +593,7 @@ def _node_send(self, naddr, action, prop, *args):
     resp = self._getXMLetree(xurl)
     # self._printXML(resp)
     if resp is None or resp.attrib["succeeded"] != 'true':
-        raise IsyResponseError(
+        raise IsyE.IsyResponseError(
                 "Node Cmd/Property Set error : node={!s:} prop={!s:} ".format(naddr, prop))
 
 # def _node_set_prop(self, naddr, prop, val):
@@ -604,7 +605,7 @@ def _node_send(self, naddr, action, prop, *args):
 #    resp = self._getXMLetree(xurl)
 #    self._printXML(resp)
 #    if resp.attrib["succeeded"] != 'true':
-#       raise IsyResponseError("Node Property Set error : node=%s prop=%s val=%s" %
+#       raise IsyE.IsyResponseError("Node Property Set error : node=%s prop=%s val=%s" %
 #               naddr, prop, val)
 #
 
@@ -662,7 +663,7 @@ def node_comm(self, naddr, cmd, *args):
 #    resp = self._getXMLetree(xurl)
 #    self._printXML(resp)
 #    if resp.attrib["succeeded"] != 'true':
-#       raise IsyResponseError("ISY command error : node_id=" +
+#       raise IsyE.IsyResponseError("ISY command error : node_id=" +
 #           str(node_id) + " cmd=" + str(cmd_id))
 #
 
@@ -684,7 +685,7 @@ def load_node_types(self):
         print("load_node_types")
     typeinfo = self._getXMLetree("/WEB/cat.xml")
     if typeinfo is None:
-          raise IsyCommunicationError("Load Node Type Info Fail : " \
+          raise IsyE.IsyCommunicationError("Load Node Type Info Fail : " \
                               + self.error_str)
     if not hasattr(self, '_nodeCategory') or not isinstance(self._nodeCategory, dict):
         self._nodeCategory = dict()
@@ -694,7 +695,7 @@ def load_node_types(self):
         self._nodeCategory[ncat.attrib["id"]]["name"] = ncat.attrib["name"]
     typeinfo = self._getXMLetree("/WEB/1_fam.xml")
     if typeinfo is None:
-          raise IsyCommunicationError("Load Node Type Info Fail : " \
+          raise IsyE.IsyCommunicationError("Load Node Type Info Fail : " \
                               + self.error_str)
     for ncat in typeinfo.iter('nodeCategory'):
         for subcat in ncat.iter('nodeSubCategory'):
@@ -886,7 +887,7 @@ def node_enable(self, naddr, enable=True):
     resp = self._getXMLetree(xurl)
     # self._printXML(resp)
     if resp is None or resp.attrib["succeeded"] != 'true':
-        raise IsyResponseError(
+        raise IsyE.IsyResponseError(
                 "Node Cmd/Property Set error : node={!s:} resp={!s:} ".format(naddr, resp ))
 
 def node_set_powerinfo(self, naddr, deviceClass=None, wattage=None, dcPeriod=None ):
@@ -906,7 +907,7 @@ def node_set_powerinfo(self, naddr, deviceClass=None, wattage=None, dcPeriod=Non
         raise LookupError("node_comm: unknown node : " + str(naddr))
 
     if nodetype != "node":
-        raise IsyPropertyError("Can't set powerinfo on non-node devices")
+        raise IsyE.IsyPropertyError("Can't set powerinfo on non-node devices")
 
     if wattage is None:
         wattage = self._nodedict[naddr]['wattage']

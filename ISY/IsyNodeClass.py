@@ -44,7 +44,8 @@ __license__ = "BSD"
 import hashlib
 
 from .IsyUtilClass import IsySubClass, val2bool
-from .IsyExceptionClass import *
+#from .IsyExceptionClass import *
+import ISY.IsyExceptionClass as IsyE
 # from IsyClass import *
 # from IsyNodeClass import *
 # from IsyProgramClass import *
@@ -84,7 +85,7 @@ class _IsyNodeBase(IsySubClass):
 
     def _on(self, val, cmd):
         if not str(val).isdigit:
-            raise IsyTypeError("On Command : Bad Value : node=%s val=%s" %
+            raise IsyE.IsyTypeError("On Command : Bad Value : node=%s val=%s" %
                     self._mydict["address"], str(val))
 
         if "property" in self._mydict:
@@ -192,7 +193,7 @@ class _IsyNodeBase(IsySubClass):
             print("rename : ", self.__class__.__name__, " : ", newname)
         #if not isinstance(newname, str) or len(newname) == 0:
         #    print("newname : ", newname)
-        #    raise IsyTypeError("rename : name value not str")
+        #    raise IsyE.IsyTypeError("rename : name value not str")
         r = self.isy.soapcomm(cmd,
                         id=self._mydict["address"], name=newname )
 
@@ -336,7 +337,7 @@ class IsyNode(_IsyNodeBase):
         if not prop in self._getlist:
 #           if prop in ['parent', 'parent-type']:
 #               return None
-            raise IsyPropertyError("no property Attribute {!s}".format(prop))
+            raise IsyE.IsyPropertyError("no property Attribute {!s}".format(prop))
 
         # check if we have a property
 
@@ -394,7 +395,7 @@ class IsyNode(_IsyNodeBase):
                 self.on(new_value)
                 return
             else:
-                raise IsyPropertyError("_set_prop : " \
+                raise IsyE.IsyPropertyError("_set_prop : " \
                     "Invalid property Attribute " + prop)
 
         if prop == 'enable':
@@ -403,7 +404,7 @@ class IsyNode(_IsyNodeBase):
 
         elif prop in ['OL', 'RR']:
             if not str(new_value).isdigit:
-                raise IsyTypeError("Set Property : Bad Value : node=%s prop=%s val=%s" %
+                raise IsyE.IsyTypeError("Set Property : Bad Value : node=%s prop=%s val=%s" %
                             self._mydict["address"], prop, str(new_value))
 
 

@@ -11,10 +11,11 @@ __license__ = "BSD"
 
 import xml.etree.ElementTree as ET
 from .IsyVarClass import IsyVar
-from .IsyExceptionClass import IsyError, IsyInternalError, IsyValueError, \
-                            IsyResponseError, IsyPropertyError, \
-                            IsyLookupError, \
-                            IsyRuntimeWarning, IsyWarning
+import ISY.IsyExceptionClass as IsyE
+# from .IsyExceptionClass import IsyError, IsyInternalError, IsyValueError, \
+#                            IsyResponseError, IsyPropertyError, \
+#                            IsyLookupError, \
+#                            IsyRuntimeWarning, IsyWarning
 from warnings import warn
 
 
@@ -95,7 +96,7 @@ def load_vars(self):
 #        if varid in self._vardict:
 #            self._set_var_value(varid, val, init)
 #        else:
-#            raise IsyLookupError("var_set_value: unknown var : " + str(var))
+#            raise IsyE.IsyLookupError("var_set_value: unknown var : " + str(var))
 #
 #
 #    def _set_var_value(self, varid, val, init=0):
@@ -111,7 +112,7 @@ def load_vars(self):
 #        resp = self._getXMLetree(xurl)
 #        self._printXML(resp)
 #        if resp.attrib["succeeded"] != 'true':
-#            raise IsyResponseError("ISY command error : varid=" +
+#            raise IsyE.IsyResponseError("ISY command error : varid=" +
 #                str(varid) + " cmd=" + str(cmd_id))
 
 
@@ -126,7 +127,7 @@ def var_refresh_value(self, var):
     varid = self._var_get_id(var)
 
     if not varid:
-        raise IsyPropertyError("var_refresh: unknown var : " + str(var))
+        raise IsyE.IsyPropertyError("var_refresh: unknown var : " + str(var))
 
     a = varid.split(':')
     xurl = "/rest/vars/get/" + a[0] + "/" + a[1]
@@ -134,7 +135,7 @@ def var_refresh_value(self, var):
     print("resp", resp)
 
     if resp is None:
-        raise IsyPropertyError("var_refresh: error geting var : " + str(var))
+        raise IsyE.IsyPropertyError("var_refresh: error geting var : " + str(var))
 
     for vd in list(resp):
         if vd.tag in self._vardict[varid]:
@@ -170,17 +171,17 @@ def var_set_value(self, var, val, prop="val"):
     varid = self._var_get_id(var)
 
     if isinstance(val, str) and not val.isdigit():
-        raise IsyValueError("var_set_value: value must be an int")
+        raise IsyE.IsyValueError("var_set_value: value must be an int")
     else:
         val = int(val)
 
     if val > 2147483647 or val < -2147483648:
-        raise IsyValueError("var_set_value: value larger then a signed int")
+        raise IsyE.IsyValueError("var_set_value: value larger then a signed int")
 
     if not varid:
-        raise IsyPropertyError("var_set_value: unknown var : " + str(var))
+        raise IsyE.IsyPropertyError("var_set_value: unknown var : " + str(var))
     if prop not in ['init', 'val']:
-        raise IsyPropertyError("var_set_value: unknown propery : " + str(prop))
+        raise IsyE.IsyPropertyError("var_set_value: unknown propery : " + str(prop))
     self._var_set_value(varid, val, prop)
 
 
@@ -198,7 +199,7 @@ def _var_set_value(self, varid, val, prop="val"):
 
     # pprint.pprint(resp)
     if resp is None or resp.attrib["succeeded"] != 'true':
-        raise IsyResponseError("Var Value Set error : var={!s} prop={!s} val={!s}".format(varid, prop, val))
+        raise IsyE.IsyResponseError("Var Value Set error : var={!s} prop={!s} val={!s}".format(varid, prop, val))
 
     #
     # hasattr(self, '_vardict'):
@@ -222,7 +223,7 @@ def var_get_value(self, var, prop="val"):
     """
     varid = self._var_get_id(var)
     if not varid:
-        raise IsyLookupError("var_set_value: unknown var : " + str(var))
+        raise IsyE.IsyLookupError("var_set_value: unknown var : " + str(var))
     if prop not in ['init', 'val']:
         raise TypeError("var_set_value: unknown propery : " + str(prop))
     if varid in self._vardict:
@@ -282,7 +283,7 @@ def get_var(self, vname):
     else:
         if self.debug & 0x01:
             print("Isy get_var no var : \"%s\"" % varid)
-        raise IsyLookupError("no var : " + vname + " : " + str(varid))
+        raise IsyE.IsyLookupError("no var : " + vname + " : " + str(varid))
 
 
 def _var_get_id(self, vname):
@@ -296,7 +297,7 @@ def _var_get_id(self, vname):
         return vname["id"]
     else:
         v = str(vname)
-    if vupper() in self._vardict:
+    if v.upper() in self._vardict:
         # print("_get_var_id : " + v + " vardict " + v.upper())
         return v.upper()
     if v in self.name2var:
@@ -363,7 +364,7 @@ def var_add(self, varname=None, varid=None, vartype="int", value=None, initval=N
 
     """
     if varname is None:
-        raise IsyValueError("varname : invalid var name")
+        raise IsyE.IsyValueError("varname : invalid var name")
 
     if vartype == "integer" or vartype == "int":
         varpath = "/CONF/INTEGER.VAR"
@@ -372,25 +373,25 @@ def var_add(self, varname=None, varid=None, vartype="int", value=None, initval=N
         varpath = "/CONF/STATE.VAR"
         vtype = "2"
     else:
-        raise IsyValueError("vartype : invalid type")
+        raise IsyE.IsyValueError("vartype : invalid type")
 
     if value is not None:
         if isinstance(value, int):
             value = str(value)
         elif not (isinstance(value, str) and value.isdigit()):
-            raise IsyValueError("var_add: value must be an int or None")
+            raise IsyE.IsyValueError("var_add: value must be an int or None")
 
 
     if initval is not None:
         if isinstance(initval, int):
             initval = str(initval)
         elif not (isinstance(initval, str) and initval.isdigit()):
-            raise IsyValueError("var_add: initval must be an int None")
+            raise IsyE.IsyValueError("var_add: initval must be an int None")
 
     result = self.soapcomm("GetSysConf", name=varpath)
 
     if result is None:
-        raise IsyResponseError("Error loading Sys Conf file {0}".format(varpath))
+        raise IsyE.IsyResponseError("Error loading Sys Conf file {0}".format(varpath))
 
     var_et = ET.fromstring(result)
 
@@ -412,7 +413,7 @@ def var_add(self, varname=None, varid=None, vartype="int", value=None, initval=N
         if isinstance(varid, int):
             varid = str(varid)
         elif not (isinstance(varid, str) and varid.isdigit()):
-            raise IsyValueError("var_add: varid must be an int or None")
+            raise IsyE.IsyValueError("var_add: varid must be an int or None")
 
 
     vaddr = vtype + ":" + varid
@@ -481,7 +482,7 @@ def var_delete(self, varid=None):
         note : var delete is not an atomic operation
     """
     if varid is None:
-        raise IsyValueError("{0} : varid arg is missing".format(__name__))
+        raise IsyE.IsyValueError("{0} : varid arg is missing".format(__name__))
 
     myvarid = self._var_get_id(varid)
 
@@ -516,7 +517,7 @@ def _var_delete(self, varid=None, vartype=None):
         note : var delete is not an atomic operation
     """
     if varid is None:
-        raise IsyValueError("varid arg is missing")
+        raise IsyE.IsyValueError("varid arg is missing")
     elif isinstance(varid, list):
         for i in range(len(varid)) :  # make sure they are all strings
             varid[i] = str(varid[i])
@@ -525,7 +526,7 @@ def _var_delete(self, varid=None, vartype=None):
 
 
 #    if isinstance(varid, str) and not val.isdigit()):
-#       raise IsyValueError("Invalid var id missing")
+#       raise IsyE.IsyValueError("Invalid var id missing")
 
 
     vartype = str(vartype)
@@ -534,12 +535,12 @@ def _var_delete(self, varid=None, vartype=None):
     elif vartype == "state" or vartype == "2":
         varpath = "/CONF/STATE.VAR"
     else:
-        raise IsyValueError("vartype : invalid type")
+        raise IsyE.IsyValueError("vartype : invalid type")
 
     result = self.soapcomm("GetSysConf", name=varpath)
 
     if result is None:
-        raise IsyResponseError("Error loading Sys Conf file {0}".format(varpath))
+        raise IsyE.IsyResponseError("Error loading Sys Conf file {0}".format(varpath))
 
     var_et = ET.fromstring(result)
 
@@ -567,17 +568,17 @@ def var_rename(self, var=None, varname=None):
         note : var rename is not an atomic operation
     """
     if not isinstance(varname, str):
-        raise IsyValueError("varname must me type str")
+        raise IsyE.IsyValueError("varname must me type str")
 
     varid = self._var_get_id(var)
 
     if varid is None:
-        raise IsyValueError("Invalid var : {0}".format(var))
+        raise IsyE.IsyValueError("Invalid var : {0}".format(var))
 
     v = varid.split(":")
 
     if len(v) != 2:
-        raise IsyInternalError("Invalid var : {0}".format(var))
+        raise IsyE.IsyInternalError("Invalid var : {0}".format(var))
 
     # print("call _var_rename ", len(v), v[0], v[1], varname)
 
@@ -604,14 +605,14 @@ def _var_rename(self, vartype=None, varid=None, varname=None):
         note : not an atomic operation
     """
     if varid is None:
-        raise IsyValueError("varid arg is missing")
+        raise IsyE.IsyValueError("varid arg is missing")
 
     elif not isinstance(varid, str):
         varid = str(varid)
 
 
 #    if isinstance(varid, str) and not val.isdigit()):
-#       raise IsyValueError("Invalid var id missing")
+#       raise IsyE.IsyValueError("Invalid var id missing")
 
 
     vartype = str(vartype)
@@ -620,12 +621,12 @@ def _var_rename(self, vartype=None, varid=None, varname=None):
     elif vartype == "state" or vartype == "2":
         varpath = "/CONF/STATE.VAR"
     else:
-        raise IsyValueError("vartype : invalid type")
+        raise IsyE.IsyValueError("vartype : invalid type")
 
     result = self.soapcomm("GetSysConf", name=varpath)
 
     if result is None:
-        raise IsyResponseError("Error loading Sys Conf file {0}".format(varpath))
+        raise IsyE.IsyResponseError("Error loading Sys Conf file {0}".format(varpath))
 
     var_et = ET.fromstring(result)
 

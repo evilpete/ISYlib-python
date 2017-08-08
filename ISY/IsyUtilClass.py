@@ -1,5 +1,4 @@
 
-
 from __future__ import print_function
 # from xml.dom.minidom import parse, parseString
 # from StringIO import StringIO
@@ -7,7 +6,7 @@ import xml.etree.ElementTree as ET
 # from xml.etree.ElementTree import  iselement
 from pprint import pprint
 # import base64
-import sys
+# import sys
 import requests
 # if sys.hexversion < 0x3000000:
 #     import urllib2 as URL
@@ -15,7 +14,8 @@ import requests
 # else:
 #     import urllib as URL
 # import re
-from .IsyExceptionClass import IsyPropertyError, IsyValueError, IsySoapError
+#from .IsyExceptionClass import IsyPropertyError, IsyValueError, IsySoapError
+import ISY.IsyExceptionClass as IsyE
 
 __author__ = 'Peter Shipley <peter.shipley@gmail.com>'
 __copyright__ = "Copyright (C) 2015 Peter Shipley"
@@ -35,7 +35,6 @@ def val2bool(en):
         # Punt
         rval = bool(en)
     return rval
-
 
 
 def et2d(et):
@@ -87,11 +86,23 @@ def et2d(et):
 
 def format_node_addr(naddr):
     if not isinstance(naddr, str):
-        raise IsyValueError("{0} arg not string".format(__name__))
+        raise IsyE.IsyValueError("{0} arg not string".format(__name__))
     addr_el = naddr.upper().split()
     a = "{0:0>2}' '{1:0>2}' '{2:0>2}' ".format(*addr_el)
     return a
 
+
+def print_url(r): #, *args, **kwargs):
+    # print("r=", type(r), dir(r))
+    # print("r.request=", type(r.request), dir(r.request), "\n\n")
+
+    print(r.request.method, r.request.url)
+    print("\t", r.status_code, r.reason, r.url)
+    print("\t", "encoding:", r.encoding, "/", "apparent_encoding:", r.apparent_encoding)
+    print("\t", "elapsed time", r.elapsed)
+
+    # print("content", r.content)
+    # print("links", r.links)
 
 
 
@@ -102,14 +113,16 @@ class IsyUtil(object):
     def __init__(self):
         self.debug = 0
         self.baseurl = "" # never used
+        self.error_str = ""
+        self._req_session = None
         # self.pp = pprint.PrettyPrinter(indent=4)
 
     def _initReqSession(self):
-        print("_initReqSession")
         self._req_session = requests.Session()
-        print("_initReqSession", self._req_session)
         # if debug
-        # self._req_session.register_hook(dict_HOOK)
+        if self.debug & 0x02:
+            hook = dict(response=print_url)
+            self._req_session.hooks = hook
 
 
     def _printXML(self, xml):
@@ -124,12 +137,13 @@ class IsyUtil(object):
     def _geturl(self, url, timeout=15):
         self.error_str = ""
         try:
-            # res = self._opener.open(req, None, timeout)
             res = self._req_session.get(url, timeout=timeout)
-            return res.text # res.content
+            data = res.text # res.content
+            res.close()
+            return data
         except requests.exceptions.RequestException as rex:
             self.error_str = str("Response Code : {0} : {1} : {2}").format(
-                rsx.response.status_code, xurl ,str(rex))
+                rex.response.status_code, url, str(rex))
             return None
 
     def _getXMLetree(self, xmlpath, noquote=0, timeout=10):
@@ -140,31 +154,32 @@ class IsyUtil(object):
         else:
             xurl = self.baseurl + requests.compat.quote(xmlpath)
             # xurl = self.baseurl + URL.quote(xmlpath)
-        if self.debug & 0x02:
-            print("_getXMLetree: " + xurl)
+        # if self.debug & 0x02:
+        #     print("_getXMLetree: " + xurl)
 
         # print("_getXMLetree : URL.Request")
         # req = URL.Request(xurl)
-        # print("_getXMLetree : self._opener.open ")
         # HTTPError
         try:
-            # res = self._opener.open(req, None, timeout)
             res = self._req_session.get(xurl, timeout=timeout)
 
             data = res.text # res.content
+            res.close()
             # print("res.getcode() ", res.getcode(), len(data))
         except requests.exceptions.RequestException as rex:
             self.error_str = str("Response Code : {0} : {1} : {2}").format(
-                rsx.response.status_code, xurl ,str(rex))
+                rex.response.status_code, xurl, str(rex))
             return None
 
-        if len(self.error_str):
+        # len(self.error_str)
+        if self.error_str:
             self.error_str = ""
         if self.debug & 0x200:
             print("requests.response=", res)
             print("requests.response.text=", data)
         et = None
-        if len(data):
+        # len(data)
+        if data:
             try:
                 et = ET.fromstring(data)
             except ET.ParseError as e:
@@ -172,7 +187,7 @@ class IsyUtil(object):
                 print("data = ", data, end='')
                 print("e.message = ", e.message)
                 # raise
-            finally:
+            else:
                 return et
 
         else:
@@ -182,7 +197,8 @@ class IsyUtil(object):
 
         if self.debug & 0x200:
             print("len kwargs = ", len(kwargs), kwargs)
-        if len(kwargs) == 0:
+        # len(kwargs) == 0
+        if not kwargs:
             cmdsoap = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" \
                 + "<e:Envelope><s:Body>" \
                 + "<u:{0!s} ".format(cmd) \
@@ -210,17 +226,17 @@ class IsyUtil(object):
         each keyword is converted into a xml element
         """
 
-        if not isinstance(cmd, str) or not len(cmd):
-            raise IsyValueError("SOAP Method name missing")
+        if not isinstance(cmd, str) or not cmd:
+            raise IsyE.IsyValueError("SOAP Method name missing")
 
-        if self.debug & 0x02:
-            print("sendcomm : ", cmd)
+        # if self.debug & 0x02:
+        #     print("sendcomm : ", cmd)
 
         soap_cmd = self._gensoap(cmd, **kwargs)
 
         xurl = self.baseurl + "/services"
         if self.debug & 0x02:
-            print("xurl = ", xurl)
+            # print("xurl = ", xurl)
             print("soap_cmd = ", soap_cmd)
 
         # req_headers = {'content-type': 'application/soap+xml'}
@@ -229,25 +245,22 @@ class IsyUtil(object):
 
         # req = URL.Request(xurl, soap_cmd, {'Content-Type': 'application/xml; charset="utf-8"'})
 
-        res = self._req_session.post(xurl, data=soap_cmd, headers=req_headers)
-
         data = ""
         try:
-            # res = self._opener.open(req, None)
-            # data = res.read()
 
             res = self._req_session.post(xurl, data=soap_cmd, headers=req_headers)
             data = res.text # res.content
             if self.debug & 0x200:
                 print("res.status_code ", res.status_code, len(data))
                 print("data ", data)
+            res.close()
 
         # except URL.HTTPError as e:
         except requests.exceptions.RequestException as rex:
 
-            status_code = rsx.response.status_code
+            status_code = rex.response.status_code
             self.error_str = str("Reponse Code : {0} : {1} {2}").format(status_code, xurl, cmd)
-            if ((cmd == "DiscoverNodes" and rsx.response.status_code == 803)
+            if ((cmd == "DiscoverNodes" and rex.response.status_code == 803)
                     or (cmd == "CancelNodesDiscovery" and status_code == 501)
                     # or (cmd == "RemoveNode" and status_code == 501)
                ):
@@ -256,12 +269,12 @@ class IsyUtil(object):
                 if self.debug & 0x02:
                     print("spacial case : {0} : {1}".format(cmd, status_code))
                     print("status_code = ", status_code)
-                    print("response.reason = ", rsx.response.reason)
-                    print("response.headers = ", rsx.response.headers)
+                    print("response.reason = ", rex.response.reason)
+                    print("response.headers = ", rex.response.headers)
                     # print("e.filename = ", e.filename)
                     print("\n")
 
-                return e.read()
+                return rex.response.text
 
             if self.debug & 0x202:
                 print("status_code = ", status_code)
@@ -271,9 +284,9 @@ class IsyUtil(object):
 
             mess = "{!s} : {!s} : {!s}".format(cmd, kwargs, status_code)
             # This a messy and should change
-            raise IsySoapError(mess, httperr=v)
+            raise IsyE.IsySoapError(mess, httperr=rex)
         else:
-            if len(self.error_str):
+            if self.error_str: # len
                 self.error_str = ""
             if self.debug & 0x200:
                 print(data)
@@ -294,7 +307,8 @@ class IsyUtil(object):
 #        stringbuffer1.append("<p2>").append(s3 != null ? s3 : "").append("</p2>");
 #        stringbuffer1.append("<p3>").append(s4 != null ? s4 : "").append("</p3>");
 #        stringbuffer1.append("<flag>0</flag>");
-#        stringbuffer1.append("<CDATA>").append(((CharSequence) (stringbuffer != null ? ((CharSequence) (stringbuffer)) : ""))).append("</CDATA>");
+#        stringbuffer1.append("<CDATA>").append(((CharSequence) \
+#                             (stringbuffer != null ? ((CharSequence) (stringbuffer)) : ""))).append("</CDATA>");
 #        udhttpresponse = submitSOAPRequest("DeviceSpecific", stringbuffer1, (short)2, false, false);
 #        if(udhttpresponse == null)
 #            return null;
@@ -321,9 +335,10 @@ class IsyUtil(object):
         if filename[0] != '/':
             filename = "/USER/WEB/" + filename
         elif not str(filename).upper().startswith("/USER/WEB/"):
-            raise IsyValueError("sendfile: invalid dst filename : {!s}".format(filename))
+            raise IsyE.IsyValueError("sendfile: invalid dst filename : {!s}".format(filename))
 
-        if not len(data):
+        # not len(data)
+        if not data:
             if not src:
                 src = filename
 
@@ -352,13 +367,13 @@ class IsyUtil(object):
         req_headers = {'Content-Type': 'application/xml; charset="utf-8"'}
 
         try:
-            # res = self._opener.open(req, None)
             res = self._req_session.post(xurl, data=data, headers=req_headers)
             responce = res.text
+            res.close()
             # print("responce:", res.status_code, len(responce))
         except requests.exceptions.RequestException as rex:
-            mess = "{!s} : {!s} : {!s}".format("/file/upload", filename, rsx.response.status_code)
-            raise IsySoapError(mess, httperr=rex)
+            mess = "{!s} : {!s} : {!s}".format("/file/upload", filename, rex.response.status_code)
+            raise IsyE.IsySoapError(mess, httperr=rex)
         else:
             return responce
 
@@ -426,10 +441,12 @@ class IsySubClass(IsyUtil):
     def __init__(self, isy, objdict):
         """ INIT """
 
+        self.error_str = ""
+
         if isinstance(objdict, dict):
             self._mydict = objdict
         else:
-            raise IsyValueError("{!s}: called without objdict".format(self.__class__.__name__))
+            raise IsyE.IsyValueError("{!s}: called without objdict".format(self.__class__.__name__))
 
         if isinstance(isy, IsyUtil):
             self.isy = isy
@@ -459,8 +476,7 @@ class IsySubClass(IsyUtil):
             if prop in self._mydict:
                 if prop in self._boollist:
                     return val2bool(self._mydict[prop])
-                else:
-                    return self._mydict[prop]
+            return self._mydict[prop]
         return None
 
 #    def _set_prop(self, prop, val):
@@ -469,7 +485,7 @@ class IsySubClass(IsyUtil):
 #           prop = self._propalias[prop]
 #
 #       if not prop in self._setlist:
-#           raise IsyPropertyError("_set_prop : "
+#           raise IsyE.IsyPropertyError("_set_prop : "
 #               "no property Attribute " + prop)
 #       pass
 
@@ -524,7 +540,7 @@ class IsySubClass(IsyUtil):
         return self._set_prop(prop, val)
 
     def __delitem__(self, prop):
-        raise IsyPropertyError("__delitem__ : can't delete propery :  " + str(prop))
+        raise IsyE.IsyPropertyError("__delitem__ : can't delete propery :  " + str(prop))
 
 
     def __del__(self):
@@ -589,7 +605,9 @@ class IsySubClass(IsyUtil):
         # print("other", other)
         if isinstance(other, str):
             return self._get_prop("id") == other
-        if type(self) != type(other):
+
+        # if type(self) != type(other):
+        if not isinstance(other, type(self)):
             return False
             # NotImplemented
         if hasattr(other._mydict, "id"):
