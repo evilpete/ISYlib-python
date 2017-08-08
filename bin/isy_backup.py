@@ -3,6 +3,7 @@
     generate backup for ISY
 """
 
+from __future__ import print_function
 __author__ = "Peter Shipley"
 
 
@@ -69,7 +70,7 @@ def parse_args(isy):
 #       parser = isy.parser
 #    else:
 #       if debug:
-#           print "new parser"
+#           print("new parser")
 #       parser = argparse.ArgumentParser()
 
 
@@ -120,7 +121,7 @@ def parse_args(isy):
     # args, unknown_args = parser.parse_known_args()
 
 #    if args.outfile and args.folder:
-#       print "you can't use both file and folder"
+#       print("you can't use both file and folder")
 #       parser.print_help()
 #       exit(0)
 
@@ -137,7 +138,7 @@ def parse_args(isy):
     if backup_flags == 0: backup_flags = backup_all
 
     if debug:
-        print "backup_flags = {0:04b}".format(backup_flags)
+        print("backup_flags = {0:04b}".format(backup_flags))
     noop    = args.noop
     outfile = args.outfile
     verbose = args.verbose
@@ -155,11 +156,11 @@ def restore_isy(isy):
 
     zf = zipfile.ZipFile(outfile, "r")
     isybackup = zf.namelist()[0]
-    # print isybackup
+    # print(isybackup)
 
 #    if verbose:
 #       for f in zf.infolist():
-#           print "{0:<30} : {1:6} : {2:#010x} ({3:#04o}) ".format(
+#           print("{0:<30} : {1:6} : {2:#010x} ({3:#04o}) ".format()
 #                   f.filename,
 #                   f.file_size,
 #                   f.external_attr,
@@ -180,7 +181,7 @@ def restore_isy(isy):
     zff_info = zff.infolist()
 
     if verbose:
-        print "{0} files to be retored".format(len(zff_info))
+        print("{0} files to be retored".format(len(zff_info)))
 
     restore_filter = None
     if backup_flags != backup_all:
@@ -203,16 +204,16 @@ def restore_isy(isy):
     for z in zff_info:
         if restore_filter and not z.filename.startswith(restore_filter):
             if vebose:
-                print "skipping {0:<30} : Not in restore path".format(z.filename)
+                print("skipping {0:<30} : Not in restore path".format(z.filename))
             continue
 
         if (z.external_attr & 0x0010) or z.filename.endswith("/"):
             if verbose:
-                print "skipping {0:<30} : directory".format(z.filename)
+                print("skipping {0:<30} : directory".format(z.filename))
             continue
 
         if verbose:
-            print "{0:<30} : {1:6} : {2:#010x} ({3:04o}) {4}".format(
+            print("{0:<30} : {1:6} : {2:#010x} ({3:04o}) {4}".format()
                     z.filename,
                     z.file_size,
                     z.external_attr,
@@ -222,16 +223,16 @@ def restore_isy(isy):
 
         if (not z.filename.startswith("/")):
             if verbose:
-                print "skipping {0:<30} : not full path".format(z.filename)
+                print("skipping {0:<30} : not full path".format(z.filename))
             continue
 
         if not noop:
             fdata = zff.read(z)
             try:
                 r = isy._sendfile(data=fdata, filename=z.filename, load="y")
-            except IsySoapError, se:
+            except IsySoapError as se:
                 if se.code() == 403:
-                    print "Error restoring {0} : Forbidden (code=403)".format(z.filename)
+                    print("Error restoring {0} : Forbidden (code=403)".format(z.filename))
                 else:
                     raise
 
@@ -285,8 +286,8 @@ def backup_isy(isy):
     zff.close()
     os.unlink(tf.name)
     if verbose:
-        print "Backup completed"
-        print "output file = ", outfile
+        print("Backup completed")
+        print("output file = ", outfile)
 
 
 def zip_get_ui_conf(isy):
@@ -370,13 +371,13 @@ def add_file(isy, zf, fpath):
 
     try:
         dat = isy.soapcomm("GetSysConf", name=fpath)
-    except IsySoapError, se:
+    except IsySoapError as se:
         if fpath.startswith('/WEB/CONF/'):
             return
         raise
     else:
         if verbose:
-            print "{0:<5} : {1}".format(len(dat), fpath)
+            print("{0:<5} : {1}".format(len(dat), fpath))
 
         if (zip_noroot):
             fpath=fpath[1:]
@@ -400,7 +401,7 @@ def add_dir(isy, zf, fpath):
     if not fpath.endswith('/'):
         fpath = fpath + '/'
     if verbose:
-        print "{0:<5} : {1}".format("dir", fpath)
+        print("{0:<5} : {1}".format("dir", fpath))
     zfi = zipfile.ZipInfo(fpath)
     zfi.compress_type = zipfile.ZIP_STORED
     zfi.external_attr = (0o040755 < 16L) | 0x10

@@ -131,7 +131,7 @@ def var_refresh_value(self, var):
     a = varid.split(':')
     xurl = "/rest/vars/get/" + a[0] + "/" + a[1]
     resp = self._getXMLetree(xurl)
-    print "resp", resp
+    print("resp", resp)
 
     if resp is None:
         raise IsyPropertyError("var_refresh: error geting var : " + str(var))
@@ -296,7 +296,7 @@ def _var_get_id(self, vname):
         return vname["id"]
     else:
         v = str(vname)
-    if (v).upper() in self._vardict:
+    if vupper() in self._vardict:
         # print("_get_var_id : " + v + " vardict " + v.upper())
         return v.upper()
     if v in self.name2var:
@@ -422,14 +422,14 @@ def var_add(self, varname=None, varid=None, vartype="int", value=None, initval=N
 
     new_var_data = ET.tostring(var_et, method='html')
     if self.debug & 0x01:
-        print "new_var_data=", new_var_data
+        print("new_var_data=", new_var_data)
 
     # This is stupid but method='html' lowercases closing tags
     # regardless of the opening tag case.
     new_var_data = new_var_data.replace("</clist>", "</CList>")
 
     if self.debug & 0x01:
-        print "new_var_data=", new_var_data
+        print("new_var_data=", new_var_data)
 
     r = self._sendfile(data=new_var_data, filename=varpath, load="y")
 
@@ -492,7 +492,7 @@ def var_delete(self, varid=None):
     else:  # if not a list make is a list
         varid = [str(varid)]
 
-    dellist= {"1" : [], "2" :  []}
+    dellist = {"1" : [], "2" :  []}
 
     for v in varid:
         vtype, vid = v.split(":")
@@ -579,7 +579,7 @@ def var_rename(self, var=None, varname=None):
     if len(v) != 2:
         raise IsyInternalError("Invalid var : {0}".format(var))
 
-    # print "call _var_rename ", len(v), v[0], v[1], varname
+    # print("call _var_rename ", len(v), v[0], v[1], varname)
 
     r = self._var_rename(vartype=v[0], varid=v[1], varname=varname)
 

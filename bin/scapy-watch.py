@@ -138,7 +138,7 @@ class Mtargets(object):
         self.is_active = state
         try:
             self.var.value = state
-        except Exception, x:
+        except Exception as x:
             if verbose:
                 print "var set value: ", x
                 raise
@@ -171,7 +171,7 @@ def sig_exit_gracefully(cursignal, frame):
     #for c in mac_targets.values():
     #    try:
     #        c.set_var(0)
-    #    except Exception, x:
+    #    except Exception as x:
     #        print "Exception:", x
     sys.stdout.flush()
     sys.stderr.flush()
@@ -235,7 +235,7 @@ def pcap_callback(pkt):
 
         try:
             pktinfo = pkt.sprintf("{0}\tARP %ARP.hwsrc% %ARP.psrc% %ARP.op% %ARP.pdst%".format(t))
-        except Exception, x:
+        except Exception as x:
             print "Scapy_Exception ARP : ", x
             pktinfo = None
 
@@ -253,7 +253,7 @@ def pcap_callback(pkt):
         ipaddr = pkt[IP].src
         try:
             pktinfo = pkt.sprintf("{0}\tIP %IP.proto% %Ether.src% %Ether.dst% %IP.src% %IP.dst%".format(t))
-        except Exception, x:
+        except Exception as x:
             print "Scapy_Exception IP : ", x
             pktinfo = None
 
@@ -261,7 +261,7 @@ def pcap_callback(pkt):
         eaddr = pkt[Ether].src
         try:
             pktinfo = pkt.sprintf("{0}\tEther %Ether.src% %Ether.dst% ".format(t))
-        except Exception, x:
+        except Exception as x:
             print "Scapy_Exception Ether : ", x
             pktinfo = None
 
@@ -269,7 +269,7 @@ def pcap_callback(pkt):
         eaddr = pkt[Dot3].src
         try:
             pktinfo = pkt.sprintf("{0}\tDot3 %Dot3.src% %Dot3.dst% ".format(t))
-        except Exception, x:
+        except Exception as x:
             print "Scapy_Exception Dot3 : ", x
             print "pkt", pkt, "\n"
             pkt.show()
@@ -492,7 +492,7 @@ def do_it():
 
         try:
             isy_v = myisy.get_var(tp[2])
-        except Exception, x:
+        except Exception as x:
             print >> sys.stderr, "Bad ISY var:", tp, x
             continue
 
@@ -500,7 +500,7 @@ def do_it():
         if tp[1] is not None:
             try:
                 mac_targets[tp[1]] = Mtargets(mac=tp[1], ip=tp[0], var=isy_v)
-            except Exception, x:
+            except Exception as x:
                 print >> sys.stderr, "Bad target:", tp, isy_v, x
 
         else:
@@ -511,7 +511,7 @@ def do_it():
                 else:
                     print >> sys.stderr, "unknown mac :", tp, isy_v
                     del mt
-            except Exception, x:
+            except Exception as x:
                 print >> sys.stderr, "Bad target (mac):", tp, isy_v, x
 
 
@@ -554,7 +554,7 @@ def do_it():
         # tcpdump -i em0 -v -v ether src 60:be:b5:ad:28:2d
         try:
             sniff(prn=pcap_callback, iface=iface, filter=pcap_filter, store=0, timeout=sniff_timeout)
-        except select.error, se:
+        except select.error as se:
             #print "scapy sniff : select.error", se
             continue
 
@@ -717,7 +717,7 @@ def validate_config(config_dat):
     if isinstance(config_dat, str):
         try:
             dat = json.loads(conf_data)
-        except Exception, x:
+        except Exception as x:
             print "json.loads"
             raise ValueError(str(x))
     elif isinstance(config_dat, list):
@@ -743,9 +743,9 @@ def validate_config(config_dat):
             # will raise exception if var does not exist
             myisy.get_var(tp[2])
 
-#       except socket.error, x:
+#       except socket.error as x:
 #           raise ValueError(x + "\n" + str(tp))
-        except Exception, x:
+        except Exception as x:
             raise ValueError(str(x) + "\n" + str(tp))
 
     return True
@@ -763,14 +763,14 @@ def upload_conf(conf_file, isy_path):
         try:
             conf_data = confd.read()
             target_data = json.loads(conf_data)
-        except Exception, x:
+        except Exception as x:
             print "json error: ", x
             print conf_data
             exit(1)
 
     try:
         validate_config(target_data)
-    except Exception, x:
+    except Exception as x:
         print "Config Error"
         print x
         exit(1)
@@ -780,7 +780,7 @@ def upload_conf(conf_file, isy_path):
 
     try:
         myisy._sendfile(data=conf_data, filename=isy_path)
-    except IsySoapError, se:
+    except IsySoapError as se:
         if se.code() == 403:
             print "Error uploading {0} : Forbidden ( code=403 )".format(isy_path)
 
@@ -833,7 +833,7 @@ def init():
 
 #       try:
 #           os.setpgrp()
-#        except Exception, x:
+#        except Exception as x:
 #           print "Error: os.setpgrp(): {}".format(str(x))
 
 
@@ -866,11 +866,11 @@ def init():
             conf_data = myisy.soapcomm("GetSysConf", name=isy_conf_path)
             if verbose:
                 print "Downloaded config_file:", isy_conf_path
-    except ValueError, ve:
+    except ValueError as ve:
         print "Load Error :", ve
         print conf_data
         raise
-    except IsySoapError, se:
+    except IsySoapError as se:
         if isy_conf_path.startswith('/WEB/CONF/'):
             print "Downloaded dat:", conf_data
             print "Config file not found of ISY: path={}".format(isy_conf_path)

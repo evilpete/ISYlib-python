@@ -11,6 +11,10 @@ if we have any args we treat them as registared WoL Id's
 and attempt to send a WoL packet
 
 """
+
+from __future__ import print_function
+
+
 __author__ = "Peter Shipley"
 
 
@@ -24,11 +28,11 @@ def main(isy):
         for a in sys.argv[1:]:
             try:
                 isy.net_wol(a)
-            except (IsyValueError, IsyResponseError), errormsg:
-                print "problem sending WOL to {!s} : {!s}".format(a, errormsg)
+            except (IsyValueError, IsyResponseError) as errormsg:
+                print("problem sending WOL to {!s} : {!s}".format(a, errormsg))
                 continue
             else:
-                print "WOL sent to {!s}".format(a)
+                print("WOL sent to {!s}".format(a))
     else:
         pfmt = "{:<5}{:<16} {:<20}"
         print(pfmt.format("Id", "Name", "Mac"))

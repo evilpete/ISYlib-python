@@ -14,34 +14,36 @@
 # global-statement,protected-access,invalid-name,missing-docstring,broad-except
 
 
-#from xml.dom.minidom import parse, parseString
+from __future__ import print_function
+# from xml.dom.minidom import parse, parseString
 # from StringIO import StringIO
 # import xml.etree.ElementTree as # ET
 # import base64
 import re
 import os
 import sys
- #import string
+# import string
 import time
 from warnings import warn
- #import logging
+# import logging
 import xml.etree.ElementTree as ET
-from ConfigParser import SafeConfigParser as ConfigParser
+from configparser import SafeConfigParser as ConfigParser
+# from ConfigParser import SafeConfigParser as ConfigParser
 # from ConfigParser import Error as ConfigParserError
 
 import json
 
 
-#logging.basicConfig(level=logging.INFO)
+# logging.basicConfig(level=logging.INFO)
 
 import collections
 
 
 
-#try:
+# try:
 #    from suds.client import Client
 #    suds_import = 1
-#except ImportError:
+# except ImportError:
 #    suds_import = 0
 
 
@@ -52,7 +54,7 @@ from .IsyExceptionClass import *
 from .IsyUtilClass import IsyUtil, IsySubClass, et2d
 # from .IsyNodeClass import IsyNode, IsyScene, IsyNodeFolder, _IsyNodeBase
 from .IsyProgramClass import *
-#from .IsyVarClass import IsyVar
+# from .IsyVarClass import IsyVar
 from .IsyEvent import ISYEvent
 
 if sys.hexversion < 0x3000000:
@@ -63,7 +65,7 @@ if sys.hexversion < 0x3000000:
 else:
     import urllib as URL
     # from urllib.request import HTTPPasswordMgrWithDefaultRealm
-    #from urllib.request import urlopen
+    # from urllib.request import urlopen
 
 
 # import netrc
@@ -230,7 +232,7 @@ class Isy(IsyUtil):
 
         # (self.userl, self.userp, self.addr) = authtuple
 
-        # print "AUTH: ", self.addr, self.userl, self.userp
+        # print("AUTH: ", self.addr, self.userl, self.userp)
 
         if 'debug' in kwargs:
             self.debug = kwargs['debug']
@@ -289,15 +291,15 @@ class Isy(IsyUtil):
             warn("No ISY address : guessing \"isy\"")
             self.addr = "isy"
 
-#       print "\n\taddr", "=>", self.addr, "\n\n"
+#       print("\n\taddr", "=>", self.addr, "\n\n")
 
 
 #       if (not self.userl or not self.userp):
 #           netrc_info = netrc.netrc()
 #           login, account, password = netrc_info.authenticators(self.addr)
-#           print "login", "=>", repr(login)
-#           print "account", "=>", repr(account)
-#           print "password", "=>", repr(password)
+#           print("login", "=>", repr(login))
+#           print("account", "=>", repr(account))
+#           print("password", "=>", repr(password))
 #           self.userl = "admin"
 #           self.userp = "admin"
 
@@ -324,8 +326,8 @@ class Isy(IsyUtil):
                 self.load_conf()
             except URL.URLError as e:
                 print("Unexpected error:", sys.exc_info()[0])
-                print 'Problem connecting with ISY device :', self.addr
-                print e
+                print('Problem connecting with ISY device :', self.addr)
+                print(e)
                 raise IsyCommunicationError(e)
 
 
@@ -426,22 +428,22 @@ class Isy(IsyUtil):
         from threading import Thread
 
         if self.debug & 0x40:
-            print "start_event_thread"
+            print("start_event_thread")
 
         # if thread already runing we should update mask
         if hasattr(self, 'event_thread') and isinstance(self.event_thread, Thread):
             if self.event_thread.is_alive():
-                print "Thread already running ?"
+                print("Thread already running ?")
                 return
 
-        #st = time.time()
-        #print("start preload")
+        # st = time.time()
+        # print("start preload")
 
         self._preload(rload=0)
 
-        #sp = time.time()
-        #print("start complete")
-        #print "load in ", (sp - st)
+        # sp = time.time()
+        # print("start complete")
+        # print("load in ", (sp - st))
 
         self._isy_event = ISYEvent(debug=self.debug)
         self._isy_event.subscribe(addr=self.addr, userp=self.userp, userl=self.userl)
@@ -487,10 +489,10 @@ class Isy(IsyUtil):
         # for the current event ( if applicable)
         event_targ = None
 
-        #if evnt_dat["control"] in skip:
+        # if evnt_dat["control"] in skip:
         #    return
 
-        # print "evnt_dat ", evnt_dat
+        # print("evnt_dat ", evnt_dat)
 
         control_val = _action_val(evnt_dat["control"])
         # action_val = _action_val(evnt_dat["action"])
@@ -503,7 +505,7 @@ class Isy(IsyUtil):
                 # ADD LOCK ON NODE DATA
                 # print("===evnt_dat :", evnt_dat)
                 # print("===a :", ar)
-                #print(self._nodedict[evnt_dat["node"]])
+                # print(self._nodedict[evnt_dat["node"]])
                 target_node = self._nodedict[evnt_dat["node"]]
 
                 event_targ = evnt_dat["node"]
@@ -525,7 +527,7 @@ class Isy(IsyUtil):
                         IsyRuntimeWarning)
 
         elif control_val == "_0":  # HeartBeat
-            #self.event_heartbeat = time.gmtime()
+            # self.event_heartbeat = time.gmtime()
             pass
 
         #
@@ -548,9 +550,9 @@ class Isy(IsyUtil):
                 event_targ = prog_id
 
                 if self.debug & 0x40:
-                    print "Prog Change/Updated :\t{0}".format(evnt_dat['eventInfo']['id'])
-                    print "Prog Id :\t", prog_id
-                    print "evnt_dat :\t", evnt_dat
+                    print("Prog Change/Updated :\t{0}".format(evnt_dat['eventInfo']['id']))
+                    print("Prog Id :\t", prog_id)
+                    print("evnt_dat :\t", evnt_dat)
 
                 if self._progdict is None:
                     self.load_prog(prog_id)
@@ -839,9 +841,9 @@ class Isy(IsyUtil):
 #           if evnt_dat["action"] == "6":
 #               if 'se" in evnt_dat['eventInfo']:
 #                   if evnt_dat['eventInfo']['se']['se-type'] == '156':
-#                       print "Elk Connection State : ", evnt_dat['eventInfo']['se']['se-val']
+#                       print("Elk Connection State : ", evnt_dat['eventInfo']['se']['se-val'])
 #                   elif evnt_dat['eventInfo']['se']['se-type'] == '157':
-#                       print "Elk Enable State : ", evnt_dat['eventInfo']['se']['se-val']
+#                       print("Elk Enable State : ", evnt_dat['eventInfo']['se']['se-val'])
 
 
 
@@ -868,8 +870,8 @@ class Isy(IsyUtil):
                     try:
                         cb[0](evnt_dat, *cb[1])
                     except Exception as e:
-                        print "e=", e
-                        print "sys.exc_info()=", sys.exc_info()
+                        print("e=", e)
+                        print("sys.exc_info()=", sys.exc_info())
                         print("Callback Error:", sys.exc_info()[0])
 
                 else:
@@ -943,7 +945,7 @@ class Isy(IsyUtil):
 
             returns dict
         """
-        #campath="/WEB/CONF/cams.jsn"
+        # campath="/WEB/CONF/cams.jsn"
         r = self.soapcomm("GetSysConf", name="/WEB/CONF/cams.jsn")
         return json.loads(r)
 
@@ -994,19 +996,19 @@ class Isy(IsyUtil):
             num = str(num)
 
         if self.debug & 0x100:
-            print "using num : ", num
+            print("using num : ", num)
 
         newcam = {'brand': brand, 'ip': ip, 'model': model, 'name': name, 'pass': passwd, 'port': port, 'user': user}
 
         camlist[num] = newcam
 
         if self.debug & 0x100:
-            print "webcam_add : ",
+            print("webcam_add : ",)
             pprint.pprint(camlist)
 
         if num > camlist['lastId']:
             if self.debug & 0x100:
-                print "new lastId = ", num, ":", camlist['lastId']
+                print("new lastId = ", num, ":", camlist['lastId'])
             camlist['lastId'] = num
 
         return self._webcam_set(camlist)
@@ -1127,7 +1129,7 @@ class Isy(IsyUtil):
 #
 #       try:
 #           r = self.soapcomm("GetNodeProps", node=node_id)
-#       except IsySoapError, se:
+#       except IsySoapError as se:
 #
 #       # if error code is 404 then Node did not exist or was already deleted
 #       # this is messy and needs to change or be removed
@@ -1186,8 +1188,8 @@ class Isy(IsyUtil):
         (_, nid) = self._node_get_id(nodeid)
         if nid is None:
             raise IsyValueError("unknown node/obj : " + nodeid)
-        print "nodeid ", nodeid
-        print "nid ", nid
+        print("nodeid ", nodeid)
+        print("nid ", nid)
         return self.soapcomm("RenameNode", id=nid, name=nname)
 
 #    def node_new(self, sid, nname):
@@ -1448,7 +1450,7 @@ class Isy(IsyUtil):
             call SOAP GetUserDirectory()
         """
         r = self.soapcomm("GetUserDirectory", name=name, pattern=pattern)
-        # print "GetUserDirectory : ", r
+        # print("GetUserDirectory : ", r)
         return et2d(ET.fromstring(r))
 
     def user_mkdir(self, name=None):
@@ -1595,7 +1597,7 @@ class Isy(IsyUtil):
             self.load_prog()
 
         # if rload or not self._wolinfo:
-            #self.load_wol()
+            # self.load_wol()
 
         if rload or not self._nodeCategory:
             self.load_node_types()
@@ -1698,8 +1700,8 @@ class Isy(IsyUtil):
 
 
         # print("self.controls : ", self.controls)
-        #self._printdict(self.controls)
-        #print("self.name2control : ", self.name2control)
+        # self._printdict(self.controls)
+        # print("self.name2control : ", self.name2control)
 
     def _get_control_id(self, comm):
         """ command name to command ID """
@@ -1794,7 +1796,7 @@ class Isy(IsyUtil):
 
             res = self._opener.open(req)
 
-        except URL.URLError: #as e:
+        except URL.URLError: # as e:
             # Error log can return a 404 is there are not logs (yet)
             return []
 
@@ -1861,8 +1863,8 @@ class Isy(IsyUtil):
         if self.debug & 0x02:
             print("xurl = " + xurl)
         resp = self._getXMLetree(xurl)
-        #self._printXML(resp)
-        #self._printinfo(resp)
+        # self._printXML(resp)
+        # self._printinfo(resp)
         if resp.attrib["succeeded"] != 'true':
             raise IsyResponseError("X10 command error : unit=" + str(unit) + " cmd=" + str(cmd))
 
@@ -1890,7 +1892,7 @@ class Isy(IsyUtil):
         if self.debug & 0x02:
             print("xurl = " + xurl)
         resp = self._getXMLetree(xurl)
-        #self._printXML(resp)
+        # self._printXML(resp)
         return et2d(resp)
 
     def network(self):
@@ -1906,7 +1908,7 @@ class Isy(IsyUtil):
         if self.debug & 0x02:
             print("xurl = " + xurl)
         resp = self._getXMLetree(xurl)
-        #self._printXML(resp)
+        # self._printXML(resp)
         return et2d(resp)
 
     def sys(self):
@@ -1920,7 +1922,7 @@ class Isy(IsyUtil):
         if self.debug & 0x02:
             print("xurl = " + xurl)
         resp = self._getXMLetree(xurl)
-        #self._printXML(resp)
+        # self._printXML(resp)
         return et2d(resp)
 
     def time(self):
@@ -1932,7 +1934,7 @@ class Isy(IsyUtil):
         """
         xurl = "/rest/time"
         resp = self._getXMLetree(xurl)
-        #self._printXML(resp)
+        # self._printXML(resp)
         return et2d(resp)
 
     def batch(self, on=-1):
@@ -1956,10 +1958,10 @@ class Isy(IsyUtil):
                 print("xurl = " + xurl)
         resp = self._getXMLetree(xurl)
         if resp is None:
-            print 'The server couldn\'t fulfill the request.'
+            print('The server couldn\'t fulfill the request.')
             raise IsyResponseError("Batch")
         else:
-            #self._printXML(resp)
+            # self._printXML(resp)
             return resp
 
     #/rest/batterypoweredwrites
@@ -1985,7 +1987,7 @@ class Isy(IsyUtil):
             print("xurl = " + xurl)
         resp = self._getXMLetree(xurl)
         if resp is not None:
-            #self._printXML(resp)
+            # self._printXML(resp)
             return et2d(resp)
 
     def electricity(self):
@@ -2007,7 +2009,7 @@ class Isy(IsyUtil):
             print("xurl = " + xurl)
         resp = self._getXMLetree(xurl)
         if resp is not None:
-            #self._printXML(resp)
+            # self._printXML(resp)
             return et2d(resp)
 
     ##
@@ -2163,9 +2165,9 @@ class Isy(IsyUtil):
     def __del__(self):
 
         if self.debug & 0x80:
-            print "__del__ ", self.__repr__()
+            print("__del__ ", self.__repr__())
 
-        #if isinstance(self._isy_event, ISYEvent):
+        # if isinstance(self._isy_event, ISYEvent):
         #    #ISYEvent._stop_event_loop()
         if hasattr(self, "_isy_event"):
             if hasattr(self._isy_event, "_shut_down"):
@@ -2184,13 +2186,13 @@ class Isy(IsyUtil):
             self.folderCdict.clear()
 
         # the reasion for this is that
-        #for k in self.nodeCdict.keys():
+        # for k in self.nodeCdict.keys():
         #    del self.nodeCdict[k]
-        #for k in self.varCdict.keys():
+        # for k in self.varCdict.keys():
         #    del self.varCdict[k]
-        #for k in self.progCdict.keys():
+        # for k in self.progCdict.keys():
         #    del self.progCdict[k]
-        #for k in self.folderCdict.keys():
+        # for k in self.folderCdict.keys():
         #    del self.folderCdict[k]
 
 
@@ -2221,7 +2223,7 @@ def IsyGetArg(lineargs):
     """
         takes argv and extracts name/pass/ipaddr options
     """
-    # print "IsyGetArg ", lineargs
+    # print("IsyGetArg ", lineargs)
     addr = ""
     upass = ""
     uname = ""
@@ -2229,9 +2231,9 @@ def IsyGetArg(lineargs):
     i = 0
     while i < len(lineargs):
 
-        #print "len = ", len(lineargs)
-        #print "lineargs =", lineargs
-        #print "check :", i, ":", lineargs[i],
+        # print("len = ", len(lineargs))
+        # print("lineargs =", lineargs)
+        # print("check :", i, ":", lineargs[i],)
 
         if lineargs[i] in ['--isyaddress', '-isyaddress', '--isyaddr' '-isyaddr']:
             lineargs.pop(i)

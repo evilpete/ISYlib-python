@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
+
 __author__ = "Peter Shipley"
 #
 #  quick hack to check what ISY vars are in use by which programs

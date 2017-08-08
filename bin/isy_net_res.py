@@ -8,6 +8,7 @@ we print a list of network resources systems
 
 
 """
+from __future__ import print_function
 
 __author__ = "Peter Shipley"
 
@@ -28,11 +29,11 @@ def main(isy):
         for a in sys.argv[1:]:
             try:
                 isy.net_resource_run(a)
-            except (IsyValueError, IsyResponseError), errormsg:
-                print "problem calling ISY network resource to {!s} : {!s}".format(a, errormsg)
+            except (IsyValueError, IsyResponseError) as errormsg:
+                print("problem calling ISY network resource to {!s} : {!s}".format(a, errormsg))
                 continue
             else:
-                print "Net resource sent to {!s}".format(a)
+                print("Net resource sent to {!s}".format(a))
     else:
         pfmt = "{:<5}{:<16} {:<20}"
         print(pfmt.format("Id", "Name", "Addr"))

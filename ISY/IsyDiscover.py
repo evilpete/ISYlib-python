@@ -1,6 +1,9 @@
 #!/usr/local/bin/python
 
 """Simple Python lib discovering ISY devices with Upnp  """
+
+from __future__ import print_function
+
 __author__ = 'Peter Shipley <peter.shipley@gmail.com>'
 __copyright__ = "Copyright (C) 2015 Peter Shipley"
 __license__ = "BSD"
@@ -11,6 +14,7 @@ __license__ = "BSD"
 # THIS IS BAD CODE
 # DOES NOT PROPERLY HANDLE XML namespace FOR Upnp
 #
+
 
 import socket
 import struct
@@ -101,8 +105,8 @@ def isy_discover(**kwargs):
         mreq = struct.pack('4sL', socket.inet_aton(multicast_group), use_addr)
         # mreq = struct.pack('4sL', socket.inet_aton(multicast_group), socket.INADDR_ANY)
         sock.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
-	sock.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, 3)
-	sock.settimeout(ddata.timeout)
+        sock.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, 3)
+        sock.settimeout(ddata.timeout)
         sock.bind(server_address)
 
         if not ddata.passive:
@@ -110,7 +114,7 @@ def isy_discover(**kwargs):
                 "MAN:\"ssdp.discover\"\r\nMX:1\r\n"  \
                 "ST:urn:udi-com:device:X_Insteon_Lighting_Device:1\r\n\r\n"
 
-            #print "sending : ", probe
+            # print("sending : ", probe)
             sock.sendto(probe.encode('utf-8'), (multicast_group, multicast_port))
 
         while  len(ddata.upnp_urls) < ddata.count:
@@ -118,7 +122,7 @@ def isy_discover(**kwargs):
             if ddata.debug:
                 print("while IN")
 
-            #try:
+            # try:
             data, address = sock.recvfrom(1024)
             # except socket.timeout:
             #      raise TIMEOUT ("Timed Out")
@@ -152,12 +156,12 @@ def isy_discover(**kwargs):
                         # uniq the list
                         ddata.upnp_urls = list(set(ddata.upnp_urls))
 
-        #print "returning ", ddata.upnp_urls
+        # print("returning ", ddata.upnp_urls)
 
 
     old_handler = signal.signal(signal.SIGALRM, isy_discover_timeout)
 
-    #isy_upnp(ddata)
+    # isy_upnp(ddata)
     try:
         signal.alarm(ddata.timeout)
         isy_upnp(ddata)
@@ -187,22 +191,22 @@ def isy_discover(**kwargs):
 
         # does this even work ??
         # ET.register_namespace("isy", 'urn:schemas-upnp-org:device-1-0')
-        #print "_namespace_map = {0}".format(ET._namespace_map)
+        # print("_namespace_map = {0}".format(ET._namespace_map))
 
         # this is a hack to deal with namespace:
         pa = re.sub(r" xmlns=\"urn:schemas-upnp-org:device-1-0\"", "", pagedata)
         # grok the XML from the Upnp discovered server
         xmlres = ET.fromstring(pa)
 
-        # print "_namespace_map : ",
+        # print("_namespace_map : ",)
         # pprint(ET._namespace_map)
 
-        #if hasattr(xmlres, 'tag'):
+        # if hasattr(xmlres, 'tag'):
         #    xmlns = re.search('\{(.*)\}', xmlres.tag).group(1)
-        #else:
+        # else:
         #    continue
 
-        #print "xmlns ", xmlns
+        # print("xmlns ", xmlns)
 
         isy_res = dict()
 
@@ -248,5 +252,5 @@ if __name__ == "__main__":
 
 #    res = isy_discover(count=1, timeout=10, passive=0)
 #    for h in res:
-#       print "res : ", h
+#       print("res : ", h)
     exit(0)

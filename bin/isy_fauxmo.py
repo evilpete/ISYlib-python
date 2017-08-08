@@ -26,6 +26,8 @@ THE SOFTWARE.
 
 # For a complete discussion, see http://www.makermusings.com
 
+from __future__ import print_function
+
 import email.utils
 import select
 import socket
@@ -332,17 +334,17 @@ class upnp_broadcast_responder(object):
 
             try:
                 self.ssock.bind(('', self.port))
-            except Exception, e:
+            except Exception as e:
                 dbg("WARNING: Failed to bind %s:%d: %s", (self.ip, self.port, e))
                 ok = False
 
             try:
                 self.ssock.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, self.mreq)
-            except Exception, e:
+            except Exception as e:
                 dbg('WARNING: Failed to join multicast group:', e)
                 ok = False
 
-        except Exception, e:
+        except Exception as e:
             dbg("Failed to initialize UPnP sockets:", e)
             return False
         if ok:
@@ -375,7 +377,7 @@ class upnp_broadcast_responder(object):
                 return self.ssock.recvfrom(size)
             else:
                 return False, False
-        except Exception, e:
+        except Exception as e:
             dbg("recvfrom")
             dbg(e)
             return False, False
@@ -401,7 +403,7 @@ def load_fauxmos(myisy=None, fport=None):
     try:
         js = myisy.soapcomm("GetSysConf", name="/WEB/CONF/fauxmo.jsn")
         # print "r=",r
-    except Exception, e:
+    except Exception as e:
         return(None)
         pass
     else:
@@ -425,7 +427,7 @@ def load_fauxmos(myisy=None, fport=None):
             for k in sorted(isydevs.keys()):
                 try:
                     nod = myisy[k]
-                except Exception, e:
+                except Exception as e:
                     pass
                 else:
                     l = [ k, nod ]
@@ -451,7 +453,7 @@ def load_fauxmos(myisy=None, fport=None):
             for k in sorted(isyprog.keys()):
                 try:
                     prg = myisy.get_prog(k)
-                except Exception, e:
+                except Exception as e:
                     pass
                 else:
                     l = [ k, prg ]
@@ -532,7 +534,7 @@ def main(myisy):
             # Allow time for a ctrl-c to stop the process
             p.poll(100)
             time.sleep(0.1)
-        except Exception, e:
+        except Exception as e:
             dbg(e)
             break
 

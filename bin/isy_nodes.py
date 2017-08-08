@@ -3,6 +3,7 @@
     A simple example showing how
     to obtain and print status of every node
 """
+from __future__ import print_function
 
 __author__ = "Peter Shipley"
 

@@ -3,6 +3,8 @@ This is a subfile for IsyEvent.py
 
 """
 
+from __future__ import print_function
+
 __author__ = 'Peter Shipley <peter.shipley@gmail.com>'
 __copyright__ = "Copyright (C) 2015 Peter Shipley"
 __license__ = "BSD"
@@ -62,13 +64,13 @@ def _print_event(*arg):
             pass
 
         elif ddat["control"] == "ERR":
-            print "{!s:<7} {!s:<4}\t{!s:<12}{!s:<12}\t{!s}".format(
-                    ti, ddat['Event-seqnum'], "ERR", ddat['node'], action_str)
+            print("{!s:<7} {!s:<4}\t{!s:<12}{!s:<12}\t{!s}".format(
+                    ti, ddat['Event-seqnum'], "ERR", ddat['node'], action_str))
             return
 
         #elif ddat["control"] in ["DOF", "DON", "BMAN", "SMAN", "FDUP", "FDSTOP", "FDDOWN"]:
-        #    print "{!s:<7} {!s:<4}\t{!s:<12}{!s}\t{!s}".format(
-        #            ti, ddat['Event-seqnum'], node, control_str, action_str)
+        #    print("{!s:<7} {!s:<4}\t{!s:<12}{!s}\t{!s}".format(
+        #            ti, ddat['Event-seqnum'], node, control_str, action_str))
         #    return
 
         elif ddat["control"] in ["ST", "RR", "OL", "DOF", "DON", "DFOF", "DFON",
@@ -78,8 +80,8 @@ def _print_event(*arg):
                 evi = ddat["eventInfo"]
             else:
                 evi = ""
-            print "{!s:<7} {!s:<4}\t{!s:<12}{!s:<12}\t{!s:<12}\t{!s}".format(
-                ti, ddat["Event-seqnum"], node, control_str, action_val, evi)
+            print("{!s:<7} {!s:<4}\t{!s:<12}{!s:<12}\t{!s:<12}\t{!s}".format(
+                ti, ddat["Event-seqnum"], node, control_str, action_val, evi))
             return
 
         elif ddat["control"] == "_1":
@@ -142,8 +144,8 @@ def _print_event(*arg):
                 else:
                     status = ddat['eventInfo']
 
-            print "{!s:<7} {!s:<4}\t{!s:<12}{!s}\t{!s}\t{!s}".format(
-                ti, ddat["Event-seqnum"], node, control_str, action_str, status)
+            print("{!s:<7} {!s:<4}\t{!s:<12}{!s}\t{!s}\t{!s}".format(
+                ti, ddat["Event-seqnum"], node, control_str, action_str, status))
 
             return
 
@@ -159,8 +161,8 @@ def _print_event(*arg):
                 status = eventInfo
 
             #status = ddat['eventInfo']
-            print "{!s:<7} {!s:<4}\t{!s:<12}{!s:<12}\t{!s:<12}\t{!s}".format(
-                ti, ddat["Event-seqnum"], node, control_str, action_str, status)
+            print("{!s:<7} {!s:<4}\t{!s:<12}{!s:<12}\t{!s:<12}\t{!s}".format(
+                ti, ddat["Event-seqnum"], node, control_str, action_str, status))
 
             return
 
@@ -171,8 +173,8 @@ def _print_event(*arg):
 #                        ddat['eventInfo'].get('value', ""),
 #                        ddat['eventInfo'].get('unit', ""))
 #
-#            print "{!s:<7} {!s:<4}\t{!s:<12}\t{!s}\t{!s}\t{!s}".format(
-#                ti, ddat["Event-seqnum"], node, control_str, action_str, status)
+#            print("{!s:<7} {!s:<4}\t{!s:<12}\t{!s}\t{!s}\t{!s}".format(
+#                ti, ddat["Event-seqnum"], node, control_str, action_str, status))
 #            return
 
 
@@ -185,8 +187,8 @@ def _print_event(*arg):
             else:
                 status = ddat.get('eventInfo', "")
 
-            print "{!s:<7} {!s:<4}\t{!s:<12}{!s:<12}\t{!s:<12}\t{!s}".format(
-                ti, ddat["Event-seqnum"], node, control_str, action_str, status)
+            print("{!s:<7} {!s:<4}\t{!s:<12}{!s:<12}\t{!s:<12}\t{!s}".format(
+                ti, ddat["Event-seqnum"], node, control_str, action_str, status))
             return
 
         elif ddat["control"] == "_18":
@@ -195,8 +197,8 @@ def _print_event(*arg):
                 status = " ".join(["{}={}".format(a, b) for a, b in d.items()])
             else:
                 status = ddat['eventInfo']
-            print "{!s:<7} {!s:<4}\t{!s:<12}{!s:<12}\t{!s:<12}\t{!s}".format(
-                ti, ddat["Event-seqnum"], node, control_str, action_str, status)
+            print("{!s:<7} {!s:<4}\t{!s:<12}{!s:<12}\t{!s:<12}\t{!s}".format(
+                ti, ddat["Event-seqnum"], node, control_str, action_str, status))
             return
 
         elif ddat["control"] == "_23":
@@ -205,39 +207,39 @@ def _print_event(*arg):
                 status = " ".join(["{}={}".format(a, b) for a, b in d.items()])
             else:
                 status = ddat['eventInfo']
-            print "{!s:<7} {!s:<4}\t{!s:<12}{!s:<12}\t{!s:<12}\t{!s}".format(
-                ti, ddat["Event-seqnum"], node, control_str, action_str, status)
+            print("{!s:<7} {!s:<4}\t{!s:<12}{!s:<12}\t{!s:<12}\t{!s}".format(
+                ti, ddat["Event-seqnum"], node, control_str, action_str, status))
             return
 
         else:
             status = ddat.get('eventInfo', "")
-            print "{!s:<7} {!s:<4}\t{!s:<12}{!s:<12}\t{!s:<12}\t{!s}".format(
-                ti, ddat["Event-seqnum"], node, control_str, action_str, status)
+            print("{!s:<7} {!s:<4}\t{!s:<12}{!s:<12}\t{!s:<12}\t{!s}".format(
+                ti, ddat["Event-seqnum"], node, control_str, action_str, status))
 #           return
 
 #           if node is None:
 #               node = ""
 #           if action is None:
 #               action = ddat.get('action', "")
-#           print "{!s:<7} {!s:<4}\t{} : {} : {}\t{!s:<12}".format(
+#           print("{!s:<7} {!s:<4}\t{} : {} : {}\t{!s:<12}".format(
 #               ti, ddat['Event-seqnum'],
 #               node,
 #               control_str,
 #               action,
-#               ddat.get('eventInfo', "-") )
+#               ddat.get('eventInfo', "-") ))
 
-            print "Event Dat : \n\t", ddat, "\n\t", exml
+            print("Event Dat : \n\t", ddat, "\n\t", exml)
 
 
         sys.stdout.flush()
-        #print ddat
-        # print data
+        #print(ddat)
+        # print(data)
     except Exception as e:
         print("Unexpected error:", sys.exc_info()[0])
         print(e)
         print(ddat)
         raise
-        # print data
+        # print(data)
     finally:
         pass
 

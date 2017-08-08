@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
+
 __author__ = "Peter Shipley"
 
 
@@ -47,14 +49,14 @@ def log_err(isy):
 
    # llimit = 200
 
-    #print "{0} {1} {2} {3}".format(*header)
-    print fmt.format(*header)
+    #print("{0} {1} {2} {3}".format(*header))
+    print(fmt.format(*header))
     for log_line in isy.log_iter(error = 1):
         col = str(log_line).split("\t")
 
-        # print "log_line : ", len(col), " : ", "|".join(col)
+        # print("log_line : ", len(col), " : ", "|".join(col))
         if ( len(col) < 4 ):
-            print "BAD log_line : ", len(col), " : ", "|".join(col)
+            print("BAD log_line : ", len(col), " : ", "|".join(col))
             continue
 
         newtime = int(col[0]) - time_const - time_offset
@@ -64,7 +66,7 @@ def log_err(isy):
         if col[1] < len(LOG_USERID) : col[1] = LOG_USERID[col[1]]
         if col[2] in LOG_TYPES : col[2] = LOG_TYPES[col[2]]
 
-        print fmt.format( *col )
+        print(fmt.format( *col ))
 
         #if llimit == 0:
         #    break
@@ -80,7 +82,7 @@ def log_sys(isy):
     if opt_names:
         nodefmt="{:<18}"
         commfmt="{:<10}"
-        print "opt_names = ", opt_names
+        print("opt_names = ", opt_names)
 
     if opt_tab:
         fmt = "{0}\t{1}\t{2}\t{3}\t{4}\t{5}"
@@ -98,14 +100,14 @@ def log_sys(isy):
 
    # llimit = 200
 
-    # print "{0} {1} {2} {3} {4} {5}".format(*header)
-    print fmt.format(*header)
+    # print("{0} {1} {2} {3} {4} {5}".format(*header))
+    print(fmt.format(*header))
     for log_line in isy.log_iter(error = opt_errorlog):
         col = str(log_line).split("\t")
 
         if opt_names:
             gn = isy._node_get_name(col[0])
-            # print "n / gn = ", col[0], " / ", gn
+            # print("n / gn = ", col[0], " / ", gn)
             if gn[1] is not None:
                 col[0] = gn[1]
 
@@ -116,7 +118,7 @@ def log_sys(isy):
         if col[4] < len(LOG_USERID) : col[4] = LOG_USERID[col[4]]
         if col[5] in LOG_TYPES : col[5] = LOG_TYPES[col[5]]
 
-        print fmt.format( *col )
+        print(fmt.format( *col ))
 
         #if llimit == 0:
         #    break
@@ -129,7 +131,7 @@ def parseargs():
         opts, args = getopt.getopt(
             sys.argv[1:], "ahetnsd:",
             ['help', 'error', 'debug', 'addr', 'tab', 'nosec', 'names'])
-    except getopt.error, e:
+    except getopt.error as e:
         usage(1, e)
 
     for opt, arg in opts:
@@ -150,9 +152,9 @@ def parseargs():
 
 
 def usage(code, msg=''):
-    print >> sys.stderr, __doc__ % globals()
+    print(__doc__ % globals(), file=sys.stderr)
     if msg:
-        print >> sys.stderr, msg
+        print(msg, file=sys.stderr)
     sys.exit(code)
 
 if __name__ == '__main__':

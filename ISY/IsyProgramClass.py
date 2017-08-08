@@ -1,5 +1,7 @@
 """ Obj Class Isy Program entries """
 
+from __future__ import print_function
+
 __author__ = 'Peter Shipley <peter.shipley@gmail.com>'
 __copyright__ = "Copyright (C) 2015 Peter Shipley"
 __license__ = "BSD"
@@ -68,7 +70,7 @@ class IsyProgram(IsySubClass):
         return True
     def set_prog_enable(self, en):
         rval = val2bool(en)
-        #print "set_prog_enable ", rval
+        # print("set_prog_enable ", rval)
         if "enabled" in self._mydict:
             if rval:
                self.isy.prog_comm(self._mydict['id'], "enable")
@@ -97,7 +99,7 @@ class IsyProgram(IsySubClass):
         return bool(self._mydict['runAtStartup'] == "true")
     def set_prog_runatstart(self, en):
         rval = val2bool(en)
-        #print "set_prog_enable ", rval
+        # print("set_prog_enable ", rval)
         if rval:
            self.isy.prog_comm(self._mydict['id'], "runAtStartup")
         else:

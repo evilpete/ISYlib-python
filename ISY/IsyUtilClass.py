@@ -1,7 +1,8 @@
 
 
+from __future__ import print_function
 # from xml.dom.minidom import parse, parseString
-#from StringIO import StringIO
+# from StringIO import StringIO
 import xml.etree.ElementTree as ET
 # from xml.etree.ElementTree import  iselement
 from pprint import pprint
@@ -62,7 +63,7 @@ def et2d(et):
         for k, v in list(et.items()):
             d[et.tag + "-" + k] = v
         if et.text is not None:
-            #d[et.tag + "_val"] = et.text
+            # d[et.tag + "_val"] = et.text
             d["#val"] = et.text
     if children:
         for child in children:
@@ -129,23 +130,23 @@ class IsyUtil(object):
             data = res.read()
             # print("res.getcode() ", res.getcode(), len(data))
             res.close()
-        except URL.HTTPError, e:
+        except URL.HTTPError as e:
             self.error_str = str("Response Code : {0} : {1}").format(e.code, xurl)
             return None
 
         if len(self.error_str):
             self.error_str = ""
         if self.debug & 0x200:
-            print res.info()
-            print data
+            print(res.info())
+            print(data)
         et = None
         if len(data):
             try:
                 et = ET.fromstring(data)
             except ET.ParseError as e:
-                print "Etree ParseError "
-                print "data = ", data,
-                print "e.message = ", e.message
+                print("Etree ParseError ")
+                print("data = ", data, end='')
+                print("e.message = ", e.message)
                 # raise
             finally:
                 return et
@@ -156,7 +157,7 @@ class IsyUtil(object):
     def _gensoap(self, cmd, **kwargs):
 
         if self.debug & 0x200:
-            print "len kwargs = ", len(kwargs), kwargs
+            print("len kwargs = ", len(kwargs), kwargs)
         if len(kwargs) == 0:
             cmdsoap = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" \
                 + "<e:Envelope><s:Body>" \
@@ -175,7 +176,7 @@ class IsyUtil(object):
             cmdsoap += "</u:{0!s}>".format(cmd) \
                     + "</s:Body></s:Envelope>"
 
-        # print "cmdsoap = \n", cmdsoap
+        # print("cmdsoap = \n", cmdsoap)
         return cmdsoap
 
     # http://wiki.universal-devices.com/index.php?title=ISY-99i/ISY-26_INSTEON:Errors_And_Error_Messages
@@ -189,14 +190,14 @@ class IsyUtil(object):
             raise IsyValueError("SOAP Method name missing")
 
         if self.debug & 0x02:
-            print "sendcomm : ", cmd
+            print("sendcomm : ", cmd)
 
         soap_cmd = self._gensoap(cmd, **kwargs)
 
         xurl = self.baseurl + "/services"
         if self.debug & 0x02:
-            print "xurl = ", xurl
-            print "soap_cmd = ", soap_cmd
+            print("xurl = ", xurl)
+            print("soap_cmd = ", soap_cmd)
 
         req = URL.Request(xurl, soap_cmd, {'Content-Type': 'application/xml; charset="utf-8"'})
 
@@ -208,7 +209,7 @@ class IsyUtil(object):
                 print("res.getcode() ", res.getcode(), len(data))
                 print("data ", data)
             res.close()
-        except URL.HTTPError, e:
+        except URL.HTTPError as e:
 
             self.error_str = str("Reponse Code : {0} : {1} {2}").format(e.code, xurl, cmd)
             if ((cmd == "DiscoverNodes" and e.code == 803)
@@ -218,21 +219,21 @@ class IsyUtil(object):
 
 
                 if self.debug & 0x02:
-                    print "spacial case : {0} : {1}".format(cmd, e.code)
-                    print "e.code = ", e.code
-                    print "e.msg = ", e.msg
-                    print "e.hdrs = ", e.hdrs
-                    print "e.filename = ", e.filename
-                    print "e.code = ", type(e.code), e.code
-                    print "\n"
+                    print("spacial case : {0} : {1}".format(cmd, e.code))
+                    print("e.code = ", e.code)
+                    print("e.msg = ", e.msg)
+                    print("e.hdrs = ", e.hdrs)
+                    print("e.filename = ", e.filename)
+                    print("e.code = ", type(e.code), e.code)
+                    print("\n")
 
                 return e.read()
 
             if self.debug & 0x202:
-                print "e.code = ", type(e.code), e.code
-                # print "e.read = ", e.read()
-                print "e = ", e
-                print "data = ", data
+                print("e.code = ", type(e.code), e.code)
+                # print("e.read = ", e.read())
+                print("e = ", e)
+                print("data = ", data)
 
             mess = "{!s} : {!s} : {!s}".format(cmd, kwargs, e.code)
             # This a messy and should change
@@ -241,7 +242,7 @@ class IsyUtil(object):
             if len(self.error_str):
                 self.error_str = ""
             if self.debug & 0x200:
-                print data
+                print(data)
             return data
 
 
@@ -281,7 +282,7 @@ class IsyUtil(object):
         """
 
         if self.debug & 0x01:
-            print "sendfile : ", self.__class__.__name__
+            print("sendfile : ", self.__class__.__name__)
 
         if filename[0] != '/':
             filename = "/USER/WEB/" + filename
@@ -293,13 +294,13 @@ class IsyUtil(object):
                 src = filename
 
             if self.debug & 0x20:
-                print "using file {!s} as data src".format(src)
+                print("using file {!s} as data src".format(src))
 
             with open(src, 'r') as content_file:
                 data = content_file.read()
         else:
             if self.debug & 0x20:
-                print "using provided data as data src"
+                print("using provided data as data src")
 
         return self._sendfile(filename=filename, data=data, load="n")
 
@@ -320,8 +321,8 @@ class IsyUtil(object):
             responce = res.read()
             # print("res.getcode() ", res.getcode(), len(responce))
             res.close()
-        except URL.HTTPError, e:
-            # print "e.read : ", e.read()
+        except URL.HTTPError as e:
+            # print("e.read : ", e.read())
             mess = "{!s} : {!s} : {!s}".format("/file/upload", filename, e.code)
             raise IsySoapError(mess, httperr=e)
         else:
@@ -404,7 +405,7 @@ class IsySubClass(IsyUtil):
             raise TypeError("IsySubClass: isy arg is not a ISY family class")
 
         if self.debug & 0x04:
-            print("IsySubClass: ",)
+            print("IsySubClass: ", end='')
             self._printdict(self._mydict)
 
     #_objtype = (0, "unknown")
@@ -412,7 +413,7 @@ class IsySubClass(IsyUtil):
 
     def objType(self):
         return self._objtype
-        #return self._objtype[0]
+        # return self._objtype[0]
 
     def _get_prop(self, prop):
         """ Internal funtion call """
@@ -494,7 +495,7 @@ class IsySubClass(IsyUtil):
 
     def __del__(self):
         if self.debug & 0x80:
-            print "__del__ ", self.__repr__()
+            print("__del__ ", self.__repr__())
         if hasattr(self, "_mydict"):
             self._mydict.clear()
 
@@ -515,7 +516,7 @@ class IsySubClass(IsyUtil):
 
     def __repr__(self):
 
-        #return "<%s %s @ %s at 0x%x>" %
+        # return "<%s %s @ %s at 0x%x>" %
         return "<{} {} @ {} at 0x{:x}>".format(
             self.__class__.__name__,
             self._get_prop("id"),
@@ -524,7 +525,7 @@ class IsySubClass(IsyUtil):
 
 
 #    def __hash__(self):
-#        #print("_hash__ called")
+#        # print("_hash__ called")
 #        return str.__hash__(self._get_prop("id]").myval)
 
 #    def __compare__(self, other):
@@ -549,9 +550,9 @@ class IsySubClass(IsyUtil):
     # This allows for
     def __eq__(self, other):
         """ smarter test for compairing Obj value """
-        #print("IsyUtil __eq__")
-        #print("self", self)
-        #print("other", other)
+        # print("IsyUtil __eq__")
+        # print("self", self)
+        # print("other", other)
         if isinstance(other, str):
             return self._get_prop("id") == other
         if type(self) != type(other):

@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
+
 """
+
 
 Simple example to List, Upload and download user webserver files from ISY
 
@@ -46,12 +49,12 @@ def main(isy):
 
     systemconf = 0
 
-    # print "sys.argv[1:] = {!s}".format( len(sys.argv[1:]) )
+    # print("sys.argv[1:] = {!s}".format( len(sys.argv[1:]) ))
 
-    # print "unknown_args : ", isy.unknown_args
-    # print "sys.argv : ", sys.argv
+    # print("unknown_args : ", isy.unknown_args)
+    # print("sys.argv : ", sys.argv)
     argv = isy.unknown_args[:]
-    # print "argv : ", argv
+    # print("argv : ", argv)
 
     if len(argv) == 0:
         print_listing(isy)
@@ -64,7 +67,7 @@ def main(isy):
             systemconf = 1
 
         cmd = argv.pop(0).upper()
-        # print "cmd = ", cmd
+        # print("cmd = ", cmd)
         if cmd in ["SEND", "PUT"]:
 
             srcfile = argv.pop(0)
@@ -74,47 +77,47 @@ def main(isy):
             else:
                 dstfile = os.path.basename(srcfile)
 
-            print "SEND {!s} {!s}".format(srcfile, dstfile)
+            print("SEND {!s} {!s}".format(srcfile, dstfile))
 
             res = isy.user_uploadfile(srcfile=srcfile, name=dstfile)
 #           if res:
-#               print "res = ", res
+#               print("res = ", res)
         elif cmd in [ "MKDIR", "MD" ]:
             if ( len(argv) > 0 ):
                 dstfile = argv.pop(0)
                 res = isy.user_mkdir(name=dstfile)
 #               if res:
-#                   print "res = ", res
+#                   print("res = ", res)
             else:
-                print "Missing Arg:\n\t{!s} <dirname>".format(cmd)
+                print("Missing Arg:\n\t{!s} <dirname>".format(cmd))
         elif cmd in ["RMDIR" , "RD"]:
             if ( len(argv) > 0 ):
                 dstdir = argv.pop(0)
                 res = isy.user_rmdir(name=dstdir)
                 #if res:
-                #    print "res = ", res
+                #    print("res = ", res)
             else:
-                print "Missing Arg:\n\t{!s} <dirname>".format(cmd)
+                print("Missing Arg:\n\t{!s} <dirname>".format(cmd))
         elif cmd in [ "RM", "DEL", "DELETE"]:
             if ( len(argv) > 0 ):
                 dstdir = argv.pop(0)
                 res = isy.user_rm(name=dstdir)
                 # if res:
-                 #    print "res = ", res
+                 #    print("res = ", res)
             else:
-                print "Missing Arg:\n\t{!s} <filename>".format(cmd)
+                print("Missing Arg:\n\t{!s} <filename>".format(cmd))
         elif cmd in ["MV", "RENAME"]:
             if ( len(argv) > 1 ):
                 old = argv.pop(0)
                 new = argv.pop(0)
                 res = isy.user_mv(name=old, newName=new)
 #               if res:
-#                   print "res = ", res
+#                   print("res = ", res)
             else:
-                print "Missing Arg:\n\t{!s} <filename> <filename>".format(cmd)
+                print("Missing Arg:\n\t{!s} <filename> <filename>".format(cmd))
         elif cmd == "GET":
             if ( len(argv) < 1 ):
-                print "Missing Arg:\n\t{!s} <remote_filename> [local_filename]".format(cmd)
+                print("Missing Arg:\n\t{!s} <remote_filename> [local_filename]".format(cmd))
                 exit(0)
 
             name = argv.pop(0)
@@ -133,7 +136,7 @@ def main(isy):
 
             with open(dstfile, 'w') as fh:
                 fh.write(res)
-            print "{!s} bytes written to {!s}".format(len(res), dstfile)
+            print("{!s} bytes written to {!s}".format(len(res), dstfile))
 
         elif cmd == "DF":
             print_fsstat(isy)
@@ -144,7 +147,7 @@ def main(isy):
             help()
             exit(0)
         else:
-            print "unknown command : {!s}".format(cmd)
+            print("unknown command : {!s}".format(cmd))
             help()
             exit(0)
 
@@ -182,14 +185,14 @@ def print_listing_sort(isy):
                         sizeof_fmt(int(val["file-size"])), val["file-name"]))
                 mytotal += int(l["file-size"])
         else:
-            print "unknown list type : ", key
+            print("unknown list type : ", key)
     #
     for key in sorted(mylist.iterkeys()):
-        print key, ":"
+        print(key, ":")
         for l in mylist[key]:
-            print l
-    # print "Total:\t{:.1f}K".format( (float(mytotal) / 1024) )
-    print "Total:\t{!s}".format( sizeof_fmt(mytotal) )
+            print(l)
+    # print("Total:\t{:.1f}K".format( (float(mytotal) / 1024) ))
+    print("Total:\t{!s}".format( sizeof_fmt(mytotal) ))
 
 def print_listing(isy):
 #
@@ -199,21 +202,21 @@ def print_listing(isy):
         if ( key == 'dir'):
             if isinstance(val, list):
                 for l in val:
-                    print "dir\t{!s}".format(l["dir-name"])
+                    print("dir\t{!s}".format(l["dir-name"]))
             else:
-                print "dir\t{!s}".format(val["dir-name"])
+                print("dir\t{!s}".format(val["dir-name"]))
         elif ( key == 'file' ):
-            # print type(key), type(val)
-            # print "key val = ", key, val
+            # print(type(key), type(val))
+            # print("key val = ", key, val)
             if isinstance(val, list):
                 for l in val:
-                    print "file\t{!s}\t{!s}".format(l["file-size"],
-                        l["file-name"])
+                    print("file\t{!s}\t{!s}".format(l["file-size"],
+                        l["file-name"]))
             else:
-                print "file\t{!s}\t{!s}".format(val["file-size"],
-                    val["file-name"])
+                print("file\t{!s}\t{!s}".format(val["file-size"],
+                    val["file-name"]))
         else:
-            print "unknown list type : ", key
+            print("unknown list type : ", key)
 
 def sizeof_fmt(num):
     if num < 1024.0:
@@ -227,15 +230,15 @@ def print_fsstat(isy):
     #
     flist = isy.user_fsstat()
     # pprint.pprint(flist)
-    print "free={!s}  used={!s} reserved={!s} total={!s}".format(
+    print("free={!s}  used={!s} reserved={!s} total={!s}".format(
         sizeof_fmt(int(flist["free"])),
         sizeof_fmt(int(flist["used"])),
         sizeof_fmt(int(flist["reserved"])),
         sizeof_fmt(int(flist["total"])),
-        )
+        ))
 
 def help():
-    print >> sys.stderr, __doc__
+    print( __doc__, file=sys.stderr)
 
 
 if __name__ == "__main__":
