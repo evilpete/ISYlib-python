@@ -22,16 +22,13 @@ import sys
 import platform
 import xml.etree.ElementTree as ET
 # import base64
-if sys.hexversion < 0x3000000:
-    import urllib2 as URL
-else:
-    import urllib.request as URL
-
+import signal
 import re
+
 # from pprint import pprint
 
+import requests
 
-import signal
 
 __all__ = ['isy_discover']
 
@@ -183,10 +180,9 @@ def isy_discover(**kwargs):
 
 
     for s in ddata.upnp_urls:
-        req = URL.Request(s)
-        resp = URL.urlopen(req)
+        resp = requests.get(s)
 
-        pagedata = resp.read().decode('utf-8')
+        pagedata = resp.text.decode('utf-8')
         resp.close()
 
         # does this even work ??
