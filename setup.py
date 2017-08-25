@@ -9,6 +9,9 @@ from setuptools import setup, find_packages
 
 # ssl._create_default_https_context = ssl._create_unverified_context
 
+# python setup.py --dry-run --verbose install
+# python setup.py install --record files.txt
+
 
 class install_scripts_and_symlinks(install_scripts):
     '''Like install_scripts, but also replicating nonexistent symlinks'''
