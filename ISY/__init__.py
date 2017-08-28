@@ -86,9 +86,9 @@ if sys.hexversion < 0x2070100:
     sys.stderr.write("You need python 2.7.1 or later to run this script (ver={:0X})\n".format(sys.hexversion))
 
 __revision__ = "$Id$"
-__version__ = "0.1.20160710"
+__version__ = "0.1.20170826"
 __author__ = 'Peter Shipley <peter.shipley@gmail.com>'
-__copyright__ = "Copyright (C) 2016 Peter Shipley"
+__copyright__ = "Copyright (C) 2017 Peter Shipley"
 __license__ = "BSD"
 
 #

@@ -38,7 +38,7 @@ IsyNodeFolders are just for organizing
 from __future__ import print_function
 
 __author__ = 'Peter Shipley <peter.shipley@gmail.com>'
-__copyright__ = "Copyright (C) 2015 Peter Shipley"
+__copyright__ = "Copyright (C) 2017 Peter Shipley"
 __license__ = "BSD"
 
 import hashlib

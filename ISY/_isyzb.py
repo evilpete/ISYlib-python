@@ -12,7 +12,7 @@ to test against
 """
 
 # author : Peter Shipley <peter.shipley@gmail.com>
-# copyrigh :  Copyright (C) 2015 Peter Shipley
+# copyrigh :  Copyright (C) 2017 Peter Shipley
 # license : BSD
 
 def load_zb():

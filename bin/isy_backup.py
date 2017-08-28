@@ -50,7 +50,7 @@ reboot_after = False
 def date_time2str(dt):
     return "{0}-{1}-{2} {3}:{4}:{5}".format(*dt)
 
-#ISY-Backup.v4.1.2__Fri 2014.03.14 17.46.52.zip
+#ISY-Backup.v4.1.2__Fri 2017.03.14 17.46.52.zip
 #uuid.00.21.b9.00.e7.08.zip*
 
 def parse_args(isy):

@@ -5,7 +5,7 @@ These funtions are accessable via the Isy class opj
 """
 
 # author : Peter Shipley <peter.shipley@gmail.com>
-# copyrigh :  Copyright (C) 2015 Peter Shipley
+# copyrigh :  Copyright (C) 2017 Peter Shipley
 # license : BSD
 
 from __future__ import print_function
@@ -14,7 +14,7 @@ import ISY.IsyExceptionClass as IsyE
 # from past.builtins import long
 from .IsyProgramClass import IsyProgram
 import xml.etree.ElementTree as ET
-from warnings import warn
+# from warnings import warn
 
 
 ##

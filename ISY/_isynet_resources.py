@@ -6,7 +6,7 @@ These funtions are accessable via the Isy class opj
 """
 
 # author : Peter Shipley <peter.shipley@gmail.com>
-# copyrigh :  Copyright (C) 2015 Peter Shipley
+# copyrigh :  Copyright (C) 2017 Peter Shipley
 # license : BSD
 
 from .IsyUtilClass import et2d
