@@ -62,7 +62,7 @@ from .IsyUtilClass import IsyUtil, IsySubClass, et2d
 __author__ = 'Peter Shipley <peter.shipley@gmail.com>'
 __copyright__ = "Copyright (C) 2017 Peter Shipley"
 __license__ = "BSD"
-__version__ = "0.1.20170826"
+__version__ = "0.1.20170829"
 
 # Debug Flags:
 # 0x0001 = report loads
