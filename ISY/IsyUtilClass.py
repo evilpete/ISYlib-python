@@ -168,7 +168,7 @@ class IsyUtil(object):
             # print("res.getcode() ", res.getcode(), len(data))
         except IOError as ioex:
             self.error_str = str("Error Code : {0} : {1}").format(
-                xurl, str(rex))
+                xurl, str(ioex))
             return None
         except requests.exceptions.RequestException as rex:
             self.error_str = str("Response Code : {0} : {1} : {2}").format(
