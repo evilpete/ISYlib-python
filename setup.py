@@ -22,7 +22,7 @@ class install_scripts_and_symlinks(install_scripts):
         for script in self.distribution.scripts:
             # print  "\n---script = ",script
             if os.path.islink(script):
-		target = os.readlink(script)
+                target = os.readlink(script)
                 newlink = os.path.join(self.install_dir, os.path.basename(script))
 
 setup(
