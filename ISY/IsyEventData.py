@@ -52,10 +52,23 @@ EVENT_CTRL  = {
     "CLIMD" : "Thermostat Mode",
     "CLIHUM" : "Humidity",
     "CLIHCS" : "Heat/Cool State",
+    "CLITEMP" : "Thermostat Reading",
+    "CLIFSO" : "Fan Mode Overide",
+    "LUMIN" : "Lux",
+    "UV" : "Ultraviolet Light Index",
+    "WINDDIR" : "Wind Direction",
+    "BATLVL" : "Battery Level",
     "BRT" : "Brighten",
     "DIM" : "Dim",
     "X10" : "Direct X10 Commands",
     "BEEP" : "Beep",
+    "GV3" : "Nanoleaf Aurora Brightness",
+    "GV4" : "Nanoleaf Aurora Scene Number",
+    "SVOL" : "Sonos Speaker Volume",
+    "GV1" : "Something Sonos 1",
+    "GV2" : "Something Sonos 2",
+    "USRNUM" : "User Number",
+    "ERR" : "Error"
     }
 
 EVENT_CTRL_ACTION  = {
